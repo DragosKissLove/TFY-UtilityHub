@@ -1,0 +1,5770 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  --bg-0: #020304;
+  --bg-1: #050607;
+  --bg-2: #0a0d11;
+  --panel: rgba(12, 14, 18, 0.52);
+  --panel-border: rgba(255, 255, 255, 0.04);
+  --panel-strong: rgba(255, 255, 255, 0.07);
+  --accent: #24bf97;
+  --accent-strong: #5cf0c6;
+  --accent-soft: rgba(36, 191, 151, 0.04);
+  --glow: rgba(36, 191, 151, 0.14);
+  --glow: rgba(36, 191, 151, 0.14);
+}
+
+@keyframes checkmark {
+  from {
+    stroke-dashoffset: 20;
+  }
+
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@layer base {
+  * {
+    @apply transition-colors duration-300;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.35s ease-out;
+}
+
+.animate-fadeOut {
+  animation: fadeOut 0.18s ease-in forwards;
+}
+
+/* Prevent an (invisible) fading modal overlay from blocking clicks. */
+.tfy-modal.animate-fadeOut {
+  pointer-events: none !important;
+}
+
+@layer components {
+  .glass {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(36, 191, 151, 0.08);
+  }
+
+  .glass-dark {
+    background: var(--panel);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--panel-border);
+  }
+
+  .gradient-accent {
+    background: linear-gradient(135deg, #24bf97 0%, rgba(36, 191, 151, 0.5) 100%);
+  }
+
+  .panel {
+    @apply glass-dark rounded-2xl border border-white/10;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+  }
+
+  .panel-outline {
+    border: 1px solid var(--panel-strong);
+    /* Neutral outline (no old accent tint leaking into settings/system panels). */
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+  }
+
+  .chip {
+    @apply px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider;
+    background: rgba(36, 191, 151, 0.08);
+    color: var(--accent-strong);
+    border: 1px solid rgba(36, 191, 151, 0.3);
+  }
+
+  .tag {
+    @apply px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider;
+    border: 1px solid transparent;
+  }
+
+  .tag-minor {
+    background: rgba(36, 191, 151, 0.15);
+    color: #5cf0c6;
+    border-color: rgba(36, 191, 151, 0.4);
+  }
+
+  .tag-major {
+    background: rgba(255, 118, 76, 0.14);
+    color: #ffb08a;
+    border-color: rgba(255, 118, 76, 0.35);
+  }
+
+  .tag-patch {
+    background: rgba(77, 127, 255, 0.14);
+    color: #8fb0ff;
+    border-color: rgba(77, 127, 255, 0.35);
+  }
+
+  .btn-primary {
+    @apply rounded-xl px-4 py-2 text-sm font-semibold transition-all duration-300;
+    background: linear-gradient(135deg, rgba(36, 191, 151, 0.9), rgba(92, 240, 198, 0.6));
+    box-shadow: 0 10px 30px rgba(36, 191, 151, 0.25);
+  }
+
+  .btn-primary:active {
+    transform: translateY(0);
+    box-shadow: 0 8px 20px rgba(36, 191, 151, 0.25);
+  }
+
+  .btn-ghost {
+    @apply rounded-xl px-4 py-2 text-sm font-semibold transition-all duration-300;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .btn-ghost:hover {
+    border-color: rgba(92, 240, 198, 0.45);
+    color: #ffffff;
+    transform: translateY(-1px);
+  }
+
+  .btn-ghost:active {
+    transform: translateY(0);
+  }
+
+  .btn-accent {
+    @apply rounded-xl px-4 py-2 text-sm font-semibold transition-all duration-300;
+    background: rgba(36, 191, 151, 0.14);
+    border: 1px solid rgba(36, 191, 151, 0.4);
+    color: #5cf0c6;
+  }
+
+  .btn-accent:hover {
+    background: rgba(36, 191, 151, 0.2);
+    color: #ffffff;
+  }
+
+  .btn-fade {
+    transition: opacity 0.2s ease;
+  }
+
+  .btn-fade:hover {
+    opacity: 0.9;
+  }
+
+  .btn-fade:active {
+    opacity: 0.55;
+  }
+
+  .metric-ring {
+    background: radial-gradient(circle at 50% 30%, rgba(92, 240, 198, 0.04), transparent 55%);
+    border: 1px solid rgba(92, 240, 198, 0.18);
+  }
+
+  .section-title {
+    @apply text-sm uppercase tracking-[0.3em] text-gray-400;
+  }
+
+  .liquid-card {
+    background: linear-gradient(180deg, rgba(14, 18, 24, 0.82) 0%, rgba(7, 9, 12, 0.78) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: inset 0 0 0 1px rgba(36, 191, 151, 0.015), 0 20px 50px rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(18px);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .liquid-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 25% 20%, rgba(36, 191, 151, 0.04), transparent 60%),
+      radial-gradient(circle at 80% 80%, rgba(36, 191, 151, 0.015), transparent 65%);
+    opacity: 0.45;
+    pointer-events: none;
+  }
+
+  .liquid-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    pointer-events: none;
+  }
+
+  .sidebar-item {
+    border: 1px solid transparent;
+  }
+
+  .sidebar-item.active {
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  .system-tab {
+    border: 1px solid transparent;
+  }
+
+  .system-tab.active {
+    border-color: rgba(36, 191, 151, 0.45);
+  }
+
+  .toggle {
+    width: 54px;
+    height: 28px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    display: inline-flex;
+    align-items: center;
+    padding: 2px;
+    transition: background 0.2s ease, border-color 0.2s ease;
+  }
+
+  .toggle.on {
+    background: rgba(36, 191, 151, 0.25);
+    border-color: rgba(36, 191, 151, 0.5);
+    box-shadow: 0 0 12px rgba(36, 191, 151, 0.25);
+  }
+
+  .toggle-thumb {
+    width: 22px;
+    height: 22px;
+    border-radius: 999px;
+    background: #f8f9fb;
+    transition: transform 0.2s ease;
+  }
+
+  .toggle.on .toggle-thumb {
+    transform: translateX(24px);
+  }
+
+  .window-button {
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    background: transparent;
+    border: none;
+    color: #cbd5f5;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s ease;
+  }
+
+  .window-button:hover {
+    color: #ffffff;
+  }
+
+  .window-button.close:hover {
+    color: #ff7a7a;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
+  }
+}
+
+body {
+  background-color: var(--bg-0);
+  @apply text-white;
+  font-family: 'Segoe UI Variable', 'Segoe UI', 'Inter', sans-serif;
+  background: radial-gradient(circle at 20% 15%, rgba(36, 191, 151, 0.03) 0%, transparent 45%),
+    radial-gradient(circle at 80% 85%, rgba(36, 191, 151, 0.03) 0%, transparent 50%),
+    linear-gradient(180deg, var(--bg-0) 0%, var(--bg-1) 100%);
+}
+
+.app-shell {
+  background: transparent;
+  position: relative;
+  isolation: isolate;
+}
+
+.font-display {
+  font-family: 'Segoe UI Variable', 'Segoe UI', 'Inter', sans-serif;
+}
+
+
+
+
+.loading-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 20% 20%, rgba(36, 191, 151, 0.08), transparent 45%),
+    radial-gradient(circle at 80% 80%, rgba(36, 191, 151, 0.05), transparent 50%),
+    rgba(2, 3, 4, 0.92);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  transition: opacity 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.loading-screen.loading-fade {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.loading-glass {
+  min-width: 360px;
+  padding: 34px 40px;
+  border-radius: 24px;
+  background: rgba(10, 12, 16, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+  text-align: center;
+}
+
+.loading-logo {
+  width: 96px;
+  height: 96px;
+  object-fit: contain;
+  margin: 0 auto 10px;
+  filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.35));
+}
+
+.loading-title {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.loading-sub {
+  margin-top: 6px;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 13px;
+}
+
+.loading-bar {
+  margin-top: 18px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.loading-bar-fill {
+  display: block;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(90deg, rgba(36, 191, 151, 0.8), rgba(92, 240, 198, 0.8));
+  animation: loadingSlide 1.4s ease-in-out infinite;
+}
+
+@keyframes loadingSlide {
+  0% {
+    transform: translateX(-120%);
+  }
+
+  50% {
+    transform: translateX(120%);
+  }
+
+  100% {
+    transform: translateX(120%);
+  }
+}
+
+@keyframes glowPulse {
+  0% {
+    opacity: 0.5;
+    transform: scale(0.98);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1.02);
+  }
+}
+
+.update-glow {
+  position: relative;
+  overflow: hidden;
+}
+
+.update-glow::before {
+  content: "";
+  position: absolute;
+  inset: -35%;
+  background: radial-gradient(circle at 20% 20%, rgba(36, 191, 151, 0.25), transparent 55%),
+    radial-gradient(circle at 80% 0%, rgba(92, 240, 198, 0.18), transparent 60%);
+  filter: blur(30px);
+  opacity: 0.55;
+  animation: glowPulse 3.5s ease-in-out infinite alternate;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.update-glow>* {
+  position: relative;
+  z-index: 1;
+}
+
+.update-hero {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, .06);
+  background: linear-gradient(135deg, rgba(36, 191, 151, .18), rgba(9, 12, 16, .75));
+}
+
+.update-hero-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(36, 191, 151, .2);
+  color: #5cf0c6;
+  box-shadow: 0 0 24px rgba(36, 191, 151, .25);
+}
+
+.update-kicker {
+  font-size: .65rem;
+  letter-spacing: .35em;
+  color: #9ca3af;
+  text-transform: uppercase;
+}
+
+.update-version-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: .75rem;
+}
+
+.update-warning {
+  padding: .75rem 1rem;
+  border-radius: .75rem;
+  background: rgba(255, 122, 122, .08);
+  border: 1px solid rgba(255, 122, 122, .35);
+  color: #ff9a9a;
+  font-size: .85rem;
+}
+
+@keyframes monitorGlow {
+  0% {
+    opacity: 0.35;
+    transform: translateY(6px);
+  }
+
+  100% {
+    opacity: 0.6;
+    transform: translateY(-6px);
+  }
+}
+
+
+.chart-glass {
+  border-radius: 16px;
+  padding: 6px;
+  background: linear-gradient(180deg, rgba(10, 14, 18, 0.78), rgba(6, 8, 10, 0.7));
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: inset 0 0 0 1px rgba(36, 191, 151, 0.08), 0 16px 32px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+
+
+
+.chart-shell {
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+}
+
+.chart-axis {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  font-size: 10px;
+  color: #9aa3b2;
+  min-width: 34px;
+}
+
+.chart-area {
+  position: relative;
+  flex: 1;
+  border-radius: 16px;
+  overflow: hidden;
+  background: radial-gradient(circle at 20% 20%, rgba(36, 191, 151, .12), transparent 55%), rgba(5, 7, 9, 0.6);
+}
+
+.chart-tooltip {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.download-search {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding: 0.5rem 0.8rem;
+  border-radius: .9rem;
+  background: rgba(255, 255, 255, .06);
+  border: 1px solid rgba(255, 255, 255, .1);
+  min-width: 220px;
+}
+
+.download-card {
+  background: rgba(10, 12, 16, .7);
+  border: 1px solid var(--panel-border);
+  border-radius: .9rem;
+  padding: .6rem .65rem;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, .28);
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+}
+
+.download-card-head {
+  display: flex;
+  gap: .75rem;
+  align-items: center;
+}
+
+.download-logo {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, .06);
+  border: 1px solid rgba(255, 255, 255, .1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.download-logo img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+.download-logo[data-loaded='true'] .download-tag {
+  opacity: 0;
+}
+
+.download-tag {
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  color: #b6f1df;
+}
+
+.download-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: .7rem;
+  color: #9aa3b2;
+}
+
+.download-domain {
+  text-transform: lowercase;
+  opacity: .8;
+}
+
+.download-action-row {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+}
+
+.download-button {
+  padding: .45rem .85rem;
+  border-radius: .75rem;
+  border: 1px solid rgba(36, 191, 151, .45);
+  background: transparent;
+  color: #5cf0c6;
+  font-weight: 600;
+  transition: all .2s ease;
+}
+
+.download-button:hover {
+  background: #24bf97;
+  color: #06100c;
+  box-shadow: 0 10px 24px rgba(36, 191, 151, .25);
+}
+
+.download-button.downloaded {
+  background: #24bf97;
+  color: #06100c;
+}
+
+
+
+
+
+
+
+.chart-hover-line {
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  width: 1px;
+  background: rgba(255, 255, 255, 0.12);
+  pointer-events: none;
+}
+
+.chart-x {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 6px;
+}
+
+.chart-grid {
+  background-image: linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px), linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 18px 18px;
+}
+
+
+body::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+body {
+  scrollbar-width: none;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+  line-height: 1;
+}
+
+
+.chart-panel {
+  background: linear-gradient(180deg, rgba(8, 12, 16, .85), rgba(6, 8, 10, .7));
+  border: 1px solid rgba(255, 255, 255, .05);
+  box-shadow: inset 0 0 0 1px rgba(36, 191, 151, .08), 0 12px 32px rgba(0, 0, 0, .45);
+}
+
+.chart-shell {
+  gap: 16px;
+}
+
+.chart-area {
+  position: relative;
+  flex: 1;
+  border-radius: 16px;
+  overflow: hidden;
+  background: radial-gradient(circle at 20% 20%, rgba(36, 191, 151, .12), transparent 55%), rgba(5, 7, 9, 0.6);
+}
+
+.chart-area svg {
+  height: 140px;
+}
+
+.chart-area:after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .04);
+  pointer-events: none;
+}
+
+
+
+
+
+
+
+/* Chart redesign overrides */
+.chart-panel {
+  background: linear-gradient(180deg, rgba(8, 12, 16, .86), rgba(6, 8, 10, .74));
+  border: 1px solid rgba(255, 255, 255, .04);
+  box-shadow: inset 0 0 0 1px rgba(36, 191, 151, .05), 0 16px 34px rgba(0, 0, 0, .5);
+}
+
+.chart-shell {
+  gap: 18px;
+}
+
+.chart-axis {
+  min-width: 36px;
+  color: #8f98a6;
+}
+
+.chart-area {
+  background: radial-gradient(circle at 15% 25%, rgba(36, 191, 151, .1), transparent 55%), linear-gradient(180deg, rgba(6, 9, 12, .8), rgba(5, 7, 9, .85));
+}
+
+.chart-area svg {
+  height: 150px;
+}
+
+.chart-grid {
+  background-size: 20px 20px;
+  opacity: .55;
+}
+
+.chart-hover-line {
+  background: rgba(92, 240, 198, .35);
+}
+
+.chart-tooltip .panel {
+  background: rgba(8, 10, 12, .9);
+  border: 1px solid rgba(255, 255, 255, .08);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, .45);
+}
+
+/* === Overrides: softer cards + chart redesign === */
+.chart-panel {
+  background: linear-gradient(180deg, rgba(8, 12, 16, .78), rgba(6, 8, 10, .74));
+  border: 1px solid rgba(255, 255, 255, .04);
+  box-shadow: inset 0 0 0 1px rgba(36, 191, 151, .04), 0 16px 34px rgba(0, 0, 0, .5);
+}
+
+.chart-shell {
+  gap: 20px;
+}
+
+.chart-axis {
+  min-width: 38px;
+  color: #8a95a6;
+  letter-spacing: .02em;
+}
+
+.chart-area {
+  background: radial-gradient(circle at 18% 18%, rgba(36, 191, 151, .08), transparent 55%), linear-gradient(180deg, rgba(6, 9, 12, .78), rgba(5, 7, 9, .88));
+}
+
+.chart-area svg {
+  height: 158px;
+}
+
+.chart-grid {
+  background-size: 22px 22px;
+  opacity: .5;
+}
+
+.chart-hover-line {
+  background: rgba(92, 240, 198, .28);
+}
+
+.chart-tooltip .panel {
+  background: rgba(8, 10, 12, .92);
+  border: 1px solid rgba(255, 255, 255, .08);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, .45);
+}
+
+.download-card {
+  padding: .55rem .6rem;
+  border-radius: .85rem;
+}
+
+.download-logo {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+}
+
+.download-logo img {
+  width: 18px;
+  height: 18px;
+}
+
+.download-meta {
+  font-size: .68rem;
+}
+
+/* === Final softening + chart polish === */
+:root {
+  --accent-soft: rgba(36, 191, 151, 0.02);
+  --glow: rgba(36, 191, 151, 0.06);
+}
+
+.liquid-card::before {
+  opacity: 0.22;
+}
+
+.metric-ring {
+  background: radial-gradient(circle at 50% 30%, rgba(92, 240, 198, 0.03), transparent 55%);
+  border: 1px solid rgba(92, 240, 198, 0.12);
+}
+
+.chart-panel {
+  background: linear-gradient(180deg, rgba(8, 12, 16, 0.74), rgba(6, 8, 10, 0.78));
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  box-shadow: inset 0 0 0 1px rgba(36, 191, 151, 0.035), 0 16px 36px rgba(0, 0, 0, 0.55);
+}
+
+.chart-shell {
+  gap: 18px;
+}
+
+.chart-axis {
+  min-width: 38px;
+  color: #8a95a6;
+}
+
+.chart-area {
+  background: radial-gradient(circle at 18% 18%, rgba(36, 191, 151, 0.08), transparent 55%),
+    linear-gradient(180deg, rgba(6, 9, 12, 0.78), rgba(5, 7, 9, 0.88));
+}
+
+.chart-area svg {
+  height: 150px;
+}
+
+.chart-grid {
+  background-size: 22px 22px;
+  opacity: 0.5;
+}
+
+.chart-hover-line {
+  background: rgba(92, 240, 198, 0.28);
+}
+
+.chart-tooltip .panel {
+  background: rgba(8, 10, 12, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.45);
+}
+
+
+.chart-modern {
+  background: radial-gradient(circle at 20% 25%, rgba(36, 191, 151, 0.06), transparent 60%);
+}
+
+/* overrides */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
+}
+
+.chart-modern {
+  background: radial-gradient(circle at 18% 25%, rgba(36, 191, 151, 0.08), transparent 60%), linear-gradient(180deg, rgba(6, 9, 12, 0.78), rgba(5, 7, 9, 0.9));
+}
+
+.chart-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: #9aa3b2;
+  background: rgba(8, 10, 12, 0.4);
+}
+
+
+.download-card {
+  padding: .5rem .6rem;
+  border-radius: .8rem;
+  gap: .45rem;
+}
+
+.download-card-head {
+  gap: .6rem;
+}
+
+.download-logo {
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+}
+
+.download-logo img {
+  width: 16px;
+  height: 16px;
+}
+
+.download-meta {
+  font-size: .65rem;
+}
+
+
+/* EXM-inspired chart styling */
+.chart-panel {
+  background: linear-gradient(180deg, rgba(8, 12, 16, 0.7), rgba(6, 8, 10, 0.85));
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 0 0 1px rgba(36, 191, 151, 0.04), 0 18px 40px rgba(0, 0, 0, 0.5);
+}
+
+.chart-area {
+  border-radius: 16px;
+  position: relative;
+  overflow: hidden;
+  background: radial-gradient(circle at 20% 20%, rgba(36, 191, 151, 0.05), transparent 55%), linear-gradient(180deg, #0a0d14 0%, #07090e 100%);
+}
+
+.chart-modern {
+  background: radial-gradient(circle at 25% 25%, rgba(36, 191, 151, 0.08), transparent 60%), linear-gradient(180deg, #0a0d14 0%, #07090e 100%);
+}
+
+.chart-grid {
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+.chart-hover-line {
+  background: repeating-linear-gradient(to bottom, rgba(92, 240, 198, 0.45) 0, rgba(92, 240, 198, 0.45) 6px, transparent 6px, transparent 12px);
+  opacity: 0.75;
+}
+
+.chart-tooltip .panel {
+  background: rgba(9, 12, 16, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.45);
+}
+
+
+.backup-search,
+.fix-search {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.6rem 0.9rem;
+  border-radius: 0.9rem;
+  max-width: 360px;
+}
+
+.backup-row {
+  display: grid;
+  grid-template-columns: 32px 1.5fr 1fr 140px 80px;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.75rem 0.5rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 1rem;
+}
+
+.backup-checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 1px solid color-mix(in srgb, var(--accent) 36%, rgba(255, 255, 255, 0.22));
+  background: rgba(255, 255, 255, 0.03);
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+  transition: border-color .2s ease, background .2s ease, box-shadow .2s ease, transform .12s ease;
+}
+
+.backup-checkbox:active {
+  transform: scale(0.95);
+}
+
+.backup-checkbox::before {
+  content: '✓';
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  color: color-mix(in srgb, var(--accent) 84%, #ffffff 16%);
+  transform: translate(-50%, -52%) scale(0.45);
+  opacity: 0;
+  transform-origin: center center;
+}
+
+.backup-checkbox.selected {
+  background: color-mix(in srgb, var(--accent) 14%, rgba(255, 255, 255, 0.04)) !important;
+  border-color: color-mix(in srgb, var(--accent) 60%, rgba(255, 255, 255, 0.24)) !important;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+.backup-checkbox.selected::before {
+  opacity: 1;
+  transform: translate(-50%, -52%) scale(1);
+  animation: backupCheckIn .22s cubic-bezier(.2, .9, .2, 1);
+}
+
+@keyframes backupCheckIn {
+  0% {
+    transform: translate(-50%, -52%) scale(0.25);
+    opacity: 0;
+  }
+
+  68% {
+    transform: translate(-50%, -52%) scale(1.12);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(-50%, -52%) scale(1);
+    opacity: 1;
+  }
+}
+
+.backup-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.2rem 0.6rem;
+  font-size: 0.7rem;
+  border-radius: 999px;
+  background: rgba(36, 191, 151, 0.15);
+  color: #5cf0c6;
+  border: 1px solid rgba(36, 191, 151, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.backup-tag.auto {
+  background: rgba(236, 72, 153, 0.12);
+  color: #f472b6;
+  border-color: rgba(236, 72, 153, 0.3);
+}
+
+.backup-action {
+  width: 36px;
+  height: 28px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: color-mix(in srgb, var(--accent) 42%, #ffffff 58%);
+}
+
+.fix-card {
+  background: rgba(12, 14, 18, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1rem;
+  padding: 1rem;
+  min-height: 150px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: inset 0 0 0 1px rgba(36, 191, 151, 0.05);
+}
+
+.fix-action {
+  margin-top: 1rem;
+  border-radius: 0.8rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+  color: #e5e7eb;
+  padding: 0.6rem 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+}
+
+.chart-exm {
+  background: linear-gradient(180deg, rgba(32, 36, 46, 0.7), rgba(12, 14, 18, 0.7));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.chart-exm svg {
+  overflow: visible;
+}
+
+.chart-exm .chart-line {
+  stroke: #6d6df7;
+  stroke-width: 2.2;
+  fill: none;
+}
+
+.chart-exm .chart-fill {
+  fill: url(#tempFill);
+}
+
+.chart-exm .chart-dot {
+  fill: #6d6df7;
+  stroke: #0b0f16;
+  stroke-width: 1.5;
+}
+
+.chart-exm .chart-gridline {
+  stroke: rgba(255, 255, 255, 0.08);
+  stroke-width: 1;
+  stroke-dasharray: 3 5;
+}
+
+.chart-tooltip {
+  background: rgba(15, 18, 24, 0.9);
+  border: 1px solid rgba(109, 109, 247, 0.35);
+}
+
+.ring-value {
+  display: block;
+  min-width: 4.5ch;
+  text-align: center;
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .02em;
+}
+
+.chart-exm {
+  background: linear-gradient(180deg, rgba(20, 22, 34, 0.92), rgba(12, 14, 22, 0.88));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.chart-exm .chart-line {
+  fill: none;
+  stroke: #7c6bff;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+}
+
+.chart-exm .chart-fill {
+  fill: url(#tempFill);
+}
+
+.chart-exm .chart-dot {
+  fill: #7c6bff;
+  stroke: #0b0f16;
+  stroke-width: 1.4;
+}
+
+.chart-exm .chart-gridline {
+  stroke: rgba(255, 255, 255, 0.08);
+  stroke-width: 1;
+  stroke-dasharray: 2 6;
+}
+
+.liquid-card {
+  background: linear-gradient(180deg, rgba(10, 12, 16, 0.85), rgba(7, 9, 12, 0.95));
+}
+
+.liquid-card:before {
+  background: radial-gradient(circle at 25% 20%, rgba(36, 191, 151, 0.06), transparent 60%), radial-gradient(circle at 80% 80%, rgba(36, 191, 151, 0.03), transparent 65%);
+  opacity: 0.7;
+}
+
+.panel {
+  background: rgba(10, 12, 16, 0.75);
+}
+
+/* === Runtime UI overrides (latest) === */
+.no-scrollbar,
+.no-scrollbar * {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar,
+.no-scrollbar *::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+.ring-value {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 5ch;
+  width: 5ch;
+  text-align: center;
+  font-size: 1.875rem;
+  font-weight: 700;
+  line-height: 1;
+  color: #ffffff;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+.liquid-card {
+  background: linear-gradient(180deg, rgba(12, 16, 22, 0.76) 0%, rgba(7, 9, 12, 0.72) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 0 0 1px rgba(36, 191, 151, 0.01), 0 18px 46px rgba(0, 0, 0, 0.5);
+}
+
+.liquid-card::before {
+  opacity: 0.28;
+  background: radial-gradient(circle at 25% 20%, rgba(36, 191, 151, 0.03), transparent 60%),
+    radial-gradient(circle at 80% 80%, rgba(36, 191, 151, 0.02), transparent 65%);
+}
+
+.metric-ring {
+  background: radial-gradient(circle at 50% 30%, rgba(92, 240, 198, 0.035), transparent 55%);
+  border: 1px solid rgba(92, 240, 198, 0.14);
+}
+
+.download-card {
+  padding: 0.5rem 0.6rem;
+  border-radius: 0.8rem;
+  gap: 0.45rem;
+  background: rgba(10, 12, 16, 0.68);
+}
+
+.download-logo {
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+}
+
+.download-logo img {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
+.chart-exm {
+  background: linear-gradient(180deg, rgba(16, 18, 30, 0.92), rgba(10, 12, 20, 0.88));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.chart-exm .chart-line {
+  fill: none;
+  stroke: #7c6bff;
+  stroke-width: 2.6;
+  stroke-linecap: round;
+}
+
+.chart-exm .chart-fill {
+  fill: url(#tempFill);
+}
+
+.chart-exm .chart-dot {
+  fill: #7c6bff;
+  stroke: #0b0f16;
+  stroke-width: 1.4;
+}
+
+/* 2026 refresh + layout stability */
+html,
+body,
+#root {
+  height: 100%;
+  overflow: hidden;
+}
+
+:root {
+  --bg-0: #090c10;
+  --bg-1: #0f1318;
+  --bg-2: #151a20;
+  --panel: rgba(24, 28, 34, 0.58);
+  --panel-border: rgba(255, 255, 255, 0.06);
+  --panel-strong: rgba(255, 255, 255, 0.10);
+  --accent: #20b48c;
+  --accent-strong: #7de2c2;
+}
+
+body {
+  background:
+    radial-gradient(circle at 15% 12%, rgba(255, 168, 120, 0.07), transparent 36%),
+    radial-gradient(circle at 85% 85%, rgba(32, 180, 140, 0.10), transparent 40%),
+    linear-gradient(170deg, #0a0d12 0%, #11161d 52%, #171d24 100%);
+}
+
+.window-controls {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+.ring-value {
+  min-width: auto;
+  width: auto;
+  display: block;
+  text-align: center;
+  line-height: 1;
+}
+
+.liquid-card {
+  /* Slightly brighter than before (Home/Backups felt too dark vs Resources). */
+  background: linear-gradient(180deg, rgba(26, 32, 40, 0.72), rgba(18, 22, 28, 0.62));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 18px 40px rgba(0, 0, 0, 0.42);
+}
+
+.chart-panel {
+  background: linear-gradient(180deg, rgba(21, 26, 34, 0.88), rgba(15, 19, 26, 0.90));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.chart-shell {
+  display: grid;
+  grid-template-columns: 42px 1fr;
+  align-items: stretch;
+  gap: 12px;
+}
+
+.chart-area.chart-exm {
+  min-height: 180px;
+  height: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background:
+    radial-gradient(circle at 20% 20%, rgba(32, 180, 140, 0.15), transparent 52%),
+    linear-gradient(180deg, rgba(17, 22, 30, 0.92), rgba(12, 16, 22, 0.92));
+}
+
+.chart-area.chart-exm svg {
+  height: 170px;
+}
+
+.chart-exm .chart-line {
+  stroke: #20b48c;
+}
+
+.chart-exm .chart-dot {
+  fill: #7de2c2;
+  stroke: #12222b;
+}
+
+.chart-exm .chart-gridline {
+  stroke: rgba(255, 255, 255, 0.12);
+}
+
+/* Palette pass v2: graphite + jade + warm sand */
+:root {
+  --bg-0: #0b0f13;
+  --bg-1: #12171d;
+  --bg-2: #1a2027;
+  --panel: rgba(27, 33, 40, 0.62);
+  --panel-border: rgba(255, 255, 255, 0.075);
+  --panel-strong: rgba(255, 255, 255, 0.12);
+  --accent: #2dc89e;
+  --accent-strong: #9ce8d3;
+  --accent-warm: #e9b07b;
+}
+
+body {
+  background:
+    radial-gradient(circle at 12% 10%, rgba(233, 176, 123, 0.085), transparent 34%),
+    radial-gradient(circle at 84% 82%, rgba(45, 200, 158, 0.11), transparent 42%),
+    linear-gradient(170deg, #0c1015 0%, #131920 52%, #1a2129 100%);
+}
+
+.panel,
+.liquid-card,
+.download-card,
+.fix-card {
+  background: linear-gradient(180deg, rgba(25, 31, 38, 0.78), rgba(18, 23, 30, 0.72));
+  border-color: rgba(255, 255, 255, 0.09);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, rgba(45, 200, 158, 0.95), rgba(156, 232, 211, 0.72));
+  box-shadow: 0 10px 28px rgba(45, 200, 158, 0.26);
+}
+
+.btn-ghost {
+  background: rgba(255, 255, 255, 0.055);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.chip {
+  background: color-mix(in srgb, var(--accent) 12%, rgba(255, 255, 255, 0.03));
+  color: color-mix(in srgb, var(--accent-strong) 70%, #ffffff 30%);
+  border-color: color-mix(in srgb, var(--accent) 44%, rgba(255, 255, 255, 0.20));
+}
+
+.window-controls {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+.chart-area.chart-exm {
+  background:
+    radial-gradient(circle at 20% 20%, rgba(45, 200, 158, 0.16), transparent 52%),
+    radial-gradient(circle at 80% 80%, rgba(233, 176, 123, 0.12), transparent 54%),
+    linear-gradient(180deg, rgba(17, 22, 30, 0.93), rgba(12, 16, 23, 0.94));
+}
+
+.chart-exm .chart-line {
+  stroke: #2dc89e;
+}
+
+.chart-exm .chart-dot {
+  fill: #9ce8d3;
+}
+
+.download-logo {
+  background: linear-gradient(145deg, rgba(45, 200, 158, 0.24), rgba(233, 176, 123, 0.15));
+}
+
+/* Final alignment and chart polish */
+.ring-value {
+  min-width: 0 !important;
+  width: auto !important;
+  display: inline-block !important;
+  text-align: center !important;
+}
+
+.download-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.download-logo img {
+  display: block;
+  margin: 0 auto;
+}
+
+.chart-exm .chart-gridline {
+  stroke: rgba(255, 255, 255, 0.08) !important;
+  stroke-width: 0.7 !important;
+  stroke-dasharray: 2 7 !important;
+}
+
+.chart-exm .chart-line {
+  stroke-width: 1.9 !important;
+}
+
+.chart-hover-line {
+  background: rgba(255, 255, 255, 0.18) !important;
+  width: 1px !important;
+}
+
+.backup-row {
+  grid-template-columns: 32px 1.6fr 1fr 120px 120px;
+}
+
+.download-card {
+  border-radius: 16px;
+  padding: 12px;
+  background: linear-gradient(180deg, rgba(20, 24, 32, 0.78), rgba(13, 16, 22, 0.74));
+}
+
+.download-card-head {
+  align-items: center;
+}
+
+.download-logo {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(145deg, rgba(32, 180, 140, 0.22), rgba(255, 168, 120, 0.12));
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.download-logo img {
+  width: 24px;
+  height: 24px;
+}
+
+.download-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid rgba(32, 180, 140, 0.55);
+}
+
+/* --- Final Home/Chart fit pass --- */
+.home-fit .chart-panel,
+.chart-panel {
+  padding: 10px !important;
+}
+
+.chart-shell {
+  gap: 10px !important;
+  align-items: stretch !important;
+}
+
+.chart-axis {
+  min-width: 34px !important;
+  font-size: 10px !important;
+}
+
+.chart-area.chart-exm {
+  min-height: 128px !important;
+  height: 128px !important;
+  max-height: 128px !important;
+  overflow: hidden !important;
+  background:
+    radial-gradient(circle at 18% 20%, rgba(45, 200, 158, 0.14), transparent 54%),
+    linear-gradient(180deg, rgba(16, 21, 28, 0.94), rgba(12, 16, 22, 0.95)) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.chart-area.chart-exm svg {
+  height: 128px !important;
+}
+
+.chart-exm .chart-gridline {
+  stroke: rgba(255, 255, 255, 0.10) !important;
+  stroke-width: 0.55 !important;
+  stroke-dasharray: 2 8 !important;
+}
+
+.chart-exm .chart-line {
+  stroke: #2dc89e !important;
+  stroke-width: 1.35 !important;
+  stroke-linecap: round !important;
+}
+
+.chart-exm .chart-fill {
+  opacity: 0.5 !important;
+}
+
+.chart-exm .chart-dot {
+  r: 2.25 !important;
+}
+
+/* Keep home fully inside viewport on 1366x768-ish screens */
+@media (max-height: 800px) {
+  .monitor-card {
+    padding: 12px !important;
+  }
+
+  .monitor-card .text-4xl {
+    font-size: 44px !important;
+    line-height: 1 !important;
+  }
+
+  .monitor-card .w-\[140px\] {
+    width: 124px !important;
+    transform: scale(0.84) !important;
+  }
+
+  .chart-area.chart-exm,
+  .chart-area.chart-exm svg {
+    min-height: 118px !important;
+    height: 118px !important;
+    max-height: 118px !important;
+  }
+}
+
+/* === Request pass: metrics + chart stretch + resources loader === */
+.font-metrics {
+  font-family: 'Space Grotesk', 'Segoe UI Variable', 'Segoe UI', sans-serif;
+}
+
+.monitor-metric-card .metric-readout {
+  gap: 2px;
+}
+
+.monitor-metric-card .metric-value {
+  letter-spacing: 0.01em;
+}
+
+.monitor-metric-card .metric-label {
+  font-size: 0.83rem;
+  color: rgba(229, 231, 235, 0.82);
+}
+
+.chart-panel {
+  padding: 10px 12px !important;
+}
+
+.chart-shell {
+  height: 100%;
+  display: grid !important;
+  grid-template-columns: 38px 1fr;
+  align-items: stretch !important;
+  gap: 10px !important;
+}
+
+.chart-axis {
+  min-width: 38px !important;
+  font-size: 10px !important;
+}
+
+.chart-area.chart-exm {
+  min-height: 0 !important;
+  height: 100% !important;
+  max-height: none !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background:
+    radial-gradient(circle at 16% 18%, rgba(45, 200, 158, 0.16), transparent 52%),
+    radial-gradient(circle at 86% 84%, rgba(45, 200, 158, 0.06), transparent 56%),
+    linear-gradient(180deg, rgba(16, 20, 27, 0.95), rgba(10, 14, 20, 0.96)) !important;
+}
+
+.chart-area.chart-exm svg {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.chart-exm .chart-gridline {
+  stroke: rgba(255, 255, 255, 0.09) !important;
+  stroke-width: 0.5 !important;
+  stroke-dasharray: 2 9 !important;
+}
+
+.chart-exm .chart-line {
+  stroke: #2dc89e !important;
+  stroke-width: 1.15 !important;
+}
+
+.chart-exm .chart-dot {
+  fill: #9ce8d3 !important;
+}
+
+.download-logo {
+  display: grid !important;
+  place-items: center !important;
+}
+
+.download-logo img {
+  width: 60% !important;
+  height: 60% !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  margin: 0 !important;
+}
+
+.spin-loader {
+  animation: spin 0.85s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* === Final polish pass (sidebar + chart + resources + page switch) === */
+.sidebar-item {
+  border: 1px solid transparent;
+  outline: none !important;
+  box-shadow: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.sidebar-item::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg,
+      color-mix(in srgb, var(--accent) 18%, transparent),
+      color-mix(in srgb, var(--accent) 5%, transparent));
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+}
+
+.sidebar-item:hover::before,
+.sidebar-item.active::before {
+  opacity: 1;
+}
+
+.sidebar-item:focus,
+.sidebar-item:focus-visible {
+  outline: none !important;
+  border-color: color-mix(in srgb, var(--accent) 50%, rgba(255, 255, 255, 0.12)) !important;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 18%, transparent) !important;
+}
+
+.sidebar-item.active {
+  border-color: color-mix(in srgb, var(--accent) 58%, rgba(255, 255, 255, 0.12)) !important;
+  background: linear-gradient(135deg,
+      color-mix(in srgb, var(--accent) 16%, transparent),
+      rgba(20, 24, 32, 0.8));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04), 0 10px 24px rgba(0, 0, 0, 0.32);
+}
+
+.page-switch-enter {
+  animation: pageSwitchIn 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes pageSwitchIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.995);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.chart-panel {
+  padding: 10px !important;
+}
+
+.chart-shell {
+  display: flex !important;
+  gap: 12px !important;
+  align-items: stretch !important;
+}
+
+.chart-axis {
+  min-width: 34px !important;
+  font-size: 10px !important;
+}
+
+.chart-area.chart-exm {
+  min-height: 132px !important;
+  height: 132px !important;
+  max-height: 132px !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(45, 200, 158, 0.12), transparent 54%),
+    linear-gradient(180deg, rgba(14, 18, 24, 0.95), rgba(10, 14, 20, 0.96)) !important;
+}
+
+.chart-area.chart-exm svg {
+  width: 100% !important;
+  height: 132px !important;
+}
+
+.download-logo {
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: 12px !important;
+}
+
+.download-logo img {
+  width: 26px !important;
+  height: 26px !important;
+  object-fit: contain !important;
+  object-position: center !important;
+}
+
+/* === Visual pass: user feedback Feb 2026 === */
+.liquid-card,
+.panel,
+.download-card,
+.fix-card {
+  box-shadow: none !important;
+}
+
+.liquid-card {
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.liquid-card::after {
+  border-color: rgba(255, 255, 255, 0.045) !important;
+}
+
+.sidebar-item.active {
+  background: linear-gradient(135deg, rgba(45, 200, 158, 0.18), rgba(18, 24, 30, 0.9)) !important;
+  border-color: rgba(45, 200, 158, 0.58) !important;
+  box-shadow: none !important;
+}
+
+.sidebar-item:focus,
+.sidebar-item:focus-visible {
+  box-shadow: 0 0 0 1px rgba(45, 200, 158, 0.28) !important;
+}
+
+.page-switch-enter {
+  animation: pageSwitchIn 460ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+@keyframes pageSwitchIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.992);
+    filter: blur(1.5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+.chart-panel {
+  background: linear-gradient(180deg, rgba(14, 20, 25, 0.9), rgba(10, 16, 21, 0.93)) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.chart-shell {
+  display: grid !important;
+  grid-template-columns: 42px 1fr !important;
+  gap: 10px !important;
+}
+
+.chart-area.chart-exm {
+  min-height: 132px !important;
+  height: 132px !important;
+  max-height: 132px !important;
+  background:
+    radial-gradient(circle at 14% 20%, rgba(45, 200, 158, 0.17), transparent 56%),
+    linear-gradient(180deg, rgba(8, 13, 16, 0.97), rgba(7, 11, 15, 0.98)) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.chart-area.chart-exm svg {
+  width: 100% !important;
+  height: 132px !important;
+}
+
+.chart-exm .chart-line {
+  stroke-width: 1.55 !important;
+}
+
+.download-card-head {
+  align-items: center !important;
+}
+
+.download-logo {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.download-logo img {
+  display: block !important;
+  width: 28px !important;
+  height: 28px !important;
+  margin: 0 !important;
+  transform: translateY(1px);
+}
+
+/* 2026 loading screen */
+.loading-screen {
+  background:
+    radial-gradient(circle at 14% 16%, rgba(45, 200, 158, 0.14), transparent 38%),
+    radial-gradient(circle at 82% 82%, rgba(120, 209, 255, 0.08), transparent 40%),
+    linear-gradient(160deg, #0b1014 0%, #0f151b 52%, #121920 100%) !important;
+}
+
+.loading-orb {
+  position: absolute;
+  width: 440px;
+  height: 440px;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(45, 200, 158, 0.24) 0%, rgba(45, 200, 158, 0.06) 42%, transparent 72%);
+  filter: blur(30px);
+  animation: loadingOrbFloat 3.6s ease-in-out infinite alternate;
+}
+
+.loading-panel {
+  min-width: 420px;
+  max-width: 520px;
+  padding: 34px 34px 26px;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(180deg, rgba(18, 24, 30, 0.82), rgba(12, 17, 23, 0.86));
+  box-shadow: 0 26px 60px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  text-align: center;
+  position: relative;
+  z-index: 2;
+}
+
+.loading-logo-wrap {
+  width: 92px;
+  height: 92px;
+  margin: 0 auto 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(140deg, rgba(45, 200, 158, 0.15), rgba(255, 255, 255, 0.03));
+  display: grid;
+  place-items: center;
+}
+
+.loading-logo {
+  width: 70px !important;
+  height: 70px !important;
+  margin: 0 !important;
+}
+
+.loading-title {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: none;
+}
+
+.loading-sub {
+  margin-top: 6px;
+  font-size: 13px;
+  color: rgba(229, 231, 235, 0.74);
+}
+
+.loading-track {
+  margin-top: 16px;
+  height: 7px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+.loading-track-fill {
+  display: block;
+  width: 36%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, rgba(45, 200, 158, 0.88), rgba(142, 237, 213, 0.9));
+  animation: loadingFlow 1.5s ease-in-out infinite;
+}
+
+.loading-dots {
+  margin-top: 12px;
+  display: flex;
+  justify-content: center;
+  gap: 7px;
+}
+
+.loading-dots span {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(156, 232, 211, 0.9);
+  animation: loadingDots 1s ease-in-out infinite;
+}
+
+.loading-dots span:nth-child(2) {
+  animation-delay: .12s;
+}
+
+.loading-dots span:nth-child(3) {
+  animation-delay: .24s;
+}
+
+@keyframes loadingFlow {
+  0% {
+    transform: translateX(-120%);
+  }
+
+  50% {
+    transform: translateX(160%);
+  }
+
+  100% {
+    transform: translateX(160%);
+  }
+}
+
+@keyframes loadingDots {
+
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: translateY(0);
+  }
+
+  50% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes loadingOrbFloat {
+  from {
+    transform: translateY(-8px) scale(0.98);
+    opacity: 0.7;
+  }
+
+  to {
+    transform: translateY(8px) scale(1.03);
+    opacity: 1;
+  }
+}
+
+/* Corner Notifications */
+.notify-root {
+  isolation: isolate;
+}
+
+.notify-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: 28px 1fr 24px;
+  align-items: start;
+  gap: 10px;
+  padding: 11px 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  /* More glass, less opaque so blur is visible */
+  background: linear-gradient(180deg, rgba(17, 23, 30, 0.68), rgba(11, 16, 22, 0.74));
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  overflow: hidden;
+}
+
+.notify-item::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.notify-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.04);
+  color: #d1d5db;
+}
+
+.notify-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #f8fafc;
+  letter-spacing: 0.01em;
+}
+
+.notify-message {
+  margin-top: 2px;
+  font-size: 12px;
+  color: rgba(226, 232, 240, 0.82);
+  line-height: 1.35;
+}
+
+.notify-close {
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  background: rgba(255, 255, 255, 0.03);
+  display: grid;
+  place-items: center;
+  color: #cbd5e1;
+}
+
+.notify-close:hover {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.notify-progress {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 2px;
+  width: 100%;
+  background: rgba(156, 232, 211, 0.9);
+  animation-name: notifyProgress;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+.notify-success .notify-icon {
+  color: #7de2c2;
+  background: rgba(45, 200, 158, 0.18);
+}
+
+.notify-success .notify-progress {
+  background: linear-gradient(90deg, #2dc89e, #8fe6cf);
+}
+
+.notify-success .notify-icon {
+  color: var(--accent-strong) !important;
+  background: color-mix(in srgb, var(--accent) 18%, transparent) !important;
+}
+
+.notify-success .notify-progress {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 90%, #ffffff 10%), color-mix(in srgb, var(--accent-strong) 70%, transparent)) !important;
+}
+
+.notify-error .notify-icon {
+  color: #ff9ca2;
+  background: rgba(255, 107, 117, 0.18);
+}
+
+.notify-error .notify-progress {
+  background: linear-gradient(90deg, #ff6b75, #ffb2b8);
+}
+
+.notify-warning .notify-icon {
+  color: #ffd38a;
+  background: rgba(255, 191, 87, 0.2);
+}
+
+.notify-warning .notify-progress {
+  background: linear-gradient(90deg, #ffbf57, #ffe09f);
+}
+
+.notify-info .notify-icon {
+  color: color-mix(in srgb, var(--accent) 30%, #ffffff 70%);
+  background: color-mix(in srgb, var(--accent) 18%, rgba(255, 255, 255, 0.03));
+}
+
+.notify-info .notify-progress {
+  background: linear-gradient(90deg,
+      color-mix(in srgb, var(--accent) 92%, #ffffff 8%),
+      color-mix(in srgb, var(--accent) 62%, #ffffff 38%));
+}
+
+.notify-enter {
+  animation: notifyIn 320ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.notify-leave {
+  animation: notifyOut 220ms ease forwards;
+}
+
+@keyframes notifyIn {
+  from {
+    opacity: 0;
+    transform: translateX(14px) scale(0.98);
+    filter: blur(1.2px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes notifyOut {
+  from {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateX(16px) scale(0.985);
+  }
+}
+
+@keyframes notifyProgress {
+  from {
+    width: 100%;
+  }
+
+  to {
+    width: 0%;
+  }
+}
+
+/* === Final UX pass (requested) === */
+.notify-root {
+  top: auto !important;
+  right: 16px !important;
+  bottom: 16px !important;
+}
+
+.notify-enter {
+  animation: notifyInBottom 340ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes notifyInBottom {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.page-switch-enter {
+  animation: pageSwitchInSoft 420ms cubic-bezier(0.22, 1, 0.36, 1) !important;
+}
+
+@keyframes pageSwitchInSoft {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.996);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.chart-panel {
+  background: linear-gradient(180deg, rgba(12, 18, 22, 0.94), rgba(9, 14, 18, 0.96)) !important;
+}
+
+.chart-shell {
+  height: 100% !important;
+  display: grid !important;
+  grid-template-columns: 42px 1fr !important;
+  align-items: stretch !important;
+  gap: 10px !important;
+}
+
+.chart-area.chart-exm {
+  min-height: 0 !important;
+  height: 100% !important;
+  max-height: none !important;
+  background:
+    radial-gradient(circle at 16% 18%, rgba(45, 200, 158, 0.15), transparent 58%),
+    linear-gradient(180deg, rgba(7, 13, 15, 0.98), rgba(6, 10, 14, 0.98)) !important;
+}
+
+.chart-area.chart-exm svg {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.chart-exm .chart-line {
+  stroke-width: 1.35 !important;
+}
+
+.download-logo {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.download-logo img {
+  transform: translateX(2px) translateY(0) !important;
+}
+
+.sidebar-item.active {
+  background: linear-gradient(135deg, rgba(45, 200, 158, 0.14), rgba(16, 22, 28, 0.84)) !important;
+  border-color: rgba(45, 200, 158, 0.48) !important;
+}
+
+.loading-screen {
+  background:
+    radial-gradient(circle at 12% 14%, rgba(45, 200, 158, 0.16), transparent 36%),
+    radial-gradient(circle at 84% 82%, rgba(45, 200, 158, 0.08), transparent 40%),
+    linear-gradient(165deg, #0a0f13 0%, #0d141a 56%, #111920 100%) !important;
+}
+
+.loading-panel {
+  min-width: 460px;
+  max-width: 620px;
+  padding: 20px 12px;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.loading-logo {
+  width: 96px !important;
+  height: 96px !important;
+  margin: 0 auto 10px !important;
+  filter: drop-shadow(0 8px 24px rgba(45, 200, 158, 0.25));
+}
+
+.loading-title {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 0.015em;
+}
+
+.loading-sub {
+  color: rgba(229, 231, 235, 0.76);
+}
+
+.loading-track {
+  margin-top: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(7, 12, 15, 0.62);
+}
+
+.sidebar-discord-trigger {
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.sidebar-discord-menu {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: 104px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(180deg, rgba(20, 24, 31, 0.96), rgba(12, 16, 22, 0.96));
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.34);
+  padding: 8px;
+  z-index: 20;
+  animation: discordMenuIn 220ms ease-out;
+}
+
+.sidebar-discord-menu-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  color: #e2e8f0;
+  padding: 10px 9px;
+  font-size: 13px;
+}
+
+.sidebar-discord-menu-item:hover {
+  background: rgba(45, 200, 158, 0.10);
+  border-color: rgba(45, 200, 158, 0.35);
+}
+
+.sidebar-discord-menu-item.danger:hover {
+  background: rgba(255, 107, 117, 0.11);
+  border-color: rgba(255, 107, 117, 0.35);
+}
+
+@keyframes discordMenuIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* === Final correction pass === */
+.sidebar-discord-trigger {
+  border: 0 !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+}
+
+.sidebar-discord-menu {
+  left: auto !important;
+  right: calc(100% + 10px) !important;
+  bottom: 8px !important;
+  width: 220px;
+}
+
+.download-logo {
+  place-items: center !important;
+}
+
+.download-logo img {
+  transform: translateX(4px) translateY(1px) !important;
+}
+
+.chart-shell {
+  height: 100% !important;
+  grid-template-columns: 42px 1fr !important;
+}
+
+.chart-area.chart-exm {
+  min-height: 0 !important;
+  height: 100% !important;
+  max-height: none !important;
+  background: linear-gradient(180deg, rgba(7, 11, 15, 0.98), rgba(6, 10, 14, 0.98)) !important;
+}
+
+.chart-area.chart-exm svg {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.loading-panel::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -8px;
+  transform: translateX(-50%);
+  width: 220px;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, rgba(45, 200, 158, 0.9), transparent);
+  filter: blur(0.5px);
+  animation: loadingLinePulse 1.8s ease-in-out infinite;
+}
+
+@keyframes loadingLinePulse {
+
+  0%,
+  100% {
+    opacity: 0.35;
+    width: 180px;
+  }
+
+  50% {
+    opacity: 1;
+    width: 260px;
+  }
+}
+
+/* Settings rows */
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* (User preference) Allow language dropdown to overlap rows below; no extra gap. */
+.settings-row.lang-open {
+  padding-bottom: 16px;
+  /* Keep the language dropdown clickable even when it overlaps rows below. */
+  position: relative;
+  z-index: 5000;
+}
+
+.settings-row-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.settings-icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: #d1d5db;
+}
+
+.settings-select {
+  min-width: 150px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: color-mix(in srgb, var(--accent) 3%, rgba(10, 14, 19, 0.86));
+  color: #fff;
+  padding: 8px 10px;
+  font-size: 13px;
+}
+
+/* Theme presets */
+[data-tfy-theme='midnight'] {
+  --bg-0: #06070b;
+  --bg-1: #0c1020;
+  --bg-2: #141a2b;
+  --accent: #6e8cff;
+  --accent-strong: #adc0ff;
+}
+
+[data-tfy-theme='slate'] {
+  --bg-0: #0b0f12;
+  --bg-1: #151b20;
+  --bg-2: #1f262d;
+  --accent: #52d3df;
+  --accent-strong: #a4edf2;
+}
+
+/* Low-end mode */
+.tfy-low-end * {
+  animation-duration: 0.001ms !important;
+  transition-duration: 0.08s !important;
+}
+
+/* Keep the loading bar readable even in low-end mode. */
+.tfy-low-end .loading-track-fill {
+  animation-duration: 1.25s !important;
+  animation-name: tfyLoadingSlide !important;
+}
+
+.tfy-low-end .liquid-card,
+.tfy-low-end .panel,
+.tfy-low-end .notify-item {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+}
+
+/* === 2026 final lock: layout, chart, loading, sidebar, resources === */
+.loading-screen {
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.loading-panel {
+  min-width: 360px !important;
+  max-width: 420px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  display: grid !important;
+  place-items: center !important;
+}
+
+.loading-logo {
+  width: 82px !important;
+  height: 82px !important;
+  margin: 0 0 14px 0 !important;
+}
+
+.loading-title,
+.loading-sub,
+.loading-dots,
+.loading-panel::before,
+.loading-orb,
+.loading-logo-wrap {
+  display: none !important;
+}
+
+.loading-track {
+  width: 100% !important;
+  max-width: 380px !important;
+  margin: 0 !important;
+}
+
+.page-switch-enter {
+  /* iOS-like: smooth opacity + slight translate/scale (GPU-friendly). */
+  will-change: transform, opacity;
+  animation: pageSwitchInSmooth 360ms cubic-bezier(0.22, 1, 0.36, 1) !important;
+}
+
+@keyframes pageSwitchInSmooth {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0) scale(0.992);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+.chart-panel {
+  background: linear-gradient(180deg, rgba(12, 18, 23, 0.9), rgba(10, 16, 21, 0.9)) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: inset 0 0 0 1px rgba(45, 200, 158, 0.06) !important;
+}
+
+.chart-shell {
+  height: 100% !important;
+  min-height: 0 !important;
+  display: grid !important;
+  grid-template-columns: 38px 1fr !important;
+  gap: 10px !important;
+  align-items: stretch !important;
+}
+
+.chart-axis {
+  min-width: 38px !important;
+  color: rgba(203, 213, 225, 0.72) !important;
+}
+
+.chart-area.chart-exm {
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  border-radius: 14px !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background: linear-gradient(180deg, rgba(11, 18, 22, 0.96), rgba(10, 15, 19, 0.98)) !important;
+}
+
+.chart-area.chart-exm svg {
+  width: 100% !important;
+  height: 100% !important;
+  display: block !important;
+}
+
+.chart-exm .chart-gridline {
+  stroke: rgba(255, 255, 255, 0.08) !important;
+  stroke-width: 0.42 !important;
+  stroke-dasharray: 2 10 !important;
+}
+
+.chart-exm .chart-line {
+  stroke-width: 1.02 !important;
+}
+
+.chart-exm .chart-fill {
+  opacity: 0.2 !important;
+}
+
+.chart-x {
+  margin-top: 6px !important;
+}
+
+.sidebar-item,
+.sidebar-item:focus,
+.sidebar-item:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.sidebar-item.active {
+  border-color: rgba(45, 200, 158, 0.5) !important;
+  background: linear-gradient(135deg, rgba(45, 200, 158, 0.14), rgba(18, 24, 30, 0.84)) !important;
+}
+
+.sidebar-discord-menu {
+  right: calc(100% + 10px) !important;
+  left: auto !important;
+  bottom: 6px !important;
+  z-index: 60 !important;
+}
+
+.download-card-head {
+  align-items: center !important;
+}
+
+.download-logo {
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: 12px !important;
+  display: grid !important;
+  place-items: center !important;
+}
+
+.download-logo img {
+  width: 28px !important;
+  height: 28px !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  transform: translateX(2px) !important;
+}
+
+/* Theme presets */
+[data-tfy-theme='sunset'] {
+  --bg-0: #171014;
+  --bg-1: #21161b;
+  --bg-2: #291b22;
+  --accent: #ff8b5c;
+  --accent-strong: #ffc4a9;
+}
+
+[data-tfy-theme='forest'] {
+  --bg-0: #07120f;
+  --bg-1: #0c1915;
+  --bg-2: #10201b;
+  --accent: #34d399;
+  --accent-strong: #9bf0cf;
+}
+
+/* === Hotfix pass: loading text/vignette + chart corners + discord menu + icon centering === */
+.loading-screen {
+  position: fixed;
+  overflow: hidden;
+}
+
+.loading-screen::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at center, transparent 52%, rgba(2, 6, 9, 0.48) 100%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.24), rgba(0, 0, 0, 0.35));
+}
+
+.loading-panel {
+  z-index: 3 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px;
+}
+
+.loading-title,
+.loading-sub {
+  display: block !important;
+  text-align: center;
+}
+
+.loading-title {
+  font-size: 24px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.01em !important;
+}
+
+.loading-sub {
+  margin-top: -2px !important;
+  margin-bottom: 4px !important;
+  color: rgba(226, 232, 240, 0.75) !important;
+  font-size: 12px !important;
+}
+
+.loading-track {
+  width: 360px !important;
+  max-width: min(88vw, 420px) !important;
+}
+
+.temp-root-card,
+.temp-chart-wrapper {
+  overflow: visible !important;
+}
+
+.temp-chart-wrapper {
+  border-radius: 14px !important;
+  padding-bottom: 8px !important;
+}
+
+.chart-panel {
+  border-radius: 14px !important;
+}
+
+.chart-shell {
+  height: 100% !important;
+  min-height: 150px !important;
+  grid-template-columns: 40px 1fr !important;
+  align-items: stretch !important;
+}
+
+.chart-area.chart-exm {
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  min-height: 150px !important;
+  height: 150px !important;
+  max-height: 150px !important;
+}
+
+.chart-area.chart-exm svg {
+  height: 150px !important;
+}
+
+.chart-exm .chart-line {
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+  stroke-width: 1.08 !important;
+}
+
+.sidebar-discord-card {
+  overflow: visible !important;
+}
+
+.sidebar-discord-trigger {
+  position: relative;
+  z-index: 3;
+}
+
+.sidebar-discord-menu {
+  pointer-events: auto !important;
+  z-index: 999 !important;
+}
+
+.download-card-head {
+  align-items: center !important;
+}
+
+.download-logo {
+  width: 46px !important;
+  height: 46px !important;
+  display: grid !important;
+  place-items: center !important;
+}
+
+.download-logo img {
+  width: 26px !important;
+  height: 26px !important;
+  margin: 0 !important;
+  transform: none !important;
+}
+
+/* === Hotfix: chart card fit + discord menu + resources icon vertical align === */
+.temp-root-card {
+  overflow: hidden !important;
+  border-radius: 16px !important;
+}
+
+.temp-root-card::before,
+.temp-root-card::after,
+.temp-chart-wrapper::before,
+.temp-chart-wrapper::after {
+  display: none !important;
+}
+
+.temp-chart-wrapper {
+  overflow: hidden !important;
+  border-radius: 14px !important;
+  min-height: 200px !important;
+}
+
+.chart-panel {
+  padding: 12px !important;
+}
+
+.chart-shell {
+  display: block !important;
+  min-height: 154px !important;
+  height: 154px !important;
+}
+
+.chart-axis {
+  display: none !important;
+}
+
+.chart-area.chart-exm {
+  min-height: 154px !important;
+  height: 154px !important;
+  max-height: 154px !important;
+  border-radius: 12px !important;
+  background: linear-gradient(180deg, rgba(10, 16, 20, 0.97), rgba(8, 13, 17, 0.99)) !important;
+}
+
+.chart-area.chart-exm svg {
+  height: 154px !important;
+}
+
+.sidebar-discord-menu {
+  left: 0 !important;
+  right: 0 !important;
+  width: auto !important;
+  bottom: calc(100% + 8px) !important;
+  z-index: 999 !important;
+}
+
+.download-logo img {
+  transform: translateY(1.5px) !important;
+}
+
+/* === Final polish pass requested === */
+.chart-x {
+  display: none !important;
+}
+
+.chart-grid,
+.chart-gridline {
+  display: none !important;
+}
+
+.temp-root-card,
+.temp-chart-wrapper,
+.sidebar-discord-card {
+  border-radius: 16px !important;
+  overflow: hidden !important;
+}
+
+.sidebar-discord-card::before,
+.sidebar-discord-card::after,
+.temp-root-card::before,
+.temp-root-card::after,
+.temp-chart-wrapper::before,
+.temp-chart-wrapper::after {
+  display: none !important;
+}
+
+.temp-chart-wrapper {
+  min-height: 214px !important;
+}
+
+.chart-shell {
+  min-height: 168px !important;
+  height: 168px !important;
+}
+
+.chart-area.chart-exm,
+.chart-area.chart-exm svg {
+  min-height: 168px !important;
+  height: 168px !important;
+  max-height: 168px !important;
+}
+
+.chart-area.chart-exm {
+  border-radius: 12px !important;
+  background: linear-gradient(180deg,
+      color-mix(in srgb, var(--accent) 8%, rgba(9, 14, 18, 0.98)),
+      rgba(8, 12, 16, 0.98)) !important;
+}
+
+.chart-exm .chart-line {
+  stroke-width: 1.35 !important;
+  stroke: var(--accent) !important;
+}
+
+.chart-exm .chart-fill {
+  opacity: 0.12 !important;
+}
+
+.resource-action {
+  width: 100%;
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.04);
+  color: #ffffff;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.resource-action:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.07);
+  color: #ffffff;
+}
+
+.resource-action.downloaded {
+  opacity: 0.8;
+}
+
+.download-logo img {
+  transform: translateY(2px) !important;
+}
+
+.sidebar-discord-menu {
+  position: static !important;
+  width: 100% !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin-top: 0 !important;
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height .25s ease, opacity .2s ease, margin-top .25s ease;
+}
+
+.sidebar-discord-menu.open {
+  max-height: 160px;
+  opacity: 1;
+  margin-top: 10px !important;
+}
+
+.sidebar-discord-menu-item {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.sidebar-discord-card.open {
+  border-color: rgba(45, 200, 158, 0.35) !important;
+}
+
+/* make theme changes visible globally */
+[data-tfy-theme='jade'] {
+  --accent: #24bf97;
+  --accent-strong: #7deccf;
+}
+
+[data-tfy-theme='midnight'] {
+  --accent: #7c8fff;
+  --accent-strong: #b7c6ff;
+}
+
+[data-tfy-theme='slate'] {
+  --accent: #59d9df;
+  --accent-strong: #b9f0f3;
+}
+
+[data-tfy-theme='sunset'] {
+  --accent: #ff8f61;
+  --accent-strong: #ffd0ba;
+}
+
+[data-tfy-theme='forest'] {
+  --accent: #35d39a;
+  --accent-strong: #abefd6;
+}
+
+[data-tfy-theme] .text-accent {
+  color: var(--accent) !important;
+}
+
+[data-tfy-theme] .chip,
+[data-tfy-theme] .metric-ring,
+[data-tfy-theme] .download-button,
+[data-tfy-theme] .resource-action,
+[data-tfy-theme] .toggle.on,
+[data-tfy-theme] .sidebar-item.active {
+  border-color: color-mix(in srgb, var(--accent) 55%, #ffffff 45%) !important;
+}
+
+[data-tfy-theme] .chip {
+  color: var(--accent-strong) !important;
+}
+
+[data-tfy-theme] .btn-primary,
+[data-tfy-theme] .download-button:hover {
+  background: color-mix(in srgb, var(--accent) 86%, #ffffff 14%) !important;
+}
+
+/* === 2026 stabilization overrides === */
+.app-shell::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  background:
+    radial-gradient(55% 50% at 12% 18%, color-mix(in srgb, var(--accent) 12%, transparent) 0%, transparent 75%),
+    radial-gradient(55% 50% at 88% 80%, color-mix(in srgb, var(--accent) 10%, transparent) 0%, transparent 78%),
+    linear-gradient(180deg, rgba(3, 6, 9, 0.65), rgba(2, 4, 6, 0.72));
+  animation: tfy-bg-drift 18s ease-in-out infinite alternate;
+}
+
+@keyframes tfy-bg-drift {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.85;
+  }
+
+  100% {
+    transform: translate3d(0, -8px, 0) scale(1.015);
+    opacity: 1;
+  }
+}
+
+[data-tfy-theme='jade'] {
+  --accent: #24bf97;
+  --accent-strong: #7deccf;
+}
+
+[data-tfy-theme='midnight'] {
+  --accent: #7e87ff;
+  --accent-strong: #c1c8ff;
+}
+
+[data-tfy-theme='slate'] {
+  --accent: #4ad0da;
+  --accent-strong: #c0f2f6;
+}
+
+[data-tfy-theme='sunset'] {
+  --accent: #ff8d6b;
+  --accent-strong: #ffd4c2;
+}
+
+[data-tfy-theme] body {
+  background:
+    radial-gradient(circle at 16% 14%, color-mix(in srgb, var(--accent) 10%, transparent) 0%, transparent 44%),
+    radial-gradient(circle at 84% 86%, color-mix(in srgb, var(--accent) 10%, transparent) 0%, transparent 48%),
+    linear-gradient(180deg, #05080c 0%, #05070a 100%) !important;
+}
+
+/* resources: icon alignment + button parity with fixes */
+.download-card-head {
+  align-items: center !important;
+}
+
+.download-logo {
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: 12px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.download-logo img {
+  width: 24px !important;
+  height: 24px !important;
+  object-fit: contain !important;
+  transform: translateY(3px) !important;
+}
+
+.fix-action.resource-action {
+  width: 100% !important;
+  margin-top: 0.95rem !important;
+  border-radius: 0.8rem !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: #e5e7eb !important;
+  padding: 0.6rem 0.9rem !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.5rem !important;
+  font-size: 0.8rem !important;
+}
+
+.fix-action.resource-action:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* sidebar discord menu: open upward, roomier */
+.sidebar-discord-card {
+  overflow: visible !important;
+  border-radius: 18px !important;
+}
+
+.sidebar-discord-card::before,
+.sidebar-discord-card::after {
+  display: none !important;
+}
+
+.sidebar-discord-menu {
+  position: absolute !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: calc(100% + 12px) !important;
+  width: auto !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 14px !important;
+  background: linear-gradient(180deg, rgba(17, 21, 28, 0.96), rgba(11, 15, 21, 0.96)) !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.45) !important;
+  padding: 8px !important;
+  margin-top: 0 !important;
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transform: translateY(8px);
+  transition: max-height .28s ease, opacity .2s ease, transform .28s ease;
+  z-index: 60 !important;
+}
+
+.sidebar-discord-menu.open {
+  max-height: 210px;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.sidebar-discord-menu-item {
+  min-height: 38px !important;
+  border-radius: 10px !important;
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+.sidebar-discord-menu-item+.sidebar-discord-menu-item {
+  margin-top: 6px;
+}
+
+/* remove harsh white contour on sidebar active */
+.sidebar-item.active {
+  border-color: color-mix(in srgb, var(--accent) 45%, #ffffff 8%) !important;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 22%, transparent) !important;
+}
+
+/* keep debloater container stable and scrollable */
+.debloat-page,
+[data-page='debloater'] {
+  min-height: 0;
+}
+
+/* === strict ui cleanup per latest review === */
+.fix-action {
+  font-weight: 500 !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  box-shadow: none !important;
+}
+
+.fix-action:hover {
+  border-color: rgba(255, 255, 255, 0.18) !important;
+  box-shadow: none !important;
+}
+
+.fix-action:focus,
+.fix-action:focus-visible,
+.fix-action:active {
+  outline: none !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
+  box-shadow: none !important;
+}
+
+.download-logo img {
+  transform: translateY(4px) !important;
+}
+
+.sidebar-item.active {
+  border-color: rgba(255, 255, 255, 0.16) !important;
+  box-shadow: none !important;
+}
+
+.sidebar-discord-popup {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: calc(100% + 12px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(16, 20, 27, 0.97), rgba(10, 14, 20, 0.97));
+  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.45);
+  padding: 8px;
+  opacity: 0;
+  transform: translateY(8px);
+  pointer-events: none;
+  transition: opacity .22s ease, transform .24s ease;
+  z-index: 70;
+}
+
+.sidebar-discord-popup.open {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.sidebar-discord-menu-item {
+  min-height: 38px !important;
+  border-radius: 10px !important;
+}
+
+.sidebar-discord-menu-item+.sidebar-discord-menu-item {
+  margin-top: 6px;
+}
+
+.sidebar-discord-menu {
+  display: none !important;
+}
+
+[data-tfy-theme] .text-accent {
+  color: var(--accent) !important;
+}
+
+[data-tfy-theme] .bg-accent {
+  background-color: var(--accent) !important;
+}
+
+[data-tfy-theme] .border-accent {
+  border-color: var(--accent) !important;
+}
+
+[data-tfy-theme] .border-accent\/60 {
+  border-color: color-mix(in srgb, var(--accent) 64%, #ffffff 36%) !important;
+}
+
+[data-tfy-theme] .hover\:bg-accent:hover {
+  background-color: var(--accent) !important;
+}
+
+[data-tfy-theme] .hover\:text-accent:hover {
+  color: var(--accent) !important;
+}
+
+[data-tfy-theme] .hover\:border-accent\/50:hover {
+  border-color: color-mix(in srgb, var(--accent) 52%, #ffffff 48%) !important;
+}
+
+[data-tfy-theme] .shadow-accent\/30 {
+  --tw-shadow-color: color-mix(in srgb, var(--accent) 30%, transparent) !important;
+}
+
+/* === Theme consistency final pass === */
+.liquid-card::before {
+  background:
+    radial-gradient(circle at 24% 20%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 62%),
+    radial-gradient(circle at 82% 78%, color-mix(in srgb, var(--accent) 5%, transparent), transparent 66%) !important;
+  opacity: 0.3 !important;
+}
+
+.sidebar-item:hover {
+  background: color-mix(in srgb, var(--accent) 10%, rgba(255, 255, 255, 0.02)) !important;
+  border-color: color-mix(in srgb, var(--accent) 28%, rgba(255, 255, 255, 0.08)) !important;
+}
+
+.sidebar-item.active {
+  background: color-mix(in srgb, var(--accent) 16%, rgba(255, 255, 255, 0.02)) !important;
+  border-color: color-mix(in srgb, var(--accent) 44%, rgba(255, 255, 255, 0.12)) !important;
+}
+
+.system-tab.active {
+  border-color: color-mix(in srgb, var(--accent) 50%, rgba(255, 255, 255, 0.14)) !important;
+  background: color-mix(in srgb, var(--accent) 14%, rgba(255, 255, 255, 0.02)) !important;
+  color: #fff !important;
+}
+
+.download-logo {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.06)) !important;
+  border-color: rgba(255, 255, 255, 0.22) !important;
+}
+
+.download-logo img {
+  transform: translateY(3px) !important;
+}
+
+.notify-info .notify-icon {
+  color: var(--accent-strong) !important;
+  background: color-mix(in srgb, var(--accent) 20%, rgba(255, 255, 255, 0.04)) !important;
+}
+
+.notify-info .notify-progress {
+  background: linear-gradient(90deg,
+      color-mix(in srgb, var(--accent) 86%, #ffffff 14%),
+      color-mix(in srgb, var(--accent) 58%, #ffffff 42%)) !important;
+}
+
+/* === FINAL OVERRIDES (lock) === */
+.settings-lang-menu {
+  position: relative;
+  min-width: 190px;
+}
+
+.settings-select.settings-select-custom {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.settings-select-chevron {
+  transition: transform .2s ease;
+}
+
+.settings-select-chevron.open {
+  transform: rotate(180deg);
+}
+
+.settings-lang-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, #ffffff 72%);
+  background: rgba(7, 9, 12, 0.96);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 6px;
+  z-index: 5001;
+  box-shadow: 0 18px 46px rgba(0, 0, 0, 0.55);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-6px);
+  transition: opacity .18s ease, transform .18s ease;
+}
+
+.settings-lang-dropdown.open {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.settings-lang-option {
+  width: 100%;
+  border-radius: 9px;
+  border: 1px solid transparent;
+  padding: 8px 10px;
+  text-align: left;
+  font-size: 13px;
+  color: #e5e7eb;
+  background: transparent;
+}
+
+.settings-lang-option:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.settings-lang-option.active {
+  border-color: color-mix(in srgb, var(--accent) 36%, #ffffff 64%);
+  background: color-mix(in srgb, var(--accent) 12%, rgba(255, 255, 255, 0.04));
+  color: #fff;
+}
+
+.temp-root-card .thermal-summary {
+  margin-top: 0 !important;
+}
+
+.temp-root-card .thermal-summary>.h-full {
+  min-height: 100% !important;
+}
+
+.download-card-head {
+  align-items: center !important;
+}
+
+.download-logo {
+  width: 44px !important;
+  height: 44px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.06)) !important;
+  border: 1px solid rgba(255, 255, 255, 0.20) !important;
+}
+
+.download-logo img {
+  width: 25px !important;
+  height: 25px !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  transform: translateY(2px) !important;
+}
+
+.download-card .fix-action.resource-action {
+  font-weight: 500 !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  color: #f3f4f6 !important;
+  box-shadow: none !important;
+}
+
+.download-card .fix-action.resource-action:hover {
+  background: rgba(255, 255, 255, 0.09) !important;
+  border-color: rgba(255, 255, 255, 0.18) !important;
+  color: #fff !important;
+}
+
+.sidebar-discord-menu-item {
+  background: rgba(255, 255, 255, 0.025) !important;
+  border: 1px solid rgba(255, 255, 255, 0.10) !important;
+  color: #f1f5f9 !important;
+}
+
+.sidebar-discord-menu-item:hover {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.16) !important;
+}
+
+.sidebar-discord-menu-item.danger:hover {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.16) !important;
+}
+
+.loading-screen {
+  background:
+    radial-gradient(circle at 14% 14%, color-mix(in srgb, var(--accent) 20%, transparent), transparent 40%),
+    radial-gradient(circle at 84% 84%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 44%),
+    linear-gradient(165deg, #080b10 0%, #0a0f14 56%, #0d1319 100%) !important;
+}
+
+.loading-track {
+  position: relative;
+  height: 8px;
+  border-radius: 999px;
+  border: 0 !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  overflow: hidden;
+}
+
+.loading-track-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 46%;
+  border-radius: inherit;
+  background: linear-gradient(90deg,
+      rgba(255, 255, 255, 0),
+      color-mix(in srgb, var(--accent) 85%, #ffffff 15%),
+      color-mix(in srgb, var(--accent) 55%, #ffffff 45%),
+      color-mix(in srgb, var(--accent) 85%, #ffffff 15%),
+      rgba(255, 255, 255, 0)) !important;
+  opacity: 0.9;
+  filter: saturate(1.05);
+  will-change: transform;
+  transform: translateX(-140%);
+  animation: tfyLoadingSlide 1.25s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+@keyframes tfyLoadingSlide {
+  0% {
+    transform: translateX(-140%);
+  }
+
+  100% {
+    transform: translateX(240%);
+  }
+}
+
+/* Resources icon micro-adjust */
+.download-logo img {
+  transform: translateX(2px) translateY(3px) !important;
+}
+
+.backup-row {
+  grid-template-columns: 32px 1.6fr 1fr 120px 80px !important;
+}
+
+/* Resources logos: lock to centered layout (like debloater icons) */
+.download-logo {
+  display: grid !important;
+  place-items: center !important;
+}
+
+.download-logo img {
+  width: 70% !important;
+  height: 70% !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  transform: translateX(-1px) !important;
+  margin: 0 !important;
+}
+
+/* Debloater buttons/theme cleanup */
+.debloat-page .debloat-primary,
+.debloat-page .debloat-primary:hover,
+.debloat-page .debloat-primary:focus,
+.debloat-page .debloat-primary:focus-visible,
+.debloat-page .debloat-primary:active {
+  background: color-mix(in srgb, var(--accent) 82%, #ffffff 18%) !important;
+  border-color: color-mix(in srgb, var(--accent) 62%, #ffffff 38%) !important;
+  box-shadow: none !important;
+  outline: none !important;
+  color: #08110d !important;
+}
+
+.debloat-page .btn-ghost {
+  box-shadow: none !important;
+}
+
+[data-tfy-theme='forest'] {
+  --accent: #24bf97;
+  --accent-strong: #7deccf;
+}
+
+/* === final resource/theme fixes === */
+.download-card .fix-action {
+  font-weight: 400 !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+.download-card .fix-action:hover,
+.download-card .fix-action:focus,
+.download-card .fix-action:focus-visible,
+.download-card .fix-action:active {
+  border-color: rgba(255, 255, 255, 0.16) !important;
+  color: #ffffff !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.download-logo img {
+  transform: translateY(5px) !important;
+}
+
+:root {
+  --theme-bg-a: rgba(36, 191, 151, 0.06);
+  --theme-bg-b: rgba(36, 191, 151, 0.04);
+}
+
+[data-tfy-theme='jade'] {
+  --accent: #24bf97;
+  --accent-strong: #7deccf;
+  --theme-bg-a: rgba(36, 191, 151, 0.07);
+  --theme-bg-b: rgba(36, 191, 151, 0.05);
+}
+
+[data-tfy-theme='midnight'] {
+  --accent: #7e87ff;
+  --accent-strong: #c1c8ff;
+  --theme-bg-a: rgba(126, 135, 255, 0.07);
+  --theme-bg-b: rgba(126, 135, 255, 0.05);
+}
+
+[data-tfy-theme='slate'] {
+  --accent: #4ad0da;
+  --accent-strong: #c0f2f6;
+  --theme-bg-a: rgba(74, 208, 218, 0.07);
+  --theme-bg-b: rgba(74, 208, 218, 0.05);
+}
+
+[data-tfy-theme='sunset'] {
+  --accent: #ff8d6b;
+  --accent-strong: #ffd4c2;
+  --theme-bg-a: rgba(255, 141, 107, 0.07);
+  --theme-bg-b: rgba(255, 141, 107, 0.05);
+}
+
+[data-tfy-theme='red'] {
+  --accent: #ff4d4d;
+  --accent-strong: #ffd0d0;
+  --theme-bg-a: rgba(255, 77, 77, 0.07);
+  --theme-bg-b: rgba(255, 77, 77, 0.05);
+}
+
+[data-tfy-theme='pink'] {
+  --accent: #ff5bb8;
+  --accent-strong: #ffd0ea;
+  --theme-bg-a: rgba(255, 91, 184, 0.07);
+  --theme-bg-b: rgba(255, 91, 184, 0.05);
+}
+
+[data-tfy-theme='forest'] {
+  --accent: #24bf97;
+  --accent-strong: #7deccf;
+  --theme-bg-a: rgba(36, 191, 151, 0.07);
+  --theme-bg-b: rgba(36, 191, 151, 0.05);
+}
+
+/* Accurate logo tinting: use the PNG as a mask and paint with the current theme accent. */
+.tfy-logo-mark {
+  width: 80px;
+  height: 80px;
+  border-radius: 18px;
+  background: linear-gradient(135deg,
+      color-mix(in srgb, var(--accent) 90%, #ffffff 10%),
+      color-mix(in srgb, var(--accent) 68%, #ffffff 32%));
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+}
+
+.tfy-logo-mark::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10);
+}
+
+.tfy-logo-mark {
+  position: relative;
+}
+
+.tfy-logo-mark.loading-logo {
+  width: 96px;
+  height: 96px;
+  border-radius: 22px;
+}
+
+
+body,
+.app-shell {
+  background:
+    radial-gradient(circle at 18% 12%, var(--theme-bg-a) 0%, transparent 46%),
+    radial-gradient(circle at 82% 84%, var(--theme-bg-b) 0%, transparent 52%),
+    linear-gradient(180deg, #05080c 0%, #05070a 100%) !important;
+}
+
+.app-shell::before {
+  background:
+    radial-gradient(55% 50% at 12% 18%, var(--theme-bg-a) 0%, transparent 75%),
+    radial-gradient(55% 50% at 88% 80%, var(--theme-bg-b) 0%, transparent 78%),
+    linear-gradient(180deg, rgba(3, 6, 9, 0.72), rgba(2, 4, 6, 0.80)) !important;
+}
+
+.bg-accent,
+.hover\:bg-accent:hover {
+  background-color: var(--accent) !important;
+}
+
+.bg-accent\/15 {
+  background-color: color-mix(in srgb, var(--accent) 18%, transparent) !important;
+}
+
+.bg-accent\/70 {
+  background-color: color-mix(in srgb, var(--accent) 70%, transparent) !important;
+}
+
+.text-accent,
+.hover\:text-accent:hover {
+  color: var(--accent) !important;
+}
+
+.border-accent,
+.border-accent\/60,
+.hover\:border-accent\/50:hover {
+  border-color: color-mix(in srgb, var(--accent) 62%, #ffffff 38%) !important;
+}
+
+/* === polish pass 2026-02-13 === */
+.no-glow {
+  box-shadow: none !important;
+}
+
+.settings-select {
+  background: linear-gradient(180deg, rgba(10, 14, 20, 0.9), rgba(8, 12, 18, 0.9)) !important;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, #ffffff 55%) !important;
+  color: #fff !important;
+  border-radius: 12px !important;
+  padding: 8px 12px !important;
+  min-width: 180px;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.settings-select option {
+  background: #0b1016;
+  color: #fff;
+}
+
+.sidebar-discord-card {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 10%, transparent), 0 12px 26px rgba(0, 0, 0, 0.3) !important;
+  overflow: hidden !important;
+}
+
+.sidebar-discord-card::before,
+.sidebar-discord-card::after {
+  opacity: 0.18 !important;
+}
+
+.sidebar-discord-menu {
+  display: block !important;
+  position: static !important;
+  max-height: 0 !important;
+  opacity: 0 !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+  margin-top: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  transform: none !important;
+  transition: max-height .26s ease, opacity .2s ease, margin-top .26s ease !important;
+}
+
+.sidebar-discord-menu.open {
+  max-height: 170px !important;
+  opacity: 1 !important;
+  margin-top: 10px !important;
+}
+
+.sidebar-discord-menu-item {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.sidebar-discord-popup {
+  display: none !important;
+}
+
+.download-card .fix-action {
+  font-weight: 400 !important;
+}
+
+.download-logo img {
+  transform: translateY(6px) !important;
+}
+
+.update-glow::before {
+  background:
+    radial-gradient(circle at 18% 16%, color-mix(in srgb, var(--accent) 30%, transparent), transparent 55%),
+    radial-gradient(circle at 82% 5%, color-mix(in srgb, var(--accent) 20%, transparent), transparent 60%) !important;
+}
+
+.update-hero {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 22%, transparent), rgba(9, 12, 16, .75)) !important;
+}
+
+.update-hero-icon {
+  background: color-mix(in srgb, var(--accent) 22%, transparent) !important;
+  color: var(--accent-strong) !important;
+  box-shadow: 0 0 24px color-mix(in srgb, var(--accent) 30%, transparent) !important;
+}
+
+@keyframes tfy-main-bg-shift {
+  0% {
+    background-position: 0% 0%, 100% 100%, 0% 0%;
+  }
+
+  50% {
+    background-position: 12% 8%, 88% 92%, 50% 50%;
+  }
+
+  100% {
+    background-position: 0% 0%, 100% 100%, 0% 0%;
+  }
+}
+
+body,
+.app-shell {
+  background:
+    radial-gradient(circle at 18% 12%, var(--theme-bg-a), transparent 46%),
+    radial-gradient(circle at 82% 84%, var(--theme-bg-b), transparent 52%),
+    linear-gradient(180deg, #05080c 0%, #05070a 100%) !important;
+  background-size: 160% 160%, 160% 160%, 100% 100% !important;
+  animation: tfy-main-bg-shift 14s ease-in-out infinite !important;
+}
+
+.liquid-card,
+.panel,
+.panel-outline {
+  border-color: color-mix(in srgb, var(--accent) 22%, #ffffff 78%) !important;
+}
+
+/* === final lock: resource/fixes parity + chart cleanup + discord card === */
+.download-card .fix-action.resource-action {
+  font-weight: 400 !important;
+  letter-spacing: 0 !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02)) !important;
+  color: #f2f6fb !important;
+  box-shadow: none !important;
+}
+
+.download-card .fix-action.resource-action:hover,
+.download-card .fix-action.resource-action:focus,
+.download-card .fix-action.resource-action:focus-visible,
+.download-card .fix-action.resource-action:active {
+  border-color: rgba(255, 255, 255, 0.16) !important;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.03)) !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+.download-card-head {
+  align-items: center !important;
+}
+
+.download-logo {
+  align-items: center !important;
+  justify-content: center !important;
+  background: color-mix(in srgb, var(--accent) 14%, rgba(255, 255, 255, 0.03)) !important;
+  border-color: color-mix(in srgb, var(--accent) 28%, rgba(255, 255, 255, 0.12)) !important;
+  line-height: 0 !important;
+}
+
+.download-logo img {
+  transform: none !important;
+  display: block !important;
+  margin: 0 auto !important;
+  object-position: center center !important;
+}
+
+.temp-chart-wrapper {
+  background: linear-gradient(180deg, rgba(9, 12, 18, 0.8), rgba(7, 10, 14, 0.85)) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  box-shadow: none !important;
+}
+
+.chart-shell {
+  gap: 0 !important;
+}
+
+.chart-area.chart-exm {
+  border-radius: 14px !important;
+  background: rgba(4, 7, 12, 0.72) !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06) !important;
+}
+
+.chart-area.chart-exm::before,
+.chart-area.chart-exm::after,
+.chart-grid,
+.chart-x {
+  background: none !important;
+}
+
+.chart-area.chart-exm svg {
+  height: 100% !important;
+}
+
+.chart-exm .chart-line {
+  stroke: color-mix(in srgb, var(--accent) 88%, #aefeea 12%) !important;
+  stroke-width: 1.45 !important;
+  filter: none !important;
+}
+
+.chart-exm .chart-fill {
+  fill: color-mix(in srgb, var(--accent) 14%, transparent) !important;
+}
+
+.chart-exm .chart-dot {
+  fill: color-mix(in srgb, var(--accent) 88%, #aefeea 12%) !important;
+  stroke: rgba(0, 0, 0, 0.45) !important;
+}
+
+.chart-hover-line {
+  background: rgba(255, 255, 255, 0.16) !important;
+}
+
+.sidebar-discord-card {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  box-shadow: none !important;
+  overflow: hidden !important;
+}
+
+.sidebar-discord-card {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 104px !important;
+  transition: none !important;
+}
+
+.sidebar-discord-card.open {
+  /* Needs to fit 3 full-width action buttons. */
+  height: 320px !important;
+}
+
+.sidebar-discord-card::before,
+.sidebar-discord-card::after {
+  display: none !important;
+}
+
+.sidebar-discord-card.open {
+  border-color: rgba(255, 255, 255, 0.16) !important;
+}
+
+.sidebar-discord-menu {
+  display: flex !important;
+  flex: 1 1 auto !important;
+  flex-direction: column !important;
+  justify-content: flex-end !important;
+  gap: 10px !important;
+  margin-top: 14px !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: translateY(8px) !important;
+  transition: opacity 180ms cubic-bezier(0.22, 1, 0.36, 1), transform 180ms cubic-bezier(0.22, 1, 0.36, 1) !important;
+  /* New layout: actions feel like part of the same glass card (no extra panel). */
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+}
+
+.sidebar-discord-menu.open {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  transform: translateY(0) !important;
+}
+
+.sidebar-discord-menu-item {
+  width: 100% !important;
+  min-height: 54px !important;
+  border-radius: 16px !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+  border: 1px solid rgba(255, 255, 255, 0.10) !important;
+  box-shadow: none !important;
+  color: rgba(255, 255, 255, 0.94) !important;
+  padding: 0 16px !important;
+  font-size: 14px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  transition: transform 160ms cubic-bezier(0.22, 1, 0.36, 1), background-color 160ms ease, border-color 160ms ease !important;
+}
+
+.sidebar-discord-menu-item:hover {
+  background: color-mix(in srgb, var(--accent) 8%, rgba(255, 255, 255, 0.05)) !important;
+  border-color: color-mix(in srgb, var(--accent) 24%, rgba(255, 255, 255, 0.12)) !important;
+  transform: translateY(-1px) !important;
+}
+
+.sidebar-discord-menu-item:active {
+  transform: translateY(0) scale(0.99) !important;
+}
+
+.sidebar-discord-menu-item+.sidebar-discord-menu-item {
+  margin-top: 0 !important;
+}
+
+.sidebar-discord-menu-item.danger {
+  /* Keep it clean (no old blue glow), but slightly more "danger" readable. */
+  color: rgba(255, 255, 255, 0.95) !important;
+  border-color: rgba(255, 255, 255, 0.10) !important;
+}
+
+.settings-bug-btn {
+  box-shadow: none !important;
+}
+
+/* === request cleanup: no card outlines + softer sidebar/discord === */
+.liquid-card,
+.panel,
+.panel-outline,
+.monitor-card,
+.download-card,
+.backup-row {
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.liquid-card::before,
+.liquid-card::after,
+.panel::before,
+.panel::after,
+.panel-outline::before,
+.panel-outline::after {
+  box-shadow: none !important;
+}
+
+.sidebar-item {
+  border: 1px solid transparent !important;
+  box-shadow: none !important;
+}
+
+.sidebar-item.active {
+  border-color: color-mix(in srgb, var(--accent) 44%, transparent) !important;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 15%, transparent), rgba(255, 255, 255, 0.02)) !important;
+}
+
+.sidebar-discord-card {
+  /* Subtle theme tint, still very "chill". */
+  background: color-mix(in srgb, var(--accent) 4%, rgba(10, 14, 20, 0.36)) !important;
+  backdrop-filter: blur(14px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 10px 24px rgba(0, 0, 0, 0.25) !important;
+}
+
+.sidebar-discord-trigger {
+  border-radius: 12px !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+.sidebar-discord-menu.open {
+  margin-top: 10px !important;
+  padding: 8px !important;
+  border-radius: 16px !important;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.02)) !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+.sidebar-discord-menu-item {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 10px !important;
+  width: 100% !important;
+  padding: 10px 12px !important;
+  text-align: left !important;
+  line-height: 1.15 !important;
+  border-radius: 12px !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  transition: background .18s ease, transform .18s ease !important;
+}
+
+.sidebar-discord-menu-item:hover {
+  background: linear-gradient(180deg,
+      color-mix(in srgb, var(--accent) 10%, rgba(255, 255, 255, 0.05)),
+      rgba(255, 255, 255, 0.02)) !important;
+  transform: translateY(-1px);
+}
+
+.settings-select,
+.btn-ghost {
+  border-color: color-mix(in srgb, var(--accent) 40%, rgba(255, 255, 255, 0.2)) !important;
+}
+
+.window-button {
+  /* Make window controls flat (no card border) */
+  border: 0 !important;
+  background: transparent !important;
+  color: rgba(255, 255, 255, 0.6);
+  transition: all 0.2s;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+}
+
+.window-button:hover {
+  background: transparent !important;
+  /* No background on hover as requested */
+  color: var(--accent);
+  /* Color icons instead */
+}
+
+.window-button.close:hover {
+  background: transparent !important;
+  color: #ef4444;
+  /* Red icon on hover */
+}
+
+/* App Rounding */
+#root {
+  border-radius: 0 !important;
+  overflow: hidden;
+  background: transparent;
+}
+
+.app-shell {
+  border-radius: 0 !important;
+  overflow: hidden;
+  /* Ensure transparent windows work with rounding */
+  background: transparent;
+}
+
+/* Themed separator between sidebar and right content (replaces plain white border). */
+.app-main-shell {
+  border-left: 1px solid color-mix(in srgb, var(--accent) 18%, rgba(255, 255, 255, 0.10));
+  box-shadow:
+    inset 1px 0 0 color-mix(in srgb, var(--accent) 8%, transparent),
+    inset 10px 0 18px color-mix(in srgb, var(--accent) 4%, transparent);
+  overflow: visible !important;
+}
+
+.app-main-shell::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: linear-gradient(180deg,
+      color-mix(in srgb, var(--accent) 14%, transparent) 0%,
+      color-mix(in srgb, var(--accent) 26%, rgba(255, 255, 255, 0.12)) 48%,
+      color-mix(in srgb, var(--accent) 14%, transparent) 100%);
+  pointer-events: none;
+  opacity: 0.68;
+  z-index: 3;
+}
+
+.app-content-shell {
+  border-left: 0 !important;
+}
+
+/* Draggable Titlebar (Force high z-index and proper drag region) */
+.titlebar-drag-region {
+  /* -webkit-app-region: drag;  <-- REMOVED: interfering with JS drag fallback */
+  user-select: none;
+  pointer-events: auto;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 40px;
+  /* Match header height */
+  z-index: 9990;
+  /* High but below loading screen (9999) */
+  cursor: default;
+  /* CRITICAL FIX: Fully transparent elements are click-through in WebView2/WPF with AllowsTransparency.
+     We must give it a tiny bit of opacity to capture mouse events. */
+  background: rgba(0, 0, 0, 0.01);
+}
+
+.system-info-shell .panel {
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.22) !important;
+  background: linear-gradient(180deg, rgba(17, 23, 33, 0.58), rgba(12, 17, 25, 0.48)) !important;
+}
+
+.system-info-shell .system-tab.active {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 36%, transparent) !important;
+}
+
+.system-info-shell .system-info-content-panel {
+  min-height: 0;
+}
+
+.system-info-tab-enter {
+  animation: systemInfoTabIn .24s cubic-bezier(.22, 1, .36, 1);
+}
+
+@keyframes systemInfoTabIn {
+  0% {
+    opacity: 0;
+    transform: translateY(8px) scale(.995);
+    filter: blur(.6px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+.sidebar-discord-menu.open {
+  overflow: hidden !important;
+}
+
+/* === Backup + resources final alignment === */
+.backup-tag {
+  background: color-mix(in srgb, var(--accent) 22%, transparent) !important;
+  border-color: color-mix(in srgb, var(--accent) 54%, #ffffff 46%) !important;
+  color: color-mix(in srgb, var(--accent) 36%, #ffffff 64%) !important;
+}
+
+.backup-tag.auto {
+  background: color-mix(in srgb, var(--accent) 14%, transparent) !important;
+  border-color: color-mix(in srgb, var(--accent) 42%, #ffffff 58%) !important;
+  color: #d7e6df !important;
+}
+
+.backup-action {
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, #ffffff 60%) !important;
+  background: color-mix(in srgb, var(--accent) 10%, rgba(255, 255, 255, 0.02)) !important;
+  color: color-mix(in srgb, var(--accent) 30%, #ffffff 70%) !important;
+}
+
+.backup-action:hover {
+  border-color: color-mix(in srgb, var(--accent) 62%, #ffffff 38%) !important;
+  background: color-mix(in srgb, var(--accent) 20%, rgba(255, 255, 255, 0.03)) !important;
+  color: #ffffff !important;
+}
+
+.theme-primary-btn {
+  background: linear-gradient(135deg,
+      color-mix(in srgb, var(--accent) 85%, #ffffff 15%),
+      color-mix(in srgb, var(--accent) 68%, #ffffff 32%)) !important;
+  box-shadow: none !important;
+}
+
+.download-logo img {
+  transform: translateX(2px) translateY(3px) !important;
+}
+
+/* Sidebar Discord actions: icon-only row (3 buttons in one line). */
+.sidebar-discord-card.open {
+  height: 180px !important;
+}
+
+.sidebar-discord-menu.open {
+  flex-direction: row !important;
+  align-items: stretch !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+  padding: 10px !important;
+  border-radius: 18px !important;
+  background: linear-gradient(180deg,
+      rgba(255, 255, 255, 0.035),
+      color-mix(in srgb, var(--accent) 4%, rgba(255, 255, 255, 0.02))) !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+}
+
+.sidebar-discord-menu-item.icon-only {
+  flex: 1 1 0 !important;
+  width: auto !important;
+  min-height: 56px !important;
+  padding: 0 !important;
+  justify-content: center !important;
+  gap: 0 !important;
+  border-radius: 14px !important;
+  background: radial-gradient(circle at 30% 25%,
+      color-mix(in srgb, var(--accent) 10%, transparent),
+      rgba(255, 255, 255, 0.02) 58%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1), background 180ms ease, border-color 180ms ease !important;
+}
+
+.sidebar-discord-menu-item.icon-only svg {
+  opacity: 0.92;
+}
+
+.sidebar-discord-menu-item.icon-only:hover svg {
+  opacity: 1;
+}
+
+.sidebar-discord-menu-item.icon-only:hover {
+  transform: translateY(-1px) scale(1.01) !important;
+  border-color: color-mix(in srgb, var(--accent) 22%, rgba(255, 255, 255, 0.12)) !important;
+  background: radial-gradient(circle at 30% 25%,
+      color-mix(in srgb, var(--accent) 16%, transparent),
+      rgba(255, 255, 255, 0.03) 62%) !important;
+}
+
+.sidebar-discord-menu-item.icon-only:active {
+  transform: translateY(0) scale(0.995) !important;
+}
+
+/* === Resources logos (512px safe) ===
+   Lock a single centering rule so the huge chain of older overrides can't drift them.
+*/
+.download-logo {
+  display: grid !important;
+  place-items: center !important;
+  line-height: 0 !important;
+}
+
+.download-logo img {
+  width: 72% !important;
+  height: 72% !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  transform: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Resources placeholder tag should never affect layout */
+.download-logo {
+  position: relative !important;
+}
+
+.download-tag {
+  position: absolute !important;
+  inset: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+}
+
+.download-logo[data-loaded='true'] .download-tag {
+  display: none !important;
+}
+
+/* === Theme-native primary button (fix old blue glow) === */
+.btn-primary {
+  background: linear-gradient(135deg,
+      color-mix(in srgb, var(--accent) 88%, #ffffff 12%),
+      color-mix(in srgb, var(--accent-strong) 70%, transparent)) !important;
+  box-shadow: 0 10px 28px color-mix(in srgb, var(--accent) 28%, transparent) !important;
+}
+
+.btn-primary:active {
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--accent) 26%, transparent) !important;
+}
+
+/* === Gaming DevTools side glow (diagonal, extended) === */
+.gaming-devtools-side {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg,
+      color-mix(in srgb, var(--accent) 10%, transparent),
+      rgba(9, 12, 16, 0.70));
+}
+
+.gaming-devtools-side::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 14% 16%, color-mix(in srgb, var(--accent) 16%, transparent) 0%, transparent 62%),
+    radial-gradient(circle at 90% 90%, color-mix(in srgb, var(--accent) 10%, transparent) 0%, transparent 70%),
+    linear-gradient(135deg, color-mix(in srgb, var(--accent) 12%, transparent) 0%, transparent 58%);
+  opacity: 0.55;
+}
+
+.gaming-devtools-side::after {
+  content: '';
+  position: absolute;
+  inset: -40%;
+  pointer-events: none;
+  background: linear-gradient(135deg,
+      color-mix(in srgb, var(--accent) 26%, transparent) 0%,
+      transparent 55%,
+      color-mix(in srgb, var(--accent) 14%, transparent) 100%);
+  filter: blur(26px);
+  opacity: 0.38;
+  transform: rotate(-6deg);
+}
+
+.gaming-devtools-side>* {
+  position: relative;
+  z-index: 1;
+}
+
+/* === TFY diagonal glow (reusable) === */
+.tfy-diagonal-glow {
+  position: relative;
+  overflow: hidden;
+}
+
+.tfy-diagonal-glow::before {
+  content: '';
+  position: absolute;
+  inset: -40%;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 22% 22%, color-mix(in srgb, var(--accent) 18%, transparent) 0%, transparent 58%),
+    radial-gradient(circle at 78% 78%, color-mix(in srgb, var(--accent) 18%, transparent) 0%, transparent 62%),
+    linear-gradient(135deg, color-mix(in srgb, var(--accent) 14%, transparent) 0%, transparent 62%);
+  filter: blur(34px);
+  opacity: 0.26;
+  transform: rotate(-8deg);
+}
+
+.tfy-diagonal-glow::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(135deg,
+      rgba(255, 255, 255, 0.03) 0%,
+      transparent 38%,
+      rgba(0, 0, 0, 0.06) 100%);
+  opacity: 0.5;
+}
+
+.tfy-diagonal-glow>* {
+  position: relative;
+  z-index: 1;
+}
+
+/* About: remove the corner "shadow band" look by softening the overlay. */
+.about-page .tfy-diagonal-glow::after {
+  display: none !important;
+}
+
+.about-page .tfy-diagonal-glow::before {
+  opacity: 0.12;
+}
+
+/* Sidebar: keep last nav items visible when the Discord panel expands. */
+.sidebar-nav-scroll {
+  padding-bottom: 140px;
+  scroll-padding-bottom: 220px;
+  overflow: hidden !important;
+}
+
+.sidebar-shell.discord-open .sidebar-nav-scroll {
+  padding-bottom: 230px;
+}
+
+/* Remove any old fixed-green tints from liquid cards, make them theme-native. */
+[data-tfy-theme] .liquid-card::before {
+  background:
+    radial-gradient(circle at 25% 20%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 60%),
+    radial-gradient(circle at 80% 80%, color-mix(in srgb, var(--accent) 6%, transparent), transparent 65%) !important;
+  opacity: 0.28 !important;
+}
+
+/* Settings: make icon tiles theme-aware (avoid "old UI" color feel). */
+[data-tfy-theme] .settings-icon-wrap {
+  border-color: rgba(255, 255, 255, 0.10);
+  background: linear-gradient(180deg,
+      color-mix(in srgb, var(--accent) 6%, rgba(255, 255, 255, 0.04)),
+      rgba(255, 255, 255, 0.03));
+}
+
+/* Apple-ish frosted modals: transparent blur + subtle theme tint.
+   Also disable diagonal-glow overlays inside modals (too heavy). */
+.tfy-modal {
+  /* Clean dimmer: no blur = no "glow/haze" behind the modal. */
+  background: rgba(0, 0, 0, 0.82) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  /* Must stay fixed full-screen. (Avoid overriding Tailwind's `fixed`.) */
+  position: fixed !important;
+  inset: 0 !important;
+}
+
+.tfy-modal::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  /* Full-screen shadow + theme-tinted spread (subtle, professional). */
+  background:
+    radial-gradient(circle at 18% 18%, color-mix(in srgb, var(--accent) 12%, transparent) 0%, transparent 62%),
+    radial-gradient(circle at 82% 84%, color-mix(in srgb, var(--accent) 8%, transparent) 0%, transparent 66%),
+    radial-gradient(ellipse at 50% 50%, rgba(0, 0, 0, 0.12) 0%, rgba(0, 0, 0, 0.52) 72%, rgba(0, 0, 0, 0.78) 100%);
+  opacity: 0.62;
+}
+
+.tfy-modal-shell {
+  position: relative;
+  z-index: 1;
+}
+
+.tfy-modal-shell {
+  position: relative;
+  overflow: hidden;
+  /* Dark, subtle tint (keep it "chill" / pro). */
+  background: rgba(10, 12, 16, 0.74) !important;
+  border: 1px solid rgba(255, 255, 255, 0.10) !important;
+  /* Keep a clean, neutral shadow behind the modal card (no colored glow). */
+  box-shadow:
+    0 28px 90px rgba(0, 0, 0, 0.70),
+    0 8px 24px rgba(0, 0, 0, 0.45) !important;
+  backdrop-filter: blur(22px) saturate(120%) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(120%) !important;
+}
+
+.tfy-modal-shell::before {
+  /* Remove the colored "glow sheet" behind modal content (CPU/GPU/RAM details looked hazy). */
+  display: none !important;
+}
+
+.tfy-modal-shell>* {
+  position: relative;
+  z-index: 1;
+}
+
+.tfy-modal-shell .panel.panel-outline,
+.tfy-modal-shell .liquid-card {
+  /* Inner cards: mostly neutral, tiny theme tint. */
+  background: color-mix(in srgb, var(--accent) 2%, rgba(255, 255, 255, 0.020)) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: none !important;
+  backdrop-filter: blur(16px) saturate(120%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(120%) !important;
+}
+
+/* Modal tiles (CPU/GPU/RAM details etc.): subtle theme tint, still clean. */
+.tfy-modal-shell .tfy-detail-tile {
+  background: linear-gradient(180deg,
+      color-mix(in srgb, var(--accent) 5%, rgba(255, 255, 255, 0.030)),
+      rgba(255, 255, 255, 0.020)) !important;
+  border-color: color-mix(in srgb, var(--accent) 18%, rgba(255, 255, 255, 0.08)) !important;
+}
+
+.tfy-modal-shell .tfy-diagonal-glow::before,
+.tfy-modal-shell .tfy-diagonal-glow::after {
+  display: none !important;
+}
+
+.tfy-modal-shell .tfy-diagonal-glow {
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+/* Jade (green): keep modals more neutral. Green tint can look "muddy" otherwise. */
+[data-tfy-theme='jade'] .tfy-modal-shell {
+  background: rgba(8, 10, 14, 0.70) !important;
+}
+
+[data-tfy-theme='jade'] .tfy-modal-shell::before {
+  display: none !important;
+}
+
+[data-tfy-theme='jade'] .tfy-modal-shell .panel.panel-outline,
+[data-tfy-theme='jade'] .tfy-modal-shell .liquid-card {
+  background: rgba(255, 255, 255, 0.018) !important;
+}
+
+/* Jade: soften accent background utilities (selected tabs / bullets). */
+[data-tfy-theme='jade'] .bg-accent\/15 {
+  background-color: color-mix(in srgb, var(--accent) 9%, transparent) !important;
+}
+
+[data-tfy-theme='jade'] .bg-accent\/70 {
+  background-color: color-mix(in srgb, var(--accent) 38%, transparent) !important;
+}
+
+/* Ensure metric rings are always theme-native (fix lingering old accent tints) */
+.metric-ring {
+  background: radial-gradient(circle at 50% 30%,
+      color-mix(in srgb, var(--accent) 12%, transparent),
+      transparent 58%) !important;
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, rgba(255, 255, 255, 0.12)) !important;
+}
+
+/* Resources cards: give them the same premium depth as debloat */
+.download-card.tfy-diagonal-glow {
+  background: linear-gradient(180deg, rgba(12, 16, 22, 0.62), rgba(8, 10, 13, 0.64)) !important;
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.45) !important;
+}
+
+.download-card.tfy-diagonal-glow:hover {
+  transform: translateY(-1px);
+}
+
+/* Fixes: match Resources card color (only color) */
+.fix-card {
+  background: linear-gradient(180deg, rgba(12, 16, 22, 0.62), rgba(8, 10, 13, 0.64)) !important;
+  border-color: rgba(255, 255, 255, 0.07) !important;
+}
+
+/* Fixes cards: same premium depth as Resources cards when glow wrapper is present */
+.fix-card.tfy-diagonal-glow {
+  background: linear-gradient(180deg, rgba(12, 16, 22, 0.62), rgba(8, 10, 13, 0.64)) !important;
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.45) !important;
+}
+
+/* Home + Backups: same card color as Fixes/Resources when glow wrapper is present */
+.liquid-card.tfy-diagonal-glow,
+.panel.tfy-diagonal-glow {
+  background: linear-gradient(180deg, rgba(12, 16, 22, 0.62), rgba(8, 10, 13, 0.64)) !important;
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.45) !important;
+}
+
+/* Debloater: remove the corner "shadow wedge" from the diagonal-glow overlay. */
+.debloat-page .tfy-diagonal-glow::after {
+  display: none !important;
+}
+
+/* Backups: remove old blue tint and align to theme */
+.backup-action {
+  border-color: color-mix(in srgb, var(--accent) 36%, rgba(255, 255, 255, 0.12)) !important;
+  background: color-mix(in srgb, var(--accent) 10%, rgba(255, 255, 255, 0.02)) !important;
+  box-shadow: none !important;
+}
+
+.backup-action:hover {
+  border-color: color-mix(in srgb, var(--accent) 56%, rgba(255, 255, 255, 0.14)) !important;
+  background: color-mix(in srgb, var(--accent) 14%, rgba(255, 255, 255, 0.03)) !important;
+  color: #ffffff !important;
+}
+
+/* Resources: keep Download buttons visible and theme-clean (same font/text) */
+.download-card .fix-action.resource-action {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.5rem !important;
+  font-weight: 400 !important;
+  color: #f2f6fb !important;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02)) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: none !important;
+}
+
+.download-card .download-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  /* Keep it in-flow; avoid any edge-case clipping with overflow containers */
+  margin-top: 0 !important;
+  width: 100% !important;
+  min-height: 40px !important;
+}
+
+.download-card .fix-action.resource-action:hover {
+  background: linear-gradient(180deg,
+      color-mix(in srgb, var(--accent) 10%, rgba(255, 255, 255, 0.06)),
+      rgba(255, 255, 255, 0.03)) !important;
+  border-color: color-mix(in srgb, var(--accent) 40%, rgba(255, 255, 255, 0.16)) !important;
+}
+
+/* Hard guarantee: some environments were collapsing Resources cards to header-only.
+   Force the meta + action rows to stay in flow and give the card enough height. */
+.download-card {
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 142px !important;
+}
+
+.download-card .download-meta {
+  display: flex !important;
+}
+
+.download-card .download-action-row {
+  display: flex !important;
+}
+
+/* Create new / primary buttons: allow opt-out glow everywhere */
+.no-glow,
+.no-glow:hover,
+.no-glow:active,
+.no-glow:focus,
+.no-glow:focus-visible {
+  box-shadow: none !important;
+}
+
+/* Draggable Titlebar (Force high z-index and proper drag region) */
+.titlebar-drag-region {
+  /* -webkit-app-region: drag;  <-- REMOVED: interfering with JS drag fallback */
+  user-select: none;
+  pointer-events: auto;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 32px;
+  z-index: 9990;
+  /* High but below loading screen (9999) */
+  cursor: default;
+  /* CRITICAL FIX: Fully transparent elements are click-through in WebView2/WPF with AllowsTransparency.
+     We must give it a tiny bit of opacity to capture mouse events. */
+  /* background: rgba(0, 0, 0, 0.01);  <-- REMOVED: Now using substantial visible background */
+}
+
+/* Window controls (Minimize/Close) must be clickable */
+.titlebar-no-drag {
+  -webkit-app-region: no-drag;
+  cursor: default;
+  z-index: 9991;
+  /* Above the drag layer */
+  position: relative;
+}
+
+/* Detail Cards in Modals (CPU, GPU, RAM) - Stronger Pop */
+.tfy-detail-tile {
+  background: linear-gradient(145deg,
+      color-mix(in srgb, var(--accent) 10%, rgba(12, 16, 22, 0.72)) 0%,
+      rgba(10, 13, 18, 0.74) 100%) !important;
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, rgba(255, 255, 255, 0.14)) !important;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.34), inset 0 0 18px color-mix(in srgb, var(--accent) 8%, transparent) !important;
+  transition: all 0.3s ease;
+}
+
+.tfy-detail-tile:hover {
+  border-color: color-mix(in srgb, var(--accent) 48%, rgba(255, 255, 255, 0.18)) !important;
+  background: linear-gradient(145deg,
+      color-mix(in srgb, var(--accent) 14%, rgba(12, 16, 22, 0.76)) 0%,
+      rgba(10, 13, 18, 0.78) 100%) !important;
+  box-shadow: 0 9px 26px color-mix(in srgb, var(--accent) 18%, transparent), inset 0 0 10px color-mix(in srgb, var(--accent) 10%, transparent) !important;
+  transform: translateY(-2px);
+}
+
+/* Drag Optimization: Disable heavy effects in Low End Mode */
+.tfy-low-end * {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+  transition: none !important;
+}
+
+/* Home telemetry: keep Temperature and Disk headers aligned with monitor card icon style. */
+.home-section-icon {
+  border: 1px solid color-mix(in srgb, var(--accent) 34%, rgba(255, 255, 255, 0.24)) !important;
+  background: linear-gradient(160deg,
+      color-mix(in srgb, var(--accent) 14%, rgba(255, 255, 255, 0.06)),
+      rgba(255, 255, 255, 0.02)) !important;
+}
+
+/* Temperature monitor card: remove legacy blue feel and tint by active theme. */
+[data-tfy-theme] .temp-root-card {
+  border-color: color-mix(in srgb, var(--accent) 30%, rgba(255, 255, 255, 0.12)) !important;
+  background: linear-gradient(180deg,
+      color-mix(in srgb, var(--accent) 9%, rgba(12, 16, 22, 0.74)),
+      rgba(8, 10, 13, 0.7)) !important;
+}
+
+[data-tfy-theme] .temp-root-card .thermal-summary {
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, rgba(255, 255, 255, 0.12)) !important;
+  background: linear-gradient(180deg,
+      color-mix(in srgb, var(--accent) 5%, rgba(8, 12, 16, 0.86)),
+      rgba(7, 10, 14, 0.86)) !important;
+}
+
+/* CPU/GPU switch in Temperature monitor: fully theme-aware, same language as the rest of cards. */
+.temp-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.8rem;
+  border-radius: 0.6rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #9ca3af;
+  background: rgba(255, 255, 255, 0.04);
+  transition: all 0.2s ease;
+}
+
+.temp-toggle:hover {
+  border-color: color-mix(in srgb, var(--accent) 40%, rgba(255, 255, 255, 0.2));
+  color: #ffffff;
+  background: color-mix(in srgb, var(--accent) 9%, rgba(255, 255, 255, 0.04));
+}
+
+.temp-toggle.active {
+  border-color: color-mix(in srgb, var(--accent) 62%, rgba(255, 255, 255, 0.18));
+  color: #ffffff;
+  background: linear-gradient(135deg,
+      color-mix(in srgb, var(--accent) 24%, rgba(255, 255, 255, 0.05)),
+      color-mix(in srgb, var(--accent) 12%, transparent));
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+/* Home: force CPU/GPU/RAM/Disk cards to match Temperature card even against global card overrides. */
+[data-tfy-theme] .liquid-card.home-feature-card.tfy-diagonal-glow {
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, rgba(255, 255, 255, 0.12)) !important;
+  background: linear-gradient(180deg,
+      color-mix(in srgb, var(--accent) 7%, rgba(12, 16, 22, 0.72)),
+      rgba(8, 10, 13, 0.68)) !important;
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.45), inset 0 0 0 1px color-mix(in srgb, var(--accent) 6%, transparent) !important;
+}
+
+[data-tfy-theme] .liquid-card.home-feature-card.tfy-diagonal-glow::before {
+  background:
+    radial-gradient(circle at 20% 18%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 58%),
+    radial-gradient(circle at 82% 82%, color-mix(in srgb, var(--accent) 7%, transparent), transparent 64%) !important;
+  opacity: 0.4 !important;
+}
+
+/* Home top actions + small action buttons. */
+.home-action-btn {
+  border-color: color-mix(in srgb, var(--accent) 44%, rgba(255, 255, 255, 0.22)) !important;
+  background: linear-gradient(180deg,
+      color-mix(in srgb, var(--accent) 10%, rgba(255, 255, 255, 0.04)),
+      rgba(255, 255, 255, 0.02)) !important;
+}
+
+.home-action-btn:hover {
+  border-color: color-mix(in srgb, var(--accent) 62%, rgba(255, 255, 255, 0.28)) !important;
+  background: linear-gradient(180deg,
+      color-mix(in srgb, var(--accent) 16%, rgba(255, 255, 255, 0.05)),
+      rgba(255, 255, 255, 0.03)) !important;
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--accent) 18%, transparent) !important;
+}
+
+/* Home top buttons: same visual language as View Details, just slightly larger. */
+.home-header-btn {
+  font-size: 0.86rem !important;
+  padding: 0.58rem 1.05rem !important;
+  border-radius: 0.82rem !important;
+  margin-top: 6px !important;
+}
+
+/* What's New panel + release badges now theme-native. */
+.whatsnew-card {
+  border-color: color-mix(in srgb, var(--accent) 26%, rgba(255, 255, 255, 0.12)) !important;
+  background: linear-gradient(145deg,
+      color-mix(in srgb, var(--accent) 10%, rgba(12, 16, 22, 0.68)) 0%,
+      rgba(9, 12, 16, 0.7) 100%) !important;
+}
+
+.whatsnew-card:hover {
+  transform: none !important;
+}
+
+.whatsnew-tag {
+  border-width: 1px !important;
+  border-style: solid !important;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #dbe4f4 !important;
+}
+
+.tag-patch.whatsnew-tag {
+  color: #dbe4f4 !important;
+  background: color-mix(in srgb, var(--accent) 16%, rgba(255, 255, 255, 0.03)) !important;
+  border-color: color-mix(in srgb, var(--accent) 40%, rgba(255, 255, 255, 0.22)) !important;
+}
+
+.tag-minor.whatsnew-tag {
+  color: #dbe4f4 !important;
+  background: color-mix(in srgb, var(--accent) 12%, rgba(255, 255, 255, 0.03)) !important;
+  border-color: color-mix(in srgb, var(--accent) 36%, rgba(255, 255, 255, 0.22)) !important;
+}
+
+.tag-theme.whatsnew-tag {
+  color: #dbe4f4 !important;
+  background: linear-gradient(135deg,
+      color-mix(in srgb, var(--accent) 22%, rgba(255, 255, 255, 0.06)),
+      color-mix(in srgb, var(--accent) 12%, transparent)) !important;
+  border-color: color-mix(in srgb, var(--accent) 42%, rgba(255, 255, 255, 0.24)) !important;
+}
+
+.tag-hotfix.whatsnew-tag {
+  color: #dbe4f4 !important;
+  background: linear-gradient(135deg, rgba(255, 122, 69, 0.2), rgba(255, 122, 69, 0.1)) !important;
+  border-color: rgba(255, 144, 97, 0.45) !important;
+}
+
+.tag-ux.whatsnew-tag {
+  color: #dbe4f4 !important;
+  background: linear-gradient(135deg,
+      color-mix(in srgb, var(--accent) 14%, rgba(255, 255, 255, 0.03)),
+      color-mix(in srgb, var(--accent) 7%, transparent)) !important;
+  border-color: color-mix(in srgb, var(--accent) 34%, rgba(255, 255, 255, 0.2)) !important;
+}
+
+.tag-perf.whatsnew-tag {
+  color: #dbe4f4 !important;
+  background: linear-gradient(135deg,
+      color-mix(in srgb, var(--accent) 18%, rgba(255, 255, 255, 0.03)),
+      color-mix(in srgb, var(--accent) 9%, transparent)) !important;
+  border-color: color-mix(in srgb, var(--accent) 36%, rgba(255, 255, 255, 0.20)) !important;
+}
+
+.tag-security.whatsnew-tag {
+  color: #dbe4f4 !important;
+  background: linear-gradient(135deg, rgba(250, 204, 21, 0.22), rgba(250, 204, 21, 0.11)) !important;
+  border-color: rgba(255, 226, 120, 0.45) !important;
+}
+
+.tag-preview.whatsnew-tag {
+  color: #dbe4f4 !important;
+  background: linear-gradient(135deg, rgba(96, 165, 250, 0.2), rgba(96, 165, 250, 0.1)) !important;
+  border-color: rgba(143, 196, 255, 0.42) !important;
+}
+
+/* Strong theme pass for Home modals: CPU/GPU/RAM Details, System Information, What's New. */
+[data-tfy-theme] .tfy-modal-shell .tfy-detail-tile {
+  background: linear-gradient(145deg,
+      color-mix(in srgb, var(--accent) 12%, rgba(11, 15, 21, 0.78)) 0%,
+      rgba(9, 12, 17, 0.8) 100%) !important;
+  border-color: color-mix(in srgb, var(--accent) 34%, rgba(255, 255, 255, 0.14)) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.38), inset 0 0 16px color-mix(in srgb, var(--accent) 10%, transparent) !important;
+}
+
+[data-tfy-theme] .tfy-modal-shell .system-info-shell .panel.panel-outline,
+[data-tfy-theme] .tfy-modal-shell .system-info-shell .liquid-card {
+  background: linear-gradient(165deg,
+      color-mix(in srgb, var(--accent) 10%, rgba(10, 14, 20, 0.78)),
+      rgba(8, 11, 16, 0.8)) !important;
+  border-color: color-mix(in srgb, var(--accent) 28%, rgba(255, 255, 255, 0.12)) !important;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.34), inset 0 0 12px color-mix(in srgb, var(--accent) 8%, transparent) !important;
+}
+
+[data-tfy-theme] .tfy-modal-shell .whatsnew-card {
+  background: linear-gradient(145deg,
+      color-mix(in srgb, var(--accent) 12%, rgba(11, 15, 21, 0.8)) 0%,
+      rgba(8, 11, 16, 0.82) 100%) !important;
+  border-color: color-mix(in srgb, var(--accent) 32%, rgba(255, 255, 255, 0.14)) !important;
+}
+
+/* Main card in details modals: same style family as small tiles, but calmer so tiles stand out. */
+[data-tfy-theme] .tfy-modal-shell .details-main-card {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(150deg,
+      color-mix(in srgb, var(--accent) 4%, rgba(9, 13, 18, 0.88)) 0%,
+      rgba(7, 10, 14, 0.9) 100%) !important;
+  border-color: color-mix(in srgb, var(--accent) 18%, rgba(255, 255, 255, 0.11)) !important;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.34), inset 0 0 8px color-mix(in srgb, var(--accent) 4%, transparent) !important;
+  transition: border-color .25s ease, box-shadow .25s ease, background .25s ease;
+}
+
+/* Deep variant for Home information modals (CPU/GPU/RAM Details, System Info, What's New). */
+[data-tfy-theme] .tfy-modal-shell.tfy-modal-deep {
+  background: linear-gradient(170deg,
+      color-mix(in srgb, var(--accent) 4%, rgba(7, 10, 14, 0.92)),
+      rgba(6, 8, 12, 0.94)) !important;
+  border-color: color-mix(in srgb, var(--accent) 16%, rgba(255, 255, 255, 0.10)) !important;
+  box-shadow:
+    0 30px 88px rgba(0, 0, 0, 0.74),
+    inset 0 0 0 1px color-mix(in srgb, var(--accent) 6%, transparent) !important;
+}
+
+[data-tfy-theme] .tfy-modal-shell.tfy-modal-deep .modal-head {
+  padding: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+[data-tfy-theme] .tfy-modal-shell.tfy-modal-deep .details-main-card {
+  background: linear-gradient(150deg,
+      color-mix(in srgb, var(--accent) 3%, rgba(8, 11, 16, 0.92)) 0%,
+      rgba(6, 8, 12, 0.94) 100%) !important;
+  border-color: color-mix(in srgb, var(--accent) 14%, rgba(255, 255, 255, 0.10)) !important;
+  box-shadow: 0 5px 14px rgba(0, 0, 0, 0.36), inset 0 0 8px color-mix(in srgb, var(--accent) 3%, transparent) !important;
+}
+
+/* Keep top-right header buttons glow fully visible (avoid clipping at page edge). */
+.home-header-actions {
+  padding-right: 18px;
+  padding-left: 8px;
+  padding-bottom: 6px;
+  overflow: visible;
+}
+
+.home-header-btn {
+  margin-top: 6px;
+}
+
+/* Clean Files modal: theme-native option cards + custom checkbox controls. */
+[data-tfy-theme] .clean-files-modal .clean-option-card {
+  background: linear-gradient(150deg,
+      color-mix(in srgb, var(--accent) 9%, rgba(10, 14, 20, 0.82)),
+      rgba(8, 11, 16, 0.84)) !important;
+  border-color: color-mix(in srgb, var(--accent) 26%, rgba(255, 255, 255, 0.14)) !important;
+  transition: border-color .2s ease, background .2s ease, box-shadow .2s ease;
+}
+
+[data-tfy-theme] .clean-files-modal .clean-option-card:hover {
+  border-color: color-mix(in srgb, var(--accent) 40%, rgba(255, 255, 255, 0.18)) !important;
+  background: linear-gradient(150deg,
+      color-mix(in srgb, var(--accent) 13%, rgba(10, 14, 20, 0.86)),
+      rgba(8, 11, 16, 0.88)) !important;
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--accent) 16%, transparent) !important;
+}
+
+[data-tfy-theme] .clean-files-modal .clean-checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--accent) 38%, rgba(255, 255, 255, 0.24));
+  background: rgba(255, 255, 255, 0.03);
+  display: inline-block;
+  position: relative;
+  cursor: pointer;
+  transition: border-color .2s ease, background .2s ease, box-shadow .2s ease, transform .12s ease;
+  flex-shrink: 0;
+}
+
+[data-tfy-theme] .clean-files-modal .clean-checkbox:hover {
+  border-color: color-mix(in srgb, var(--accent) 52%, rgba(255, 255, 255, 0.26));
+  background: color-mix(in srgb, var(--accent) 8%, rgba(255, 255, 255, 0.03));
+}
+
+[data-tfy-theme] .clean-files-modal .clean-checkbox:active {
+  transform: scale(0.96);
+}
+
+[data-tfy-theme] .clean-files-modal .clean-checkbox::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--accent) 24%, transparent);
+  opacity: 0;
+  transform: scale(0.88);
+}
+
+[data-tfy-theme] .clean-files-modal .clean-checkbox::after {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 2px;
+  width: 5px;
+  height: 9px;
+  border-right: 2px solid color-mix(in srgb, var(--accent) 84%, #ffffff 16%);
+  border-bottom: 2px solid color-mix(in srgb, var(--accent) 84%, #ffffff 16%);
+  transform: rotate(45deg) scale(0.15);
+  opacity: 0;
+  transform-origin: center;
+  transition: opacity .14s ease, transform .14s ease;
+}
+
+[data-tfy-theme] .clean-files-modal .clean-checkbox:checked {
+  border-color: color-mix(in srgb, var(--accent) 62%, rgba(255, 255, 255, 0.26));
+  background: color-mix(in srgb, var(--accent) 14%, rgba(255, 255, 255, 0.04));
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+[data-tfy-theme] .clean-files-modal .clean-checkbox:checked::before {
+  animation: cleanCheckPulse .28s ease-out;
+}
+
+[data-tfy-theme] .clean-files-modal .clean-checkbox:checked::after {
+  transform: rotate(45deg) scale(1);
+  opacity: 1;
+  animation: cleanCheckMark .22s cubic-bezier(.2, .9, .2, 1) both;
+}
+
+@keyframes cleanCheckMark {
+  0% {
+    transform: rotate(45deg) scale(0.2);
+    opacity: 0;
+  }
+
+  65% {
+    transform: rotate(45deg) scale(1.12);
+    opacity: 1;
+  }
+
+  100% {
+    transform: rotate(45deg) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes cleanCheckPulse {
+  0% {
+    opacity: .34;
+    transform: scale(0.86);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(1.2);
+  }
+}
+
+[data-tfy-theme] .tfy-modal-shell .details-main-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 20% 18%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 60%),
+    radial-gradient(circle at 82% 84%, color-mix(in srgb, var(--accent) 5%, transparent), transparent 66%);
+  opacity: 0.45;
+  transition: opacity .25s ease;
+}
+
+[data-tfy-theme] .tfy-modal-shell .details-main-card:hover {
+  border-color: color-mix(in srgb, var(--accent) 26%, rgba(255, 255, 255, 0.12)) !important;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.36), inset 0 0 10px color-mix(in srgb, var(--accent) 7%, transparent) !important;
+}
+
+[data-tfy-theme] .tfy-modal-shell .details-main-card:hover::before {
+  opacity: 0.62;
+}
+
+/* Cross-page theme parity: apply Home-style surfaces to Backups/Fixes/Resources/Gaming/Debloating/About/Settings. */
+[data-tfy-theme] .tfy-themed-page .panel.panel-outline,
+[data-tfy-theme] .tfy-themed-page .liquid-card,
+[data-tfy-theme] .tfy-themed-page .fix-card,
+[data-tfy-theme] .tfy-themed-page .download-card {
+  background: linear-gradient(180deg,
+      color-mix(in srgb, var(--accent) 7%, rgba(12, 16, 22, 0.72)),
+      rgba(8, 10, 13, 0.68)) !important;
+  border: 1px solid color-mix(in srgb, var(--accent) 26%, rgba(255, 255, 255, 0.12)) !important;
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.45), inset 0 0 0 1px color-mix(in srgb, var(--accent) 6%, transparent) !important;
+}
+
+[data-tfy-theme] .tfy-themed-page .panel.panel-outline::before,
+[data-tfy-theme] .tfy-themed-page .liquid-card::before,
+[data-tfy-theme] .tfy-themed-page .fix-card::before,
+[data-tfy-theme] .tfy-themed-page .download-card::before {
+  background:
+    radial-gradient(circle at 20% 18%, color-mix(in srgb, var(--accent) 11%, transparent), transparent 58%),
+    radial-gradient(circle at 82% 82%, color-mix(in srgb, var(--accent) 7%, transparent), transparent 64%) !important;
+  opacity: 0.34 !important;
+}
+
+[data-tfy-theme] .tfy-themed-page .btn-ghost {
+  border-color: color-mix(in srgb, var(--accent) 44%, rgba(255, 255, 255, 0.22)) !important;
+  background: linear-gradient(180deg,
+      color-mix(in srgb, var(--accent) 10%, rgba(255, 255, 255, 0.04)),
+      rgba(255, 255, 255, 0.02)) !important;
+  color: #e7edf8 !important;
+}
+
+[data-tfy-theme] .tfy-themed-page .btn-ghost:hover {
+  border-color: color-mix(in srgb, var(--accent) 62%, rgba(255, 255, 255, 0.28)) !important;
+  background: linear-gradient(180deg,
+      color-mix(in srgb, var(--accent) 16%, rgba(255, 255, 255, 0.05)),
+      rgba(255, 255, 255, 0.03)) !important;
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--accent) 18%, transparent) !important;
+}
+
+[data-tfy-theme] .tfy-themed-page .backup-search,
+[data-tfy-theme] .tfy-themed-page .fix-search,
+[data-tfy-theme] .tfy-themed-page .download-search,
+[data-tfy-theme] .tfy-themed-page .settings-select.settings-select-custom {
+  border-color: color-mix(in srgb, var(--accent) 34%, rgba(255, 255, 255, 0.16)) !important;
+  background: linear-gradient(180deg,
+      color-mix(in srgb, var(--accent) 7%, rgba(255, 255, 255, 0.04)),
+      rgba(255, 255, 255, 0.02)) !important;
+}
+
+[data-tfy-theme] .tfy-themed-page .settings-row,
+[data-tfy-theme] .tfy-themed-page .backup-row {
+  border-color: color-mix(in srgb, var(--accent) 20%, rgba(255, 255, 255, 0.1)) !important;
+  background: linear-gradient(180deg,
+      color-mix(in srgb, var(--accent) 4%, rgba(255, 255, 255, 0.03)),
+      rgba(255, 255, 255, 0.01)) !important;
+}
+
+[data-tfy-theme] .tfy-themed-page .settings-icon-wrap,
+[data-tfy-theme] .tfy-themed-page .download-logo {
+  border-color: color-mix(in srgb, var(--accent) 36%, rgba(255, 255, 255, 0.18)) !important;
+  background: linear-gradient(160deg,
+      color-mix(in srgb, var(--accent) 16%, rgba(255, 255, 255, 0.06)),
+      rgba(255, 255, 255, 0.02)) !important;
+}
+
+[data-tfy-theme] .tfy-themed-page .toggle.on {
+  background: color-mix(in srgb, var(--accent) 24%, rgba(255, 255, 255, 0.06)) !important;
+  border-color: color-mix(in srgb, var(--accent) 52%, rgba(255, 255, 255, 0.18)) !important;
+  box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 26%, transparent) !important;
+}
+
+/* Backups create modal: theme focus + note card (no old blue/amber styles). */
+[data-tfy-theme] .backup-name-input {
+  border-color: color-mix(in srgb, var(--accent) 26%, rgba(255, 255, 255, 0.16)) !important;
+  background: linear-gradient(180deg,
+      color-mix(in srgb, var(--accent) 6%, rgba(255, 255, 255, 0.03)),
+      rgba(255, 255, 255, 0.02)) !important;
+  transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+}
+
+[data-tfy-theme] .backup-name-input:focus,
+[data-tfy-theme] .backup-name-input:focus-visible {
+  border-color: color-mix(in srgb, var(--accent) 56%, rgba(255, 255, 255, 0.24)) !important;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 18%, transparent) !important;
+  outline: none !important;
+}
+
+[data-tfy-theme] .backup-note-theme {
+  border: 1px solid rgba(252, 211, 77, 0.3) !important;
+  background: linear-gradient(145deg, rgba(245, 158, 11, 0.16), rgba(120, 53, 15, 0.22)) !important;
+  color: #fde68a !important;
+}
+
+/* Same button language for Home "View Details" + Fixes "Fix now". */
+[data-tfy-theme] .view-details-btn {
+  border-color: color-mix(in srgb, var(--accent) 44%, rgba(255, 255, 255, 0.22)) !important;
+  background: linear-gradient(180deg,
+      color-mix(in srgb, var(--accent) 10%, rgba(255, 255, 255, 0.04)),
+      rgba(255, 255, 255, 0.02)) !important;
+  color: #e9effa !important;
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--accent) 8%, transparent) !important;
+  transition: transform .18s ease, border-color .2s ease, box-shadow .2s ease, background .2s ease !important;
+}
+
+[data-tfy-theme] .view-details-btn:hover,
+[data-tfy-theme] .view-details-btn:focus,
+[data-tfy-theme] .view-details-btn:focus-visible {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--accent) 60%, rgba(255, 255, 255, 0.28)) !important;
+  background: linear-gradient(180deg,
+      color-mix(in srgb, var(--accent) 16%, rgba(255, 255, 255, 0.05)),
+      rgba(255, 255, 255, 0.03)) !important;
+  box-shadow: 0 10px 22px color-mix(in srgb, var(--accent) 20%, transparent) !important;
+}
+
+[data-tfy-theme] .fix-action.view-details-btn {
+  min-height: 36px;
+}
+
+/* Gaming: equal card opacity + themed outlined icons like Home. */
+[data-tfy-theme] .gaming-main-card {
+  background: linear-gradient(180deg,
+      color-mix(in srgb, var(--accent) 7%, rgba(12, 16, 22, 0.7)),
+      rgba(8, 10, 13, 0.68)) !important;
+  border-color: color-mix(in srgb, var(--accent) 24%, rgba(255, 255, 255, 0.12)) !important;
+}
+
+[data-tfy-theme] .gaming-card-icon {
+  border: 1px solid color-mix(in srgb, var(--accent) 34%, rgba(255, 255, 255, 0.2)) !important;
+  background: linear-gradient(160deg,
+      color-mix(in srgb, var(--accent) 16%, rgba(255, 255, 255, 0.06)),
+      rgba(255, 255, 255, 0.02)) !important;
+}
+
+/* Debloating: app icons + search match Resources style. */
+[data-tfy-theme] .debloat-app-icon {
+  border: 1px solid color-mix(in srgb, var(--accent) 34%, rgba(255, 255, 255, 0.18)) !important;
+  background: linear-gradient(160deg,
+      color-mix(in srgb, var(--accent) 12%, rgba(255, 255, 255, 0.06)),
+      rgba(255, 255, 255, 0.02)) !important;
+}
+
+[data-tfy-theme] .debloat-search {
+  min-width: 240px;
+  max-width: 100%;
+}
+
+/* Settings page: make cards slightly darker/less bright. */
+[data-tfy-theme] .tfy-page-system .panel.panel-outline,
+[data-tfy-theme] .tfy-page-system .liquid-card {
+  background: linear-gradient(180deg,
+      color-mix(in srgb, var(--accent) 4%, rgba(10, 13, 18, 0.84)),
+      rgba(7, 10, 14, 0.86)) !important;
+  border-color: color-mix(in srgb, var(--accent) 18%, rgba(255, 255, 255, 0.1)) !important;
+}
+
+[data-tfy-theme] .tfy-page-system .settings-row {
+  background: linear-gradient(180deg,
+      color-mix(in srgb, var(--accent) 3%, rgba(255, 255, 255, 0.02)),
+      rgba(255, 255, 255, 0.01)) !important;
+}
+
+/* Sidebar Discord card: transparent background + outlined look + smooth settings reveal. */
+[data-tfy-theme] .sidebar-discord-card {
+  background: rgba(8, 11, 16, 0.26) !important;
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, rgba(255, 255, 255, 0.12)) !important;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 5%, transparent) !important;
+  height: auto !important;
+  min-height: 156px !important;
+}
+
+[data-tfy-theme] .sidebar-discord-card.open {
+  min-height: 194px !important;
+}
+
+[data-tfy-theme] .sidebar-settings-wrap {
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(-6px);
+  pointer-events: none;
+  transition: max-height .28s ease, opacity .22s ease, transform .28s ease;
+}
+
+[data-tfy-theme] .sidebar-settings-wrap.open {
+  max-height: 64px;
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+[data-tfy-theme] .sidebar-settings-btn {
+  background: transparent !important;
+  border: 1px solid color-mix(in srgb, var(--accent) 36%, rgba(255, 255, 255, 0.16)) !important;
+  box-shadow: none !important;
+}
+
+[data-tfy-theme] .sidebar-settings-btn:hover {
+  background: color-mix(in srgb, var(--accent) 8%, rgba(255, 255, 255, 0.03)) !important;
+  border-color: color-mix(in srgb, var(--accent) 54%, rgba(255, 255, 255, 0.2)) !important;
+}
+
+[data-tfy-theme] .sidebar-discord-trigger svg {
+  transition: transform .24s ease, opacity .2s ease;
+}
+
+/* Resources: use the same button style language as Fixes/Home View Details. */
+[data-tfy-theme] .download-card .fix-action.resource-action.view-details-btn {
+  min-height: 40px !important;
+  font-weight: 600 !important;
+}
+
+/* Gaming DLC modal: themed surface + animated, cleaner checks. */
+[data-tfy-theme] .tfy-page-gaming .tfy-modal-shell.tfy-modal-deep {
+  border-color: color-mix(in srgb, var(--accent) 22%, rgba(255, 255, 255, 0.12)) !important;
+}
+
+[data-tfy-theme] .dlc-modal-body {
+  background: linear-gradient(165deg,
+      color-mix(in srgb, var(--accent) 4%, rgba(9, 12, 17, 0.88)),
+      rgba(7, 10, 14, 0.9)) !important;
+  border: 1px solid color-mix(in srgb, var(--accent) 16%, rgba(255, 255, 255, 0.1));
+  border-radius: 14px;
+  padding: 12px;
+}
+
+[data-tfy-theme] .dlc-proxy-toggle,
+[data-tfy-theme] .dlc-option {
+  border-color: color-mix(in srgb, var(--accent) 24%, rgba(255, 255, 255, 0.12)) !important;
+  background: linear-gradient(160deg,
+      color-mix(in srgb, var(--accent) 8%, rgba(255, 255, 255, 0.03)),
+      rgba(255, 255, 255, 0.01)) !important;
+}
+
+[data-tfy-theme] .dlc-option {
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, rgba(255, 255, 255, 0.1));
+  border-radius: 10px;
+  padding: 8px 10px;
+  transition: border-color .18s ease, background .18s ease;
+}
+
+[data-tfy-theme] .dlc-option:hover {
+  border-color: color-mix(in srgb, var(--accent) 36%, rgba(255, 255, 255, 0.14));
+  background: linear-gradient(160deg,
+      color-mix(in srgb, var(--accent) 12%, rgba(255, 255, 255, 0.04)),
+      rgba(255, 255, 255, 0.02));
+}
+
+[data-tfy-theme] .dlc-selectall-btn {
+  border-color: color-mix(in srgb, var(--accent) 42%, rgba(255, 255, 255, 0.16)) !important;
+  background: color-mix(in srgb, var(--accent) 9%, rgba(255, 255, 255, 0.02)) !important;
+}
+
+[data-tfy-theme] .dlc-check,
+[data-tfy-theme] .dlc-option-check {
+  position: relative;
+  transition: transform .14s ease, box-shadow .2s ease, background .2s ease, border-color .2s ease !important;
+}
+
+[data-tfy-theme] .dlc-check:active,
+[data-tfy-theme] .dlc-option-check:active {
+  transform: scale(0.94);
+}
+
+[data-tfy-theme] .dlc-check::before,
+[data-tfy-theme] .dlc-option-check::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--accent) 24%, transparent);
+  opacity: 0;
+  transform: scale(0.84);
+}
+
+[data-tfy-theme] .dlc-check-icon {
+  animation: dlcCheckIn .24s cubic-bezier(.2, .9, .2, 1);
+}
+
+[data-tfy-theme] .dlc-check svg,
+[data-tfy-theme] .dlc-option-check svg {
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--accent) 24%, transparent));
+}
+
+[data-tfy-theme] .dlc-check[style*="var(--accent)"]::before,
+[data-tfy-theme] .dlc-option-check[style*="var(--accent)"]::before {
+  animation: dlcCheckPulse .26s ease-out;
+}
+
+@keyframes dlcCheckIn {
+  0% {
+    transform: scale(0.2);
+    opacity: 0;
+  }
+
+  70% {
+    transform: scale(1.14);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes dlcCheckPulse {
+  0% {
+    opacity: .34;
+    transform: scale(0.84);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(1.2);
+  }
+}
+
+/* Sidebar Discord card: compact by default, expands smoothly for Settings button. */
+[data-tfy-theme] .sidebar-discord-card {
+  position: relative;
+  overflow: hidden !important;
+  min-height: 122px !important;
+  height: auto !important;
+  transition: min-height .26s cubic-bezier(.22, 1, .36, 1), border-color .2s ease, background .22s ease !important;
+}
+
+[data-tfy-theme] .sidebar-discord-card::before {
+  display: block !important;
+  content: '';
+  position: absolute;
+  inset: -30% -10% auto auto;
+  width: 180px;
+  height: 120px;
+  pointer-events: none;
+  background: radial-gradient(circle at 30% 35%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 70%);
+  opacity: .22;
+}
+
+[data-tfy-theme] .sidebar-discord-card.open {
+  min-height: 168px !important;
+}
+
+[data-tfy-theme] .sidebar-settings-wrap {
+  margin-top: 8px !important;
+}
+
+[data-tfy-theme] .sidebar-settings-wrap.open {
+  max-height: 56px;
+}
+
+/* Settings page Discord row integrated in main panel + cleaner logout placement. */
+[data-tfy-theme] .tfy-page-system .settings-row-discord {
+  border-top: 1px solid color-mix(in srgb, var(--accent) 16%, rgba(255, 255, 255, 0.08)) !important;
+}
+
+[data-tfy-theme] .tfy-page-system .settings-logout-btn {
+  border-color: rgba(239, 68, 68, 0.35) !important;
+  color: rgba(252, 165, 165, 0.95) !important;
+  background: linear-gradient(180deg, rgba(239, 68, 68, 0.08), rgba(239, 68, 68, 0.04)) !important;
+}
+
+[data-tfy-theme] .tfy-page-system .settings-logout-btn:hover {
+  border-color: rgba(248, 113, 113, 0.5) !important;
+  color: #fecaca !important;
+  background: linear-gradient(180deg, rgba(239, 68, 68, 0.12), rgba(239, 68, 68, 0.06)) !important;
+}
+
+/* Language dropdown: remove flat black look and match active theme surface. */
+[data-tfy-theme] .tfy-page-system .settings-lang-dropdown {
+  border-color: color-mix(in srgb, var(--accent) 34%, rgba(255, 255, 255, 0.2)) !important;
+  background: linear-gradient(170deg,
+      color-mix(in srgb, var(--accent) 10%, rgba(9, 12, 17, 0.9)),
+      rgba(7, 10, 14, 0.92)) !important;
+}
+
+[data-tfy-theme] .tfy-page-system .settings-lang-option:hover {
+  background: color-mix(in srgb, var(--accent) 12%, rgba(255, 255, 255, 0.03)) !important;
+}
+
+/* Final hotfix: Resources download button must match Fixes/Home style exactly. */
+[data-tfy-theme] .tfy-page-downloads .download-card .fix-action.resource-action.download-btn.view-details-btn {
+  border-color: color-mix(in srgb, var(--accent) 46%, rgba(255, 255, 255, 0.22)) !important;
+  background: linear-gradient(180deg,
+      color-mix(in srgb, var(--accent) 11%, rgba(255, 255, 255, 0.04)),
+      rgba(255, 255, 255, 0.02)) !important;
+  color: #edf2fb !important;
+  font-weight: 600 !important;
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--accent) 14%, transparent) !important;
+}
+
+[data-tfy-theme] .tfy-page-downloads .download-card .fix-action.resource-action.download-btn.view-details-btn:hover,
+[data-tfy-theme] .tfy-page-downloads .download-card .fix-action.resource-action.download-btn.view-details-btn:focus,
+[data-tfy-theme] .tfy-page-downloads .download-card .fix-action.resource-action.download-btn.view-details-btn:focus-visible {
+  border-color: color-mix(in srgb, var(--accent) 64%, rgba(255, 255, 255, 0.28)) !important;
+  background: linear-gradient(180deg,
+      color-mix(in srgb, var(--accent) 18%, rgba(255, 255, 255, 0.05)),
+      rgba(255, 255, 255, 0.03)) !important;
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--accent) 22%, transparent) !important;
+}
+
+/* Final hotfix: Gaming DLC modal recolor - darker and cleaner while staying theme-aware. */
+[data-tfy-theme] .tfy-page-gaming .dlc-modal-body {
+  background: linear-gradient(170deg,
+      color-mix(in srgb, var(--accent) 3%, rgba(7, 10, 14, 0.94)),
+      rgba(6, 8, 12, 0.95)) !important;
+  border: 1px solid color-mix(in srgb, var(--accent) 13%, rgba(255, 255, 255, 0.1)) !important;
+}
+
+[data-tfy-theme] .tfy-page-gaming .dlc-proxy-toggle,
+[data-tfy-theme] .tfy-page-gaming .dlc-option {
+  background: linear-gradient(160deg,
+      color-mix(in srgb, var(--accent) 6%, rgba(255, 255, 255, 0.02)),
+      rgba(255, 255, 255, 0.01)) !important;
+  border-color: color-mix(in srgb, var(--accent) 16%, rgba(255, 255, 255, 0.11)) !important;
+}
+
+[data-tfy-theme] .tfy-page-gaming .dlc-option:hover {
+  background: linear-gradient(160deg,
+      color-mix(in srgb, var(--accent) 10%, rgba(255, 255, 255, 0.03)),
+      rgba(255, 255, 255, 0.02)) !important;
+  border-color: color-mix(in srgb, var(--accent) 28%, rgba(255, 255, 255, 0.14)) !important;
+}
+
+[data-tfy-theme] .tfy-page-gaming .dlc-option-label {
+  color: #d7deeb !important;
+}
+
+/* Final hotfix: Sidebar Discord compact/expand without extra bottom gap. */
+[data-tfy-theme] .sidebar-discord-card {
+  min-height: 0 !important;
+  height: auto !important;
+  padding-bottom: 10px !important;
+}
+
+[data-tfy-theme] .sidebar-discord-card.open {
+  min-height: 0 !important;
+  padding-bottom: 12px !important;
+}
+
+[data-tfy-theme] .sidebar-settings-wrap {
+  margin-top: 6px !important;
+  max-height: 0 !important;
+}
+
+[data-tfy-theme] .sidebar-settings-wrap.open {
+  max-height: 52px !important;
+}
+
+[data-tfy-theme] .sidebar-shell.discord-open .sidebar-nav-scroll {
+  padding-bottom: 160px !important;
+}
+
+/* Final polish: window controls placement + size */
+.titlebar-drag-region {
+  padding-right: 12px !important;
+  gap: 4px !important;
+}
+
+.window-control-btn {
+  width: 26px !important;
+  height: 26px !important;
+  border-radius: 7px !important;
+  border: 1px solid transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.window-control-btn:hover {
+  border-color: color-mix(in srgb, var(--accent) 30%, rgba(255, 255, 255, 0.16)) !important;
+  background: color-mix(in srgb, var(--accent) 8%, transparent) !important;
+}
+
+.window-control-btn.close:hover {
+  border-color: rgba(239, 68, 68, 0.45) !important;
+  color: #fecaca !important;
+  background: rgba(239, 68, 68, 0.12) !important;
+}
+
+/* Settings: logout hover should be clearly red (not pink). */
+[data-tfy-theme] .tfy-page-system .settings-logout-btn:hover {
+  border-color: rgba(239, 68, 68, 0.58) !important;
+  color: #fee2e2 !important;
+  background: linear-gradient(180deg, rgba(239, 68, 68, 0.18), rgba(239, 68, 68, 0.08)) !important;
+  box-shadow: 0 8px 20px rgba(239, 68, 68, 0.22) !important;
+}
+
+/* Notifications: fully theme-native in bottom-right stack. */
+[data-tfy-theme] .notify-item {
+  background: linear-gradient(170deg,
+      color-mix(in srgb, var(--accent) 8%, rgba(9, 12, 17, 0.9)),
+      rgba(7, 10, 14, 0.93)) !important;
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, rgba(255, 255, 255, 0.16)) !important;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.5) !important;
+}
+
+[data-tfy-theme] .notify-item::after {
+  background: radial-gradient(circle at 18% 26%, color-mix(in srgb, var(--accent) 20%, transparent), transparent 68%) !important;
+  opacity: 0.35 !important;
+}
+
+[data-tfy-theme] .notify-title {
+  color: #f4f7fd !important;
+}
+
+[data-tfy-theme] .notify-message {
+  color: #c9d2e4 !important;
+}
+
+[data-tfy-theme] .notify-close:hover {
+  border-color: color-mix(in srgb, var(--accent) 40%, rgba(255, 255, 255, 0.2)) !important;
+  background: color-mix(in srgb, var(--accent) 10%, rgba(255, 255, 255, 0.04)) !important;
+}
+
+/* Testing Lab: keep scroll enabled and theme-consistent cards. */
+[data-tfy-theme] .tfy-page-testing .panel.panel-outline {
+  background: linear-gradient(170deg,
+      color-mix(in srgb, var(--accent) 6%, rgba(10, 13, 18, 0.82)),
+      rgba(7, 10, 14, 0.86)) !important;
+  border-color: color-mix(in srgb, var(--accent) 22%, rgba(255, 255, 255, 0.12)) !important;
+}
+
+/* Settings language dropdown: hard override so it never looks flat black. */
+[data-tfy-theme] .tfy-page-system .settings-lang-dropdown,
+[data-tfy-theme] .tfy-page-system .settings-lang-dropdown.open {
+  background: linear-gradient(170deg,
+      color-mix(in srgb, var(--accent) 12%, rgba(8, 11, 16, 0.94)),
+      rgba(7, 10, 14, 0.95)) !important;
+  border-color: color-mix(in srgb, var(--accent) 38%, rgba(255, 255, 255, 0.2)) !important;
+}
+
+/* About "wow" pass */
+[data-tfy-theme] .about-wow-shell {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(155deg,
+      color-mix(in srgb, var(--accent) 9%, rgba(11, 15, 21, 0.78)),
+      rgba(8, 11, 16, 0.82)) !important;
+  border-color: color-mix(in srgb, var(--accent) 30%, rgba(255, 255, 255, 0.14)) !important;
+}
+
+[data-tfy-theme] .about-wow-shell::before {
+  content: '';
+  position: absolute;
+  inset: -22% -8% auto auto;
+  width: 280px;
+  height: 200px;
+  pointer-events: none;
+  background: radial-gradient(circle at 32% 30%, color-mix(in srgb, var(--accent) 24%, transparent), transparent 70%);
+  opacity: 0.34;
+}
+
+/* Backup custom modals: full-screen cover over sidebar and calmer overlay. */
+.backup-modal-overlay {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+[data-tfy-theme] .backup-modal-shell {
+  background: linear-gradient(158deg,
+      color-mix(in srgb, var(--accent) 10%, rgba(11, 15, 21, 0.9)),
+      rgba(7, 10, 14, 0.92)) !important;
+  border-color: color-mix(in srgb, var(--accent) 32%, rgba(255, 255, 255, 0.16)) !important;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5), 0 0 0 1px color-mix(in srgb, var(--accent) 12%, transparent) inset !important;
+}
+
+[data-tfy-theme] .backup-modal-head {
+  padding: 4px 0 2px;
+}
+
+[data-tfy-theme] .backup-modal-close {
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, rgba(255, 255, 255, 0.16));
+  background: color-mix(in srgb, var(--accent) 8%, rgba(255, 255, 255, 0.02));
+}
+
+[data-tfy-theme] .backup-modal-close:hover {
+  border-color: color-mix(in srgb, var(--accent) 50%, rgba(255, 255, 255, 0.24));
+  background: color-mix(in srgb, var(--accent) 16%, rgba(255, 255, 255, 0.03));
+}
+
+@keyframes backupModalPop {
+  0% {
+    opacity: 0;
+    transform: translateY(6px) scale(0.986);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.backup-modal-pop {
+  animation: backupModalPop .2s ease-out;
+}
+
+/* Reuse same smooth button motion for action buttons in backup modals. */
+.action-anim-btn {
+  transition: transform .18s ease, box-shadow .22s ease, border-color .2s ease, background .2s ease !important;
+}
+
+.action-anim-btn:hover {
+  transform: translateY(-1px);
+}
+
+.action-anim-btn:active {
+  transform: translateY(0) scale(0.985);
+}
+
+/* Debloat confirm panel polish */
+[data-tfy-theme] .debloat-confirm-card {
+  border-color: color-mix(in srgb, var(--accent) 30%, rgba(255, 255, 255, 0.14)) !important;
+  background: linear-gradient(160deg,
+      color-mix(in srgb, var(--accent) 12%, rgba(10, 13, 18, 0.78)),
+      rgba(8, 11, 16, 0.82)) !important;
+  box-shadow: 0 12px 30px color-mix(in srgb, var(--accent) 14%, transparent) !important;
+}
+
+[data-tfy-theme] .debloat-toggle.on {
+  background: color-mix(in srgb, var(--accent) 24%, rgba(255, 255, 255, 0.05)) !important;
+  border-color: color-mix(in srgb, var(--accent) 54%, rgba(255, 255, 255, 0.18)) !important;
+  box-shadow: 0 0 14px color-mix(in srgb, var(--accent) 28%, transparent) !important;
+}
+
+/* Debloat table checkboxes with animated check */
+[data-tfy-theme] .debloat-checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 5px;
+  border: 1px solid color-mix(in srgb, var(--accent) 36%, rgba(255, 255, 255, 0.22));
+  background: rgba(255, 255, 255, 0.03);
+  position: relative;
+  cursor: pointer;
+  transition: border-color .2s ease, background .2s ease, box-shadow .2s ease, transform .12s ease;
+}
+
+[data-tfy-theme] .debloat-checkbox:active {
+  transform: scale(0.95);
+}
+
+[data-tfy-theme] .debloat-checkbox::before {
+  content: '✓';
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  color: color-mix(in srgb, var(--accent) 84%, #ffffff 16%);
+  transform: translate(-50%, -52%) scale(0.45);
+  opacity: 0;
+  transform-origin: center center;
+}
+
+[data-tfy-theme] .debloat-checkbox:checked {
+  border-color: color-mix(in srgb, var(--accent) 60%, rgba(255, 255, 255, 0.24));
+  background: color-mix(in srgb, var(--accent) 14%, rgba(255, 255, 255, 0.04));
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+[data-tfy-theme] .debloat-checkbox:checked::before {
+  opacity: 1;
+  transform: translate(-50%, -52%) scale(1);
+  animation: debloatCheckIn .22s cubic-bezier(.2, .9, .2, 1);
+}
+
+@keyframes debloatCheckIn {
+  0% {
+    transform: translate(-50%, -52%) scale(0.25);
+    opacity: 0;
+  }
+
+  68% {
+    transform: translate(-50%, -52%) scale(1.12);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(-50%, -52%) scale(1);
+    opacity: 1;
+  }
+}

@@ -1,0 +1,218 @@
+﻿[
+  {
+    "Title": "Brave Browser",
+    "Link": "https://brave-browser-downloads.s3.brave.com/latest/BraveBrowserSetup.exe",
+    "Tag": "Brv",
+    "version": "| Version : Latest",
+    "type": "| Freeware",
+    "size": "| Size : 1Mb"
+  },
+  {
+    "Title": "Discord",
+    "Link": "https://discord.com/api/downloads/distributions/app/installers/latest?channel=stable&platform=win&arch=x64",
+    "Tag": "Disc",
+    "version": "| Version : Latest",
+    "type": "| Freeware",
+    "size": "| Size : 108Mb"
+  },
+  {
+    "Title": "Google Chrome",
+    "Link": "http://dl.google.com/chrome/install/chrome_installer.exe",
+    "Tag": "Gchr",
+    "version": "| Version : Latest",
+    "type": "| Freeware",
+    "size": "| Size : 1Mb"
+  },
+  {
+    "Title": "Mozila Firefox",
+    "Link": "https://mzl.la/3o6YriV",
+    "Tag": "mfx",
+    "version": "| Version : Latest",
+    "type": "| Freeware",
+    "size": "| Size : 3Mb"
+  },
+  {
+    "Title": "Opera GX",
+    "Link": "https://net.geo.opera.com/opera_gx/stable/windows?utm_tryagain=yes&utm_source=google&utm_medium=ose&utm_campaign=(none)&http_referrer=https%3A%2F%2Fwww.google.com%2F&utm_site=opera_com&",
+    "Tag": "OGX",
+    "version": "| Version : Latest",
+    "type": "| Freeware",
+    "size": "| Size : 3Mb"
+  },
+  {
+    "Title": "Spotify",
+    "Link": "https://download.scdn.co/SpotifySetup.exe",
+    "Tag": "Sptfy",
+    "version": "| Version : Latest",
+    "type": "| Free Version",
+    "size": "| Size : 1Mb"
+  },
+  {
+    "Title": "Steam",
+    "Link": "https://cdn.cloudflare.steamstatic.com/client/installer/SteamSetup.exe",
+    "Tag": "Stm",
+    "version": "| Version : Latest",
+    "type": "| Freeware",
+    "size": "| Size : 2Mb"
+  },
+  {
+    "Title": "Notepad++",
+    "Link": "https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v8.6.9/npp.8.6.9.Installer.x64.exe",
+    "Tag": "npp",
+    "version": "| Version : 8.6.9",
+    "type": "| Freeware",
+    "size": "| Size : 170Mb"
+  },
+  {
+    "Title": "Vencord",
+    "Link": "https://github.com/Vencord/Installer/releases/latest/download/VencordInstaller.exe",
+    "Tag": "Venc",
+    "version": "| Version : Latest",
+    "type": "| Freeware",
+    "size": "| Size : 10Mb"
+  },
+  {
+    "Title": "Free Download Manager",
+    "Link": "https://dn3.freedownloadmanager.org/6/latest/fdm_x64_setup.exe",
+    "Tag": "FDM",
+    "version": "| Version : Latest",
+    "type": "| Freeware",
+    "size": "| Size : 41Mb"
+  },
+  {
+    "Title": "ShareX",
+    "Link": "https://github.com/ShareX/ShareX/releases/download/v16.1.0/ShareX-16.1.0-setup.exe",
+    "Tag": "ShX",
+    "version": "| Version : 16.1.0",
+    "type": "| Freeware",
+    "size": "| Size : 39Mb"
+  },
+  {
+    "Title": "Epic Games Launcher",
+    "Link": "https://epicgames-download1.akamaized.net/Builds/UnrealEngineLauncher/Installers/Win32/EpicInstaller-14.2.1.msi?launcherfilename=EpicInstaller-14.2.1.msi",
+    "Tag": "EGL",
+    "version": "| Version : Latest",
+    "type": "| Freeware",
+    "size": "| Size : 152Mb"
+  },
+  {
+    "Title": "Visual Studio Code",
+    "Link": "https://code.visualstudio.com/sha/download?build=stable&os=win32-x64-user",
+    "Tag": "VSC",
+    "version": "| Version : Latest",
+    "type": "| Freeware",
+    "size": "| Size : 95Mb"
+  },
+  {
+    "Title": "Visual Studio 2022",
+    "Link": "https://c2rsetup.officeapps.live.com/c2r/downloadVS.aspx?sku=community&channel=Release&version=VS2022&source=VSLandingPage&cid=2030:7fa892c8cc4444d8a24f4c8959dfff1d",
+    "Tag": "VS2022",
+    "version": "| Version : Latest",
+    "type": "| Freeware",
+    "size": "| Size : 4Mb"
+  },
+  {
+    "Title": "MSI Afterburner",
+    "Link": "https://hickos.hickdick.workers.dev/0:/MSIAfterburnerSetup.zip",
+    "Tag": "MAFBR",
+    "version": "| Version : v4.6.5",
+    "type": "| Freeware",
+    "size": "| Size : 56Mb"
+  },
+  {
+    "Title": "VLC Media Player",
+    "Link": "https://mirrors.netix.net/vlc/vlc/3.0.21/win64/vlc-3.0.21-win64.exe",
+    "Tag": "VLC",
+    "version": "| Version : v3.0.21",
+    "type": "| Freeware",
+    "size": "| Size : 42Mb"
+  },
+  {
+    "Title": "Memreduct",
+    "Link": "https://github.com/henrypp/memreduct/releases/download/v.3.4/memreduct-3.4-setup.exe",
+    "Tag": "MemR",
+    "version": "| Version : v3.4",
+    "type": "| Freeware",
+    "size": "| Size : 340Kb"
+  },
+  {
+    "Title": "Anydesk",
+    "Link": "https://download.anydesk.com/AnyDesk.exe",
+    "Tag": "AnyD",
+    "version": "| Version : Latest",
+    "type": "| Freeware",
+    "size": "| Size : 5Mb"
+  },
+  {
+    "Title": "OBS Studio",
+    "Link": "https://cdn-fastly.obsproject.com/downloads/OBS-Studio-32.0.4-Windows-x64-Installer.exe",
+    "Tag": "OBS",
+    "version": "| Version : Latest",
+    "type": "| Freeware",
+    "size": "| Size : 150Mb"
+  },
+  {
+    "Title": "VPN Tuxler",
+    "Link": "https://api.tuxlervpn.com/extension_event.php?id=download_desktop_win",
+    "Tag": "TUX",
+    "version": "| Version : Latest",
+    "type": "| Freeware",
+    "size": "| Size : 27Mb"
+  },
+  {
+    "Title": "WinRAR",
+    "Link": "https://www.win-rar.com/fileadmin/winrar-versions/winrar/winrar-x64-720.exe",
+    "Tag": "RAR",
+    "version": "| Version : 7.20",
+    "type": "| Freeware",
+    "size": "| Size : 3.6Mb"
+  },
+  {
+    "Title": "Stremio",
+    "Link": "https://dl.strem.io/stremio-shell-ng/v5.0.16/StremioSetup-v5.0.16_x64.exe",
+    "Tag": "STR",
+    "version": "| Version : 5.0.16",
+    "type": "| Freeware",
+    "size": "| Size : 69Mb"
+  },
+  {
+    "Title": "Malwarebytes",
+    "Link": "https://downloads.malwarebytes.com/file/mb-windows",
+    "Tag": "MB",
+    "version": "| Version : Latest",
+    "type": "| Freeware",
+    "size": "| Size : 320Mb"
+  },
+  {
+    "Title": "FL Studio 21",
+    "Link": "https://drive.google.com/file/d/1lKNuKea7MuyfzraJyrQ9F4UD3EStyZeB/view?usp=sharing",
+    "Tag": "FLS",
+    "version": "| Version : 21.1.0",
+    "type": "| Freeware",
+    "size": "| Size : 1.2Gb"
+  },
+  {
+    "Title": "Media Encoder 2024",
+    "Link": "https://drive.google.com/drive/folders/1p3oQ17XtByMhfswGWAe3dwStaQ1xvpnQ?usp=drive_link",
+    "Tag": "ME",
+    "version": "| Version : 2.0.0",
+    "type": "| Freeware",
+    "size": "| Size : 1.8Gb"
+  },
+  {
+    "Title": "After Effects 2024",
+    "Link": "https://drive.google.com/drive/folders/1WysjpnM-eWev-jXsgq81XjQXbBMtvLRN?usp=sharing",
+    "Tag": "AE",
+    "version": "| Version : 2.0.0",
+    "type": "| Freeware",
+    "size": "| Size : 3.4Gb"
+  },
+  {
+    "Title": "Photoshop 2021",
+    "Link": "https://drive.google.com/drive/folders/1nTe7dnytA2bQZ2yXEoufk6Z70H3RG3fh?usp=sharing",
+    "Tag": "PS",
+    "version": "| Version : 22.5.1",
+    "type": "| Freeware",
+    "size": "| Size : 2.9Gb"
+  }
+]

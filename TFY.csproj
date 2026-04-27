@@ -1,0 +1,55 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AssemblyName>TFY</AssemblyName>
+    <RootNamespace>TFY</RootNamespace>
+    <Title>TFY Utility Hub</Title>
+    <Product>TFY Utility Hub</Product>
+    <Company>DragosKissLove</Company>
+    <Version>6.1.2</Version>
+    <Nullable>disable</Nullable>
+    <AssemblyVersion>6.1.1.0</AssemblyVersion>
+    <FileVersion>6.1.1.0</FileVersion>
+    <!-- Embed app icon into TFY.exe so Desktop/Start shortcuts don't show the default icon. -->
+    <ApplicationIcon>installer\icon.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+</PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2903.40" />
+    <PackageReference Include="System.Management" Version="8.0.0" />
+    <PackageReference Include="System.IO.FileSystem.AccessControl" Version="6.0.0-preview.5.21301.5" />
+    <PackageReference Include="System.Security.AccessControl" Version="6.0.0" />
+    <PackageReference Include="LibreHardwareMonitorLib" Version="0.9.2" />
+    <PackageReference Include="Velopack" Version="0.0.1298" />
+    <PackageReference Include="WebSocketSharp" Version="1.0.3-rc11" />
+    <PackageReference Include="Gameloop.Vdf" Version="0.6.2" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="tfyinstaller\**" />
+    <EmbeddedResource Remove="tfyinstaller\**" />
+    <None Remove="tfyinstaller\**" />
+    <Compile Remove="SapphireTool-.Net-Core-main\**" />
+    <EmbeddedResource Remove="SapphireTool-.Net-Core-main\**" />
+    <None Remove="SapphireTool-.Net-Core-main\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="tfydlc\**" />
+    <EmbeddedResource Remove="tfydlc\**" />
+    <None Remove="tfydlc\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="installer\**" />
+    <EmbeddedResource Remove="installer\**" />
+    <None Remove="installer\**" />
+  </ItemGroup>
+
+  <!-- Scripts folder: .cs is compiled; only script.js is shipped in installer. -->
+</Project>
+
+
+

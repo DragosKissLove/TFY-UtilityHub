@@ -1,0 +1,28 @@
+# Visual Studio / .NET
+.vs/
+bin/
+obj/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Build artifacts / logs
+*.log
+
+# Node/Vite (React UI under project/)
+project/node_modules/
+project/dist/
+project/.vite/
+
+# Installer outputs (keep sources; ignore built exe artifacts if generated here)
+installer/Output/
+
+# OS
+Thumbs.db
+Desktop.ini
+
+# Accidental/placeholder files
+3.0.9)

@@ -1,0 +1,570 @@
+{
+ "$description": "Rulesets for Process Lasso",
+ "$schema": "https://bitsum.com/json-schemas/2025-02-12-00/schema",
+ "$title": "Process Lasso Rules",
+ "cpuModel": "AMD Ryzen 7 9800X3D 8-Core Processor",
+ "ioPriorityClassRuleOrder": [
+  "csgo.exe",
+  "cs2.exe"
+ ],
+ "memoryPriorityRuleOrder": [
+  "csgo.exe",
+  "cs2.exe"
+ ],
+ "priorityBoostRuleOrder": [
+  "cs2.exe",
+  "rainbowsix.exe",
+  "project8.exe",
+  "launcherbe.exe",
+  "discovery.exe",
+  "r5apex.exe",
+  "fpsaimtrainer-win64-shipping.exe",
+  "overwatch.exe",
+  "rust.exe",
+  "aimlab_tb.exe",
+  "valorant-win64-shipping.exe",
+  "fortniteclient-win64-shipping.exe",
+  "csgo.exe"
+ ],
+ "priorityClassRuleOrder": [
+  "cs2.exe",
+  "razer_elevation_service.exe",
+  "samsungmagiciansvc.exe",
+  "migrationservice.exe",
+  "logi_lamparray_service.exe",
+  "lghub_system_tray.exe",
+  "lghub_agent.exe",
+  "lghub_updater.exe",
+  "rzenginemon.exe",
+  "gamemanagerservice3.exe",
+  "razerappengine.exe",
+  "l-connect-service-watcher.exe",
+  "l-connect-service.exe",
+  "cefsharp.browsersubprocess.exe",
+  "l-connect 3.exe",
+  "msi.terminalserver.exe",
+  "ledkeeper2.exe",
+  "msi.centralserver.exe",
+  "msi_central_service.exe",
+  "mystic_light_service.exe",
+  "msi_case_service.exe",
+  "lightkeeperservice.exe",
+  "cc_engine_x64.exe",
+  "rainbowsix.exe",
+  "project8.exe",
+  "launcherbe.exe",
+  "discovery.exe",
+  "r5apex.exe",
+  "fpsaimtrainer-win64-shipping.exe",
+  "overwatch.exe",
+  "rust.exe",
+  "aimlab_tb.exe",
+  "valorant-win64-shipping.exe",
+  "fortniteclient-win64-shipping.exe",
+  "csgo.exe",
+  "agent.exe",
+  "battle.net.exe",
+  "conhost.exe",
+  "ctfmon.exe",
+  "discord.exe",
+  "dllhost.exe",
+  "epicgameslauncher.exe",
+  "epicwebhelper.exe",
+  "fontdrvhost.exe",
+  "lsass.exe",
+  "opera_crashreporter.exe",
+  "rundll32.exe (\"c:\\program files\\nvidia corporation\\nvstreamsrv\\rxdiag.dll\" rxdiagsetruntimemessagepump)",
+  "runtimebroker.exe",
+  "searchapp.exe",
+  "sgrmbroker.exe",
+  "sihost.exe",
+  "spotify.exe",
+  "srvstub.exe",
+  "startmenuexperiencehost.exe",
+  "steam.exe",
+  "steamwebhelper.exe",
+  "svchost.exe (appmodel -p)",
+  "svchost.exe (dcomlaunch -p)",
+  "svchost.exe (localservice -p)",
+  "svchost.exe (localservicenetworkrestricted -p)",
+  "svchost.exe (localservicenetworkrestricted)",
+  "svchost.exe (localservicenonetwork -p)",
+  "svchost.exe (localservicenonetworkfirewall -p)",
+  "svchost.exe (localsystemnetworkrestricted -p)",
+  "svchost.exe (netsvcs -p)",
+  "svchost.exe (unistacksvcgroup)",
+  "textinputhost.exe",
+  "winexp.exe",
+  "winlogon.exe",
+  "opera.exe",
+  "chrome.exe",
+  "brave.exe",
+  "nvcontainer.exe",
+  "nvdisplay.container.exe",
+  "nvidia geforce experience.exe",
+  "nvidia share.exe",
+  "nvidia web helper.exe",
+  "nvsphelper64.exe",
+  "shellexperiencehost.exe",
+  "unsecapp.exe",
+  "searchindexer.exe",
+  "wmiprvse.exe",
+  "msedgewebview2.exe",
+  "widgetservice.exe",
+  "smartscreen.exe"
+ ],
+ "ruleSets": [
+  {
+   "priorityClass": "Idle",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "agent.exe"
+  },
+  {
+   "priorityClass": "High",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "aimlab_tb.exe",
+   "threadPriorityBoosts": "off"
+  },
+  {
+   "priorityClass": "Idle",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "battle.net.exe"
+  },
+  {
+   "priorityClass": "Below normal",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "brave.exe"
+  },
+  {
+   "priorityClass": "Idle",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "cc_engine_x64.exe"
+  },
+  {
+   "priorityClass": "Idle",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "cefsharp.browsersubprocess.exe"
+  },
+  {
+   "priorityClass": "Below normal",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "chrome.exe"
+  },
+  {
+   "priorityClass": "Idle",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "conhost.exe"
+  },
+  {
+   "probalanceExclusion": true,
+   "processName": "cs2"
+  },
+  {
+   "idlesaverExclusion": true,
+   "ioPriority": "High",
+   "ioPriorityEnforcedByRegistry": false,
+   "memoryPriority": "Normal",
+   "memoryPriorityEnforcedByRegistry": false,
+   "priorityClass": "High",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "cs2.exe",
+   "threadPriorityBoosts": "off"
+  },
+  {
+   "idlesaverExclusion": true,
+   "ioPriority": "High",
+   "ioPriorityEnforcedByRegistry": false,
+   "memoryPriority": "Normal",
+   "memoryPriorityEnforcedByRegistry": false,
+   "priorityClass": "High",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "csgo.exe",
+   "threadPriorityBoosts": "off"
+  },
+  {
+   "priorityClass": "Idle",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "ctfmon.exe"
+  },
+  {
+   "priorityClass": "Idle",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "discord.exe"
+  },
+  {
+   "priorityClass": "High",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "discovery.exe",
+   "threadPriorityBoosts": "off"
+  },
+  {
+   "priorityClass": "Idle",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "dllhost.exe"
+  },
+  {
+   "priorityClass": "Idle",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "epicgameslauncher.exe"
+  },
+  {
+   "priorityClass": "Idle",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "epicwebhelper.exe"
+  },
+  {
+   "priorityClass": "Idle",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "fontdrvhost.exe"
+  },
+  {
+   "priorityClass": "High",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "fortniteclient-win64-shipping.exe",
+   "threadPriorityBoosts": "off"
+  },
+  {
+   "priorityClass": "High",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "fpsaimtrainer-win64-shipping.exe",
+   "threadPriorityBoosts": "off"
+  },
+  {
+   "priorityClass": "Idle",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "gamemanagerservice3.exe"
+  },
+  {
+   "priorityClass": "Idle",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "l-connect 3.exe"
+  },
+  {
+   "priorityClass": "Idle",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "l-connect-service-watcher.exe"
+  },
+  {
+   "priorityClass": "Idle",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "l-connect-service.exe"
+  },
+  {
+   "priorityClass": "High",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "launcherbe.exe",
+   "threadPriorityBoosts": "off"
+  },
+  {
+   "priorityClass": "Idle",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "ledkeeper2.exe"
+  },
+  {
+   "priorityClass": "Idle",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "lghub_agent.exe"
+  },
+  {
+   "priorityClass": "Idle",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "lghub_system_tray.exe"
+  },
+  {
+   "priorityClass": "Idle",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "lghub_updater.exe"
+  },
+  {
+   "priorityClass": "Idle",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "lightkeeperservice.exe"
+  },
+  {
+   "priorityClass": "Idle",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "logi_lamparray_service.exe"
+  },
+  {
+   "priorityClass": "Idle",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "lsass.exe"
+  },
+  {
+   "priorityClass": "Idle",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "migrationservice.exe"
+  },
+  {
+   "priorityClass": "Idle",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "msedgewebview2.exe"
+  },
+  {
+   "priorityClass": "Idle",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "msi.centralserver.exe"
+  },
+  {
+   "priorityClass": "Idle",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "msi.terminalserver.exe"
+  },
+  {
+   "priorityClass": "Idle",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "msi_case_service.exe"
+  },
+  {
+   "priorityClass": "Idle",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "msi_central_service.exe"
+  },
+  {
+   "priorityClass": "Idle",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "mystic_light_service.exe"
+  },
+  {
+   "priorityClass": "Below normal",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "nvcontainer.exe"
+  },
+  {
+   "priorityClass": "Below normal",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "nvdisplay.container.exe"
+  },
+  {
+   "priorityClass": "Below normal",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "nvidia geforce experience.exe"
+  },
+  {
+   "priorityClass": "Below normal",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "nvidia share.exe"
+  },
+  {
+   "priorityClass": "Below normal",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "nvidia web helper.exe"
+  },
+  {
+   "priorityClass": "Below normal",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "nvsphelper64.exe"
+  },
+  {
+   "priorityClass": "Below normal",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "opera.exe"
+  },
+  {
+   "priorityClass": "Idle",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "opera_crashreporter.exe"
+  },
+  {
+   "priorityClass": "High",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "overwatch.exe",
+   "threadPriorityBoosts": "off"
+  },
+  {
+   "priorityClass": "High",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "project8.exe",
+   "threadPriorityBoosts": "off"
+  },
+  {
+   "priorityClass": "High",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "r5apex.exe",
+   "threadPriorityBoosts": "off"
+  },
+  {
+   "priorityClass": "High",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "rainbowsix.exe",
+   "threadPriorityBoosts": "off"
+  },
+  {
+   "priorityClass": "Idle",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "razer_elevation_service.exe"
+  },
+  {
+   "priorityClass": "Idle",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "razerappengine.exe"
+  },
+  {
+   "priorityClass": "Idle",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "rundll32.exe (\"c:\\program files\\nvidia corporation\\nvstreamsrv\\rxdiag.dll\" rxdiagsetruntimemessagepump)"
+  },
+  {
+   "priorityClass": "Idle",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "runtimebroker.exe"
+  },
+  {
+   "priorityClass": "High",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "rust.exe",
+   "threadPriorityBoosts": "off"
+  },
+  {
+   "priorityClass": "Idle",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "rzenginemon.exe"
+  },
+  {
+   "priorityClass": "Idle",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "samsungmagiciansvc.exe"
+  },
+  {
+   "priorityClass": "Idle",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "searchapp.exe"
+  },
+  {
+   "priorityClass": "Idle",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "searchindexer.exe"
+  },
+  {
+   "priorityClass": "Idle",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "sgrmbroker.exe"
+  },
+  {
+   "priorityClass": "Below normal",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "shellexperiencehost.exe"
+  },
+  {
+   "priorityClass": "Idle",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "sihost.exe"
+  },
+  {
+   "priorityClass": "Below normal",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "smartscreen.exe"
+  },
+  {
+   "priorityClass": "Idle",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "spotify.exe"
+  },
+  {
+   "priorityClass": "Idle",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "srvstub.exe"
+  },
+  {
+   "priorityClass": "Idle",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "startmenuexperiencehost.exe"
+  },
+  {
+   "priorityClass": "Idle",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "steam.exe"
+  },
+  {
+   "priorityClass": "Idle",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "steamwebhelper.exe"
+  },
+  {
+   "priorityClass": "Idle",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "svchost.exe (appmodel -p)"
+  },
+  {
+   "priorityClass": "Idle",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "svchost.exe (dcomlaunch -p)"
+  },
+  {
+   "priorityClass": "Idle",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "svchost.exe (localservice -p)"
+  },
+  {
+   "priorityClass": "Idle",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "svchost.exe (localservicenetworkrestricted -p)"
+  },
+  {
+   "priorityClass": "Idle",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "svchost.exe (localservicenetworkrestricted)"
+  },
+  {
+   "priorityClass": "Idle",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "svchost.exe (localservicenonetwork -p)"
+  },
+  {
+   "priorityClass": "Idle",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "svchost.exe (localservicenonetworkfirewall -p)"
+  },
+  {
+   "priorityClass": "Idle",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "svchost.exe (localsystemnetworkrestricted -p)"
+  },
+  {
+   "priorityClass": "Idle",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "svchost.exe (netsvcs -p)"
+  },
+  {
+   "priorityClass": "Idle",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "svchost.exe (unistacksvcgroup)"
+  },
+  {
+   "priorityClass": "Idle",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "textinputhost.exe"
+  },
+  {
+   "priorityClass": "Below normal",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "unsecapp.exe"
+  },
+  {
+   "priorityClass": "High",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "valorant-win64-shipping.exe",
+   "threadPriorityBoosts": "off"
+  },
+  {
+   "priorityClass": "Idle",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "widgetservice.exe"
+  },
+  {
+   "priorityClass": "Idle",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "winexp.exe"
+  },
+  {
+   "priorityClass": "Idle",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "winlogon.exe"
+  },
+  {
+   "priorityClass": "Below normal",
+   "priorityClassEnforcedByRegistry": false,
+   "processName": "wmiprvse.exe"
+  }
+ ]
+}

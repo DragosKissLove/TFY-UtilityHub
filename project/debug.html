@@ -1,0 +1,3192 @@
+<!DOCTYPE html><html lang="fr"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GRAPHICX - Windows</title>
+<link rel="icon" href="/assets/images/logo.ico" type="image/x-icon">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://graphicx.store/windows">
+<meta property="og:title" content="GRAPHICX - Windows">
+<meta property="og:description" content="Collection complète de plugins, extensions et logiciels pour After Effects, Premiere Pro, Photoshop et plus. Téléchargements gratuits de Maxon Red Giant, Boris FX, Video Copilot et bien d'autres.">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:site_name" content="GRAPHICX">
+<meta property="og:locale" content="fr_FR">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;700;900&amp;family=Oswald:wght@700&amp;display=swap" rel="stylesheet">    
+    <script src="list.js"></script> 
+<style>
+        /* -------------------------------------- */
+        /* 1. VARIABLES & RESET (BASE) */
+        /* -------------------------------------- */
+        :root {
+            --color-primary: #FF0033;   /* Rouge Vif - Flux/Accent */
+            --color-secondary: #CCCCCC; /* Gris Clair - Détails/Sous-titres */
+            --color-bg: #0A0A0A;        /* Noir Profond */
+            --color-text: #FFFFFF;      /* Texte Blanc Pur */
+            --color-light-bg: #1A1A1A;  /* Arrière-plan des cartes/liens (OPAQUE) */
+            --color-border: #1D1D1D;    /* Bordures subtiles */
+            --color-attention: #FF0055; /* Rouge/Rose pour l'avertissement */
+            --color-discord: #5865F2;   /* Nouveau : Violet Discord */
+            --font-main: 'Montserrat', sans-serif;
+            --font-title: 'Oswald', sans-serif;
+            --transition-speed: 0.35s; 
+            --glow-shadow: 0 0 12px rgba(255, 0, 51, 0.7); 
+            --glow-shadow-discord: 0 0 12px rgba(88, 101, 242, 0.7);
+            --color-card-border: #2A2A2A; 
+        }
+
+        /* --- NOUVEAUX KEYFRAMES POUR LES ANIMATIONS --- */
+        @keyframes glow-pulse {
+            0% { text-shadow: 0 0 5px var(--color-primary), 0 0 10px rgba(255, 0, 51, 0.4); }
+            50% { text-shadow: 0 0 10px var(--color-primary), 0 0 20px rgba(255, 0, 51, 0.8); }
+            100% { text-shadow: 0 0 5px var(--color-primary), 0 0 10px rgba(255, 0, 51, 0.4); }
+        }
+
+        @keyframes tag-pop-in {
+            from { transform: scale(0.8); opacity: 0; filter: blur(3px); }
+            to { transform: scale(1); opacity: 1; filter: blur(0); }
+        }
+        
+        @keyframes card-fade-in {
+            /* AJOUT DU scale(0.98) au départ pour un effet subtil */
+            from { opacity: 0; transform: translateY(20px) scale(0.98); } 
+            /* MODIFICATION CRITIQUE: Assurer que l'état final est exactement scale(1) pour relâcher le transform */
+            to { opacity: 1; transform: translateY(0) scale(1); } 
+        }
+        /* ----------------------------------------------- */
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--color-bg);
+            color: var(--color-text);
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+        
+        a {
+            color: var(--color-primary);
+            text-decoration: none;
+            transition: color var(--transition-speed), opacity var(--transition-speed);
+            cursor: pointer;
+        }
+
+        a:hover {
+            opacity: 0.8;
+        }
+
+        /* FOND PARTICULES */
+        #particle-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0; 
+            opacity: 0.85; 
+        }
+
+        /* Conteneur principal - Devant le canvas */
+        #main-container {
+            position: relative;
+            z-index: 10; 
+        }
+
+        /* -------------------------------------- */
+        /* 2. HEADER / NAVIGATION */
+        /* -------------------------------------- */
+        header {
+            position: sticky;
+            top: 0;
+            width: 100%;
+            padding: 20px 5%;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(10, 10, 10, 0.98); 
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .logo {
+            font-size: 1.6em;
+            font-family: var(--font-title);
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: var(--color-text);
+        }
+
+        .logo span {
+            color: var(--color-primary);
+            font-size: 0.8em;
+            /* ANIMATION DE FLUX/DÉGRADÉ (GLOW) */
+            animation: glow-pulse 3s infinite alternate; 
+        }
+
+        .nav-links a {
+            color: var(--color-secondary);
+            margin-left: 25px;
+        }
+        
+        .nav-links a:hover {
+            color: var(--color-primary);
+            text-shadow: 0 0 3px var(--color-primary); 
+            opacity: 1;
+        }
+        
+        /* -------------------------------------- */
+        /* 3. SECTION CONTENU (Liste WINDOWS) */
+        /* -------------------------------------- */
+        .content-section {
+            padding: 60px 5%; 
+            max-width: 1400px; 
+            margin: 0 auto;
+            position: relative;
+            z-index: 10;
+        }
+
+        .page-title {
+            font-family: var(--font-title);
+            font-size: clamp(2rem, 5vw, 4rem);
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 50px; 
+            color: var(--color-text);
+        }
+        
+        .page-title span {
+             color: var(--color-primary);
+             /* ANIMATION DE FLUX/DÉGRADÉ (GLOW) */
+             animation: glow-pulse 3s infinite alternate; 
+        }
+
+        /* --- FILTRES ET RECHERCHE (NOUVEAU) --- */
+
+        /* Conteneur de style sombre inspiré de 'exemple à suivre.html' */
+        #filter-controls {
+            /* Cadre : Légère transparence et contour */
+            background-color: rgba(26, 26, 26, 0.95); 
+            padding: 20px 40px;
+            border: 1px solid var(--color-border); 
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+            border-radius: 8px; 
+            margin-bottom: 40px;
+        }
+        
+        .search-row {
+            display: flex;
+            gap: 15px;
+        }
+        
+        /* Conteneur principal pour positionner le bouton de suppression */
+        .search-container {
+            flex-grow: 1;
+            position: relative; /* Pour le dropdown des tags et le bouton clear */
+        }
+
+        .search-container input {
+            width: 100%;
+            padding: 12px 15px;
+            /* Ajustement pour laisser de la place au bouton de suppression */
+            padding-right: 40px; 
+            background-color: var(--color-bg);
+            border: 1px solid var(--color-border);
+            color: var(--color-text);
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
+        }
+        
+        .search-container input:focus {
+            border-color: var(--color-primary);
+            outline: none;
+            box-shadow: 0 0 8px rgba(255, 0, 51, 0.7); 
+        }
+
+        /* Bouton de suppression du contenu */
+        .clear-search-btn {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--color-secondary);
+            font-size: 20px;
+            cursor: pointer;
+            padding: 0 5px;
+            line-height: 1;
+            transition: color 0.2s;
+            z-index: 21; /* Au-dessus des suggestions de tags */
+        }
+        
+        .clear-search-btn:hover {
+            color: var(--color-primary);
+        }
+
+
+        /* Suggestions de Tags (Dropdown) */
+        .tag-suggestions {
+            position: absolute;
+            top: 100%; 
+            left: 0;
+            right: 0;
+            z-index: 20;
+            background-color: var(--color-light-bg);
+            border: 1px solid var(--color-primary);
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.5);
+            display: none; /* Caché par défaut */
+        }
+        
+        .tag-suggestions.active {
+            display: block;
+        }
+
+        .tag-suggestion-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            color: var(--color-secondary);
+            transition: background-color var(--transition-speed), color var(--transition-speed);
+        }
+
+        .tag-suggestion-item:hover, .tag-suggestion-item.highlighted {
+            background-color: rgba(255, 0, 51, 0.1);
+            color: var(--color-primary);
+        }
+        
+        /* Conteneur des tags sélectionnés */
+        #selected-tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            min-height: 30px; 
+        }
+        
+        .selected-tag {
+            background-color: var(--color-primary);
+            color: var(--color-bg);
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: default;
+            user-select: none;
+            /* ANIMATION D'APPARITION DU TAG */
+            animation: tag-pop-in 0.3s ease-out; 
+            box-shadow: 0 0 8px rgba(255, 0, 51, 0.8); /* Glow plus intense */
+        }
+        
+        .remove-tag-btn {
+            background: none;
+            border: none;
+            color: var(--color-bg);
+            font-weight: 900;
+            cursor: pointer;
+            font-size: 16px;
+            line-height: 1;
+            padding: 0 2px;
+            transition: transform 0.2s;
+        }
+
+        .remove-tag-btn:hover {
+            transform: rotate(90deg);
+        }
+
+        /* --- GRILLE DE POSTS --- */
+
+        #posts-grid {
+            display: grid;
+            /* TAILLE CORRIGÉE : Max 380px pour que 3 colonnes s'affichent confortablement dans le conteneur 1400px */
+            grid-template-columns: repeat(auto-fit, minmax(350px, 380px)); 
+            gap: 30px;
+            padding-top: 20px;
+            justify-content: center; /* Centrer les cartes si elles ne remplissent pas la ligne */
+        }
+        
+        #posts-grid.empty-state {
+            display: block;
+            text-align: center;
+            color: var(--color-secondary);
+            padding: 50px;
+            font-size: 1.2em;
+        }
+
+        .post-card {
+            background: rgba(26, 26, 26, 0.8); 
+            border: 1px solid var(--color-card-border); 
+            border-radius: 8px;
+            overflow: hidden;
+            /* FIX 1: Transition explicite et complète */
+            transition: transform var(--transition-speed) ease-out, box-shadow var(--transition-speed) ease-out, border-color var(--transition-speed) ease-out; 
+            /* FIX 2 CRITIQUE: Etat de base du transform + Force l'accélération matérielle pour débloquer le hover */
+            transform: scale(1) translateY(0) translateZ(0); 
+            /* FIX 3: S'assurer que la carte survolée est au-dessus des autres */
+            z-index: 1; 
+            /* OPTIMISATION: Aide le navigateur pour les transitions à venir */
+            will-change: transform, box-shadow;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            /* L'animation d'apparition étagée est ajoutée via JS dans l'attribut style */
+        }
+        
+        /* L'animation de ZOOM/DÉZOOM est ici */
+        .post-card:hover {
+            /* FIX 4: Application du zoom + Maintien de l'accélération matérielle */
+            transform: translateY(-5px) scale(1.02) translateZ(1px); 
+            /* FIX 5: Assurer que la carte survolée est au-dessus des autres */
+            z-index: 2; 
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), var(--glow-shadow); 
+            border-color: var(--color-primary);
+        }
+
+        .post-thumbnail {
+            width: 100%;
+            height: 120px; 
+            object-fit: cover; 
+            background: #000000;            
+            border-bottom: 1px solid var(--color-border);
+            padding: 0; /* On retire le padding pour que l'image touche les bords */
+        }
+        
+        /* Si l'image n'est pas dans un lien, on veut que le curseur ne soit pas la main */
+        .post-card > .post-thumbnail {
+            cursor: default;
+        }
+
+        .post-content {
+            padding: 15px 20px;
+            flex-grow: 1; 
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .post-content h3 {
+            font-family: var(--font-title);
+            font-size: 1.4em;
+            font-weight: 700;
+            color: var(--color-text); 
+            margin-bottom: 5px;
+            line-height: 1.2;
+            transition: text-shadow 0.3s;
+        }
+        
+        .post-card:hover .post-content h3 {
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.7); 
+        }
+
+        .post-content .version {
+            font-size: 0.8em;
+            color: var(--color-secondary);
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+        
+        .post-content .description {
+            font-size: 0.9em;
+            color: var(--color-secondary);
+            margin-bottom: 15px; 
+            flex-grow: 1; 
+        }
+        
+        .post-content .information {
+            font-size: 0.8em;
+            color: var(--color-attention);
+            background-color: rgba(255, 0, 85, 0.1);
+            padding: 8px;
+            border-radius: 4px;
+            border-left: 3px solid var(--color-attention);
+        }
+        
+        .information-toggle-content {
+            max-height: 0; 
+            overflow: hidden;
+            transition: max-height 0.5s ease-in-out, margin-bottom 0.5s ease-in-out;
+            margin-bottom: 0; 
+        }
+        
+        .information-toggle-content.hidden {
+            max-height: 0 !important; 
+            margin-bottom: 0 !important;
+        }
+        
+        .info-button {
+            display: inline-block;
+            padding: 8px 18px;
+            /* FIX FINAL: Utiliser une largeur fixe pour éviter tout changement de taille */
+            width: 135px; 
+            background-color: var(--color-light-bg);
+            color: var(--color-attention); 
+            border: 1px solid var(--color-attention);
+            font-weight: 500;
+            border-radius: 50px;
+            transition: all var(--transition-speed);
+            font-size: 0.9em;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .info-button:hover {
+            background-color: rgba(255, 0, 85, 0.2); 
+            color: #FF77A1;
+            transform: scale(1.05);
+            opacity: 1;
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 15px;
+            border-top: 1px solid var(--color-border);
+        }
+
+        .post-size {
+            font-family: var(--font-title);
+            font-size: 1.1em;
+            font-weight: 700;
+            color: var(--color-secondary);
+        }
+
+        .card-footer-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .download-button {
+            padding: 8px 18px;
+            background-color: var(--color-primary);
+            color: var(--color-bg);
+            font-weight: 700;
+            border-radius: 50px;
+            transition: background-color 0.3s, transform 0.3s;
+            font-size: 0.9em;
+            text-align: center;
+        }
+
+        .download-button:hover {
+            background-color: #FF4D6A;
+            transform: scale(1.05);
+            opacity: 1;
+        }
+
+        .post-tags {
+            display: flex; 
+            flex-wrap: nowrap; 
+            overflow-x: auto; 
+            gap: 5px; 
+            margin-top: 10px;
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            
+            &::-webkit-scrollbar {
+                display: none;
+                width: 0 !important;
+                height: 0 !important;
+            }
+            
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        
+        .post-tags span {
+            flex-shrink: 0; 
+            background-color: rgba(255, 0, 51, 0.1);
+            color: var(--color-primary);
+            font-size: 0.75em;
+            padding: 3px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        /* -------------------------------------- */
+        /* 4. FOOTER & AVERTISSEMENT */
+        /* -------------------------------------- */
+        footer {
+            text-align: center;
+            padding: 40px 5%;
+            border-top: 1px solid var(--color-border);
+            font-size: 0.9em;
+            color: #444444;
+            margin-top: 40px; 
+            background-color: var(--color-bg);
+            position: relative;
+            z-index: 10;
+        }
+
+        #legal-disclaimer {
+            padding: 15px 5%;
+            margin-bottom: 20px;
+            background-color: var(--color-light-bg); 
+            border: 1px solid var(--color-attention);
+            border-radius: 6px;
+            color: var(--color-secondary);
+            font-size: 0.85em;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        #legal-disclaimer strong {
+            color: var(--color-attention);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        /* -------------------------------------- */
+        /* 5. MEDIA QUERIES */
+        /* -------------------------------------- */
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                padding: 15px 5%;
+            }
+
+            .nav-links {
+                margin-top: 10px;
+            }
+
+            .nav-links a {
+                margin: 0 10px;
+            }
+            
+            #posts-grid {
+                /* S'assurer que le mode mobile utilise 1fr pour remplir l'écran */
+                grid-template-columns: 1fr; 
+                justify-content: unset; /* Désactiver le centrage sur mobile */
+            }
+            
+            .post-card {
+                flex-direction: row;
+                text-align: left;
+            }
+            
+            .post-thumbnail {
+                width: 120px;
+                height: auto;
+                object-fit: cover;
+                border-bottom: none;
+                border-right: 1px solid var(--color-border);
+            }
+            
+            .post-content {
+                padding: 15px;
+            }
+            
+            .card-footer {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .card-footer-buttons {
+                margin-top: 10px;
+                flex-direction: row; 
+            }
+            
+            .search-row {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            #filter-controls {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="particle-canvas" width="800" height="600"></canvas>
+
+    <div id="main-container">
+        <header>
+            <a href="../" class="logo">GRAPHICX<span>.STORE</span></a>
+            <nav class="nav-links">
+                <a href="../#hero">Accueil</a>
+                <a href="../#categories">Ressources</a>
+                <a href="https://discord.com/invite/CNudm6aJ2n" style="color: var(--color-primary); font-weight: 700;">Discord</a>
+            </nav>
+        </header>
+
+        <main>
+            <section class="content-section">
+                <h1 class="page-title">Ressources <span>WINDOWS</span></h1>
+
+                <div id="filter-controls">
+                    <div class="search-row">
+                        <div class="search-container">
+                            <input type="text" id="name-search-bar" placeholder="Recherche par nom (ex: Maxon Red Giant+Boris FX Continuum)">
+                            <button id="clear-name-search" class="clear-search-btn" style="display: none;">×</button>
+                        </div>
+                    </div>
+                    
+                    <div class="search-row">
+                        <div class="search-container">
+                            <input type="text" id="tag-search-bar" placeholder="Rechercher ou ajouter un tag (ex: 3D, Design, Utilitaires)">
+                            <div class="tag-suggestions" id="tag-suggestions">
+                                </div>
+                        </div>
+                    </div>
+                    
+                    <div id="selected-tags-container">
+                <span class="selected-tag" data-tag="after effects">
+                    after effects
+                    <button class="remove-tag-btn" onclick="removeTag('after effects')">×</button>
+                </span>
+            </div>
+                </div>
+
+                <div id="posts-grid">
+                <div class="post-card" data-title="maxon red giant" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 0s; opacity: 0;">
+                    
+                    <a href="https://www.maxon.net/red-giant" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/maxon_logo.png" alt="Maxon Red Giant" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>Maxon Red Giant</h3>
+                        <div class="version">Version : 2026.2.1</div> 
+                        <div class="post-tags" id="tags-maxon_red_giant1_2_gb"><span>Maxon</span><span>After Effects</span><span>Plugins</span></div>
+                        <p class="description">Magic Bullet Looks, VFX Suite, Trapcode, Particular, Trapcode</p>
+                        
+                         
+                        
+                        <div class="card-footer">
+                            <span class="post-size">1.2 GB</span>
+                            <div class="card-footer-buttons">
+                                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1UVPSIhUzx5iyukoShjbDJMsB4kUR5M-o" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="maxon universe" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 0.08s; opacity: 0;">
+                    
+                    <a href="https://www.maxon.net/red-giant/universe" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/maxon_logo.png" alt="Maxon Universe" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>Maxon Universe</h3>
+                        <div class="version">Version : 2026.0.1</div> 
+                        <div class="post-tags" id="tags-maxon_universe1_8_gb"><span>Maxon</span><span>After Effects</span><span>Plugins</span></div>
+                        <p class="description">Complémentaire à Maxon Red Giant</p>
+                        
+                         
+                        
+                        <div class="card-footer">
+                            <span class="post-size">1.8 GB</span>
+                            <div class="card-footer-buttons">
+                                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1lAy0OwfFBXNDUJIyLWL92IC67X_P1hpQ" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="maxon cinema 4d" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 0.16s; opacity: 0;">
+                    
+                    <a href="https://www.maxon.net/cinema-4d" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/maxon_logo.png" alt="Maxon Cinema 4D" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>Maxon Cinema 4D</h3>
+                        <div class="version">Version : 2026.1.0</div> 
+                        <div class="post-tags" id="tags-maxon_cinema_4d976_mb"><span>Maxon</span><span>After Effects</span><span>Plugins</span></div>
+                        <p class="description">Logiciel de 3D développé par Maxon</p>
+                        
+                         
+                        
+                        <div class="card-footer">
+                            <span class="post-size">976 MB</span>
+                            <div class="card-footer-buttons">
+                                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1KzO_yHew0RX2CsHxTDSAZg5k4JbZc5sn" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="boris fx continuum ae pr" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 0.24s; opacity: 0;">
+                    
+                    <a href="https://borisfx.com/products/continuum/" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/borisfx_logo.png" alt="Boris FX Continuum AE PR" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>Boris FX Continuum AE PR</h3>
+                        <div class="version">Version : 2026</div> 
+                        <div class="post-tags" id="tags-boris_fx_continuum_ae_pr1_7_gb"><span>Boris FX</span><span>After Effects</span><span>Premiere Pro</span><span>Plugins</span></div>
+                        <p class="description">BCC Continuum</p>
+                        
+                        
+                    <div id="info-content-boris_fx_continuum_ae_pr1_7_gb" class="information-toggle-content hidden">
+                        <div class="information">Crack by Team V.R https://codec.kyiv.ua/ad0be.html</div>
+                    </div>
+                 
+                        
+                        <div class="card-footer">
+                            <span class="post-size">1.7 GB</span>
+                            <div class="card-footer-buttons">
+                                
+                    <span class="info-button" data-target-id="info-content-boris_fx_continuum_ae_pr1_7_gb" onclick="toggleInformation(this)">
+                        Informations
+                    </span>
+                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1viQVC_bjPhXcAbCj1FaIT0RiOo23d6JJ" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="boris fx mocha pro ae pr" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 0.32s; opacity: 0;">
+                    
+                    <a href="https://borisfx.com/products/mocha-pro/" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/borisfx_logo.png" alt="Boris FX Mocha Pro AE PR" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>Boris FX Mocha Pro AE PR</h3>
+                        <div class="version">Version : 2026</div> 
+                        <div class="post-tags" id="tags-boris_fx_mocha_pro_ae_pr988_mb"><span>Boris FX</span><span>After Effects</span><span>Premiere Pro</span><span>Plugins</span></div>
+                        <p class="description">Rotobrush et tracing avancé</p>
+                        
+                        
+                    <div id="info-content-boris_fx_mocha_pro_ae_pr988_mb" class="information-toggle-content hidden">
+                        <div class="information">Crack by Team V.R https://codec.kyiv.ua/ad0be.html</div>
+                    </div>
+                 
+                        
+                        <div class="card-footer">
+                            <span class="post-size">988 MB</span>
+                            <div class="card-footer-buttons">
+                                
+                    <span class="info-button" data-target-id="info-content-boris_fx_mocha_pro_ae_pr988_mb" onclick="toggleInformation(this)">
+                        Informations
+                    </span>
+                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1K3dKPX-VRxr57J4T5X0KX7ZWvAGyPzeI" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="boris fx sapphire ae pr" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 0.4s; opacity: 0;">
+                    
+                    <a href="https://borisfx.com/products/sapphire/" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/borisfx_logo.png" alt="Boris FX Sapphire AE PR" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>Boris FX Sapphire AE PR</h3>
+                        <div class="version">Version : 2026</div> 
+                        <div class="post-tags" id="tags-boris_fx_sapphire_ae_pr1_1_gb"><span>Boris FX</span><span>After Effects</span><span>Premiere Pro</span><span>Plugins</span></div>
+                        <p class="description">Plugins essentiels aux edits</p>
+                        
+                        
+                    <div id="info-content-boris_fx_sapphire_ae_pr1_1_gb" class="information-toggle-content hidden">
+                        <div class="information">Crack by Team V.R https://codec.kyiv.ua/ad0be.html</div>
+                    </div>
+                 
+                        
+                        <div class="card-footer">
+                            <span class="post-size">1.1 GB</span>
+                            <div class="card-footer-buttons">
+                                
+                    <span class="info-button" data-target-id="info-content-boris_fx_sapphire_ae_pr1_1_gb" onclick="toggleInformation(this)">
+                        Informations
+                    </span>
+                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1veItqodWqneRhWRKuvv6l8qTEd8YzEMw" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="autokroma all plugins" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 0.48s; opacity: 0;">
+                    
+                    <a href="https://www.autokroma.com/" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/all_plugins_logo.png" alt="Autokroma All Plugins" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>Autokroma All Plugins</h3>
+                         
+                        <div class="post-tags" id="tags-autokroma_all_plugins37_8_mb"><span>All Plugins</span><span>After Effects</span><span>Premiere Pro</span><span>Plugins</span></div>
+                        <p class="description">Pack de plugins contenus en un seul téléchargement</p>
+                        
+                        
+                    <div id="info-content-autokroma_all_plugins37_8_mb" class="information-toggle-content hidden">
+                        <div class="information">AfterCodecs v1.11.5, BRAW Studio v3.3.5 + Presets, PlumePack v2.4.0, Vizual v1.0.7, Influx v1.5.3</div>
+                    </div>
+                 
+                        
+                        <div class="card-footer">
+                            <span class="post-size">37.8 MB</span>
+                            <div class="card-footer-buttons">
+                                
+                    <span class="info-button" data-target-id="info-content-autokroma_all_plugins37_8_mb" onclick="toggleInformation(this)">
+                        Informations
+                    </span>
+                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1bZVPlsXJrwV9NKQNdv90L6Nz1SaSkjFq" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="crossphere all plugins" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 0.56s; opacity: 0;">
+                    
+                    <a href="https://aescripts.com/authors/crossphere-k/products/" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/all_plugins_logo.png" alt="CROSSPHERE All Plugins" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>CROSSPHERE All Plugins</h3>
+                         
+                        <div class="post-tags" id="tags-crossphere_all_plugins5_4_mb"><span>All Plugins</span><span>After Effects</span><span>Premiere Pro</span><span>Plugins</span></div>
+                        <p class="description">Pack de plugins contenus en un seul téléchargement</p>
+                        
+                        
+                    <div id="info-content-crossphere_all_plugins5_4_mb" class="information-toggle-content hidden">
+                        <div class="information">Fractal Noise 3D v1.54, Power Sphere v1.1.9, Power Cylinder v1.1.6, Power Droste v1.0.0, Power Hyperboloid v1.0.2, Crossphere Bokeh v1.4.1, Fractal Terrain v1.0.1, Pixel Bender Accelerator v1.2.3 + PBK</div>
+                    </div>
+                 
+                        
+                        <div class="card-footer">
+                            <span class="post-size">5.4 MB</span>
+                            <div class="card-footer-buttons">
+                                
+                    <span class="info-button" data-target-id="info-content-crossphere_all_plugins5_4_mb" onclick="toggleInformation(this)">
+                        Informations
+                    </span>
+                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=13E7Enz8kRiplau5T1g4McAa2Dsz5zR2N" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="frischluft all plugins" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 0.64s; opacity: 0;">
+                    
+                    <a href="https://www.frischluft.com/lenscare/" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/all_plugins_logo.png" alt="Frischluft All Plugins" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>Frischluft All Plugins</h3>
+                         
+                        <div class="post-tags" id="tags-frischluft_all_plugins4_4_mb"><span>All Plugins</span><span>After Effects</span><span>Premiere Pro</span><span>Plugins</span></div>
+                        <p class="description">Pack de plugins contenus en un seul téléchargement</p>
+                        
+                        
+                    <div id="info-content-frischluft_all_plugins4_4_mb" class="information-toggle-content hidden">
+                        <div class="information">Lenscare v1.5.1, Fresh Curves v1.1.6, Flair 1.2.12, ZbornToy v1.1.0</div>
+                    </div>
+                 
+                        
+                        <div class="card-footer">
+                            <span class="post-size">4.4 MB</span>
+                            <div class="card-footer-buttons">
+                                
+                    <span class="info-button" data-target-id="info-content-frischluft_all_plugins4_4_mb" onclick="toggleInformation(this)">
+                        Informations
+                    </span>
+                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=12U_arF2zNppn9qwKLrckOolCDnwjExnU" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="plugin everything all plugins" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 0.72s; opacity: 0;">
+                    
+                    <a href="https://aescripts.com/authors/plugin-everything/products/" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/all_plugins_logo.png" alt="Plugin Everything All Plugins" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>Plugin Everything All Plugins</h3>
+                         
+                        <div class="post-tags" id="tags-plugin_everything_all_plugins11_7_mb"><span>All Plugins</span><span>After Effects</span><span>Plugins</span><span>Scripts</span></div>
+                        <p class="description">Pack de plugins contenus en un seul téléchargement</p>
+                        
+                        
+                    <div id="info-content-plugin_everything_all_plugins11_7_mb" class="information-toggle-content hidden">
+                        <div class="information">Deep Glow 2 v1.1.1, Deep Glow v1.6, Extrude v1.0.1, Shadow Studio 3 v1.1.0, AutoFill 2 v2.0.2, Repeater v1.0.4, Odometer v1.2, Better Bokeh v1.0, TextBox 2 v1.2.6, Displacer Pro v1.6.1, Digit Fiddler v1.4.0, Cartoon Moblur v1.6.3, Thicc Stroke v1.2, TextBorder v1.1.2, Discotext v1.2.6, Extended Coffee Break v1.0, Label Maker v1.0.2, FXAA v1.1.0, Effect Matte 1.4.0, Path Visualizer v1.2.2, Bezier Node v1.5.7, Quick Chromatic Aberration 3 v3.2.0, HandyCam v1.2.3, Monospacer v1.2.4, OCD Renamer v1.1.6b, TextDelay v1.8.0</div>
+                    </div>
+                 
+                        
+                        <div class="card-footer">
+                            <span class="post-size">11.7 MB</span>
+                            <div class="card-footer-buttons">
+                                
+                    <span class="info-button" data-target-id="info-content-plugin_everything_all_plugins11_7_mb" onclick="toggleInformation(this)">
+                        Informations
+                    </span>
+                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1VQ__B-URq2Ft0wLu7N91_urAWEw59sEv" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="pixel sorter studio all plugins" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 0.8s; opacity: 0;">
+                    
+                    <a href="https://aescripts.com/authors/pixel-sorter-studio/products/" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/all_plugins_logo.png" alt="Pixel Sorter Studio All Plugins" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>Pixel Sorter Studio All Plugins</h3>
+                         
+                        <div class="post-tags" id="tags-pixel_sorter_studio_all_plugins7_9_mb"><span>All Plugins</span><span>After Effects</span><span>Premiere Pro</span><span>Media Encoder</span><span>Plugins</span></div>
+                        <p class="description">Pack de plugins contenus en un seul téléchargement</p>
+                        
+                        
+                    <div id="info-content-pixel_sorter_studio_all_plugins7_9_mb" class="information-toggle-content hidden">
+                        <div class="information">Ballpoint v1.2.1, Pixel Galactic v1.0.2, MAD PAINTER v1.1.0, HydroChrome v1.1.3, Motion Extractor v1.0.0, Motion Mosh v1.2.2, Glasswork v1.1.2, Topograph v1.0.4</div>
+                    </div>
+                 
+                        
+                        <div class="card-footer">
+                            <span class="post-size">7.9 MB</span>
+                            <div class="card-footer-buttons">
+                                
+                    <span class="info-button" data-target-id="info-content-pixel_sorter_studio_all_plugins7_9_mb" onclick="toggleInformation(this)">
+                        Informations
+                    </span>
+                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1k6wbH8gffJqxXXjoAHe9umbIU34vILUb" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="revisionfx all plugins" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 0.88s; opacity: 0;">
+                    
+                    <a href="https://revisionfx.com/products/for/after-effects/" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/all_plugins_logo.png" alt="REVisionFX All Plugins" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>REVisionFX All Plugins</h3>
+                         
+                        <div class="post-tags" id="tags-revisionfx_all_plugins243_mb"><span>All Plugins</span><span>After Effects</span><span>Premiere Pro</span><span>Plugins</span></div>
+                        <p class="description">Pack de plugins contenus en un seul téléchargement</p>
+                        
+                        
+                    <div id="info-content-revisionfx_all_plugins243_mb" class="information-toggle-content hidden">
+                        <div class="information">DE:Flicker v2.3.2, DE:Noise v3.7.1, FieldsKit v4.2.0, PV Feather v1.8.1, RE:Fill v3.0.4, RE:Flex v5.6.1, RE:Grade v1.3.1, RE:Lens v2.4.3, RE:Map v4.2.2, RE:Match v2.7.3, RE:Zup v2.0.1, ReelSmart Motion Blur Pro RSMB v6.4.4, Shade/Shape v5.1.0, SmoothKit v4.1.0, Twixtor Pro v8.0.7, Video Gogh v4.0.1</div>
+                    </div>
+                 
+                        
+                        <div class="card-footer">
+                            <span class="post-size">243 MB</span>
+                            <div class="card-footer-buttons">
+                                
+                    <span class="info-button" data-target-id="info-content-revisionfx_all_plugins243_mb" onclick="toggleInformation(this)">
+                        Informations
+                    </span>
+                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1nVAO_9vFoBxP1BkQLNxPIUQLpNrzvlQe" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="motion boutique all plugins" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 0.96s; opacity: 0;">
+                    
+                    <a href="https://aescripts.com/authors/motion-boutique/products/" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/all_plugins_logo.png" alt="Motion Boutique All Plugins" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>Motion Boutique All Plugins</h3>
+                         
+                        <div class="post-tags" id="tags-motion_boutique_all_plugins12_5_mb"><span>All Plugins</span><span>After Effects</span><span>Plugins</span></div>
+                        <p class="description">Pack de plugins contenus en un seul téléchargement</p>
+                        
+                        
+                    <div id="info-content-motion_boutique_all_plugins12_5_mb" class="information-toggle-content hidden">
+                        <div class="information">Newton 4 v4.0.77, Plotter v1.0, Autostereogram v1.0.2, Pastiche2 v2.1.15, MOBO_Utils v1.4, Connect Layers PRO v1.3.4, Polyline v1.2, Paravent v1.5, ASCII Generator v1.3</div>
+                    </div>
+                 
+                        
+                        <div class="card-footer">
+                            <span class="post-size">12.5 MB</span>
+                            <div class="card-footer-buttons">
+                                
+                    <span class="info-button" data-target-id="info-content-motion_boutique_all_plugins12_5_mb" onclick="toggleInformation(this)">
+                        Informations
+                    </span>
+                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1s1w-HgusxJV4MVVDZ7Iw2XHZo_x0OFj6" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="rowbyte all plugins" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.04s; opacity: 0;">
+                    
+                    <a href="https://aescripts.com/authors/rowbyte/products/" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/all_plugins_logo.png" alt="Rowbyte All Plugins" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>Rowbyte All Plugins</h3>
+                         
+                        <div class="post-tags" id="tags-rowbyte_all_plugins13_mb"><span>All Plugins</span><span>After Effects</span><span>Premiere Pro</span><span>Plugins</span></div>
+                        <p class="description">Pack de plugins contenus en un seul téléchargement</p>
+                        
+                        
+                    <div id="info-content-rowbyte_all_plugins13_mb" class="information-toggle-content hidden">
+                        <div class="information">Stipple v1.0.3, Buena Depth Cue v2.5.8, Bendio v1.0.1, Fast Bokeh Pro v2 v2.1.3, Aura v1.2.7, Plexus 3 v3.2.10, Data Glitch 2 v2.7.5, Bad TV v2.7.5, Separate RGB v2.7.5, Dot Pixels v2.7.5, TVPixel v2.7.5, ColorWiggle v1.2.1, CompScreenshot</div>
+                    </div>
+                 
+                        
+                        <div class="card-footer">
+                            <span class="post-size">13 MB</span>
+                            <div class="card-footer-buttons">
+                                
+                    <span class="info-button" data-target-id="info-content-rowbyte_all_plugins13_mb" onclick="toggleInformation(this)">
+                        Informations
+                    </span>
+                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1RVECOpTBanIcBOhmowp0YFU70iRZszRg" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="satori all plugins" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.12s; opacity: 0;">
+                    
+                    <a href="https://aescripts.com/authors/satori/products/" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/all_plugins_logo.png" alt="Satori All Plugins" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>Satori All Plugins</h3>
+                         
+                        <div class="post-tags" id="tags-satori_all_plugins4_4_mb"><span>All Plugins</span><span>After Effects</span><span>Premiere Pro</span><span>Plugins</span></div>
+                        <p class="description">Pack de plugins contenus en un seul téléchargement</p>
+                        
+                        
+                    <div id="info-content-satori_all_plugins4_4_mb" class="information-toggle-content hidden">
+                        <div class="information">Pixel Melt v1.0.1, Geometric Filter v1.2.0, Curve Tracer v1.1.0, Block Swap v1.5.1, Time Bend v1.0.1, Split Blur v1.3.2, Recursive Mosaic v1.3.0, Pixel Stretch v1.6.0, Pixelocybe v1.3.0</div>
+                    </div>
+                 
+                        
+                        <div class="card-footer">
+                            <span class="post-size">4.4 MB</span>
+                            <div class="card-footer-buttons">
+                                
+                    <span class="info-button" data-target-id="info-content-satori_all_plugins4_4_mb" onclick="toggleInformation(this)">
+                        Informations
+                    </span>
+                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1eLUrInQdlHvVImG5Vv5HQZf-AFp0x2Fg" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="zaebects all plugins" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://aescripts.com/authors/zaebects/products/" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/all_plugins_logo.png" alt="Zaebects All Plugins" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>Zaebects All Plugins</h3>
+                         
+                        <div class="post-tags" id="tags-zaebects_all_plugins2_5_mb"><span>All Plugins</span><span>After Effects</span><span>Premiere Pro</span><span>Plugins</span></div>
+                        <p class="description">Pack de plugins contenus en un seul téléchargement</p>
+                        
+                        
+                    <div id="info-content-zaebects_all_plugins2_5_mb" class="information-toggle-content hidden">
+                        <div class="information">Vectory v1.0, Modulation 2 v2.1.0, JPEG glitch v1.0.7, Signal v1.2.3, Physarum v1.3, Slitscan v2.3</div>
+                    </div>
+                 
+                        
+                        <div class="card-footer">
+                            <span class="post-size">2.5 MB</span>
+                            <div class="card-footer-buttons">
+                                
+                    <span class="info-button" data-target-id="info-content-zaebects_all_plugins2_5_mb" onclick="toggleInformation(this)">
+                        Informations
+                    </span>
+                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1rw9rd2TeeCoeQjnDXTLT6hoc5T9rMMxr" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="vranos all plugins" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://aescripts.com/authors/vranos/" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/all_plugins_logo.png" alt="Vranos All Plugins" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>Vranos All Plugins</h3>
+                         
+                        <div class="post-tags" id="tags-vranos_all_plugins1_3_gb"><span>All Plugins</span><span>After Effects</span><span>Phtoshop</span><span>Plugins</span></div>
+                        <p class="description">Pack de plugins contenus en un seul téléchargement</p>
+                        
+                        
+                    <div id="info-content-vranos_all_plugins1_3_gb" class="information-toggle-content hidden">
+                        <div class="information">Lockdown 3 v3.1.7, Composite Brush v1.6.8, Paint Link Photoshop Panel v1.0.0</div>
+                    </div>
+                 
+                        
+                        <div class="card-footer">
+                            <span class="post-size">1.3 GB</span>
+                            <div class="card-footer-buttons">
+                                
+                    <span class="info-button" data-target-id="info-content-vranos_all_plugins1_3_gb" onclick="toggleInformation(this)">
+                        Informations
+                    </span>
+                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1qTZ3ZnGUNIHz-MUQQxGDlp1crDK85F-z" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="wunkolo all plugins" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://wunkolo.itch.io/" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/all_plugins_logo.png" alt="Wunkolo All Plugins" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>Wunkolo All Plugins</h3>
+                         
+                        <div class="post-tags" id="tags-wunkolo_all_plugins2_2_mb"><span>All Plugins</span><span>After Effects</span><span>Plugins</span></div>
+                        <p class="description">Pack de plugins contenus en un seul téléchargement</p>
+                        
+                        
+                    <div id="info-content-wunkolo_all_plugins2_2_mb" class="information-toggle-content hidden">
+                        <div class="information">PixDither v1.1, PixSort v1.2, B.Carve (Beta), B∙Map (Beta), B.Fringe (Beta), PixStipple, PixContour, PixFlipBook, SaiThumbs, PixMap</div>
+                    </div>
+                 
+                        
+                        <div class="card-footer">
+                            <span class="post-size">2.2 MB</span>
+                            <div class="card-footer-buttons">
+                                
+                    <span class="info-button" data-target-id="info-content-wunkolo_all_plugins2_2_mb" onclick="toggleInformation(this)">
+                        Informations
+                    </span>
+                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1GWotq87vpvz4tJN1Eaafjpp10UOA43p4" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="filmconvert all plugins" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://www.filmconvert.com/" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/all_plugins_logo.png" alt="FilmConvert All Plugins" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>FilmConvert All Plugins</h3>
+                         
+                        <div class="post-tags" id="tags-filmconvert_all_plugins776_mb"><span>All Plugins</span><span>After Effects</span><span>Premiere Pro</span><span>Plugins</span></div>
+                        <p class="description">Pack de plugins contenus en un seul téléchargement</p>
+                        
+                        
+                    <div id="info-content-filmconvert_all_plugins776_mb" class="information-toggle-content hidden">
+                        <div class="information">FilmConvert Nitrate v3.55, Hazy v1.03, CineMatch v1.44, Halation v1.03</div>
+                    </div>
+                 
+                        
+                        <div class="card-footer">
+                            <span class="post-size">776 MB</span>
+                            <div class="card-footer-buttons">
+                                
+                    <span class="info-button" data-target-id="info-content-filmconvert_all_plugins776_mb" onclick="toggleInformation(this)">
+                        Informations
+                    </span>
+                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=16HOMJhG1zCbJO7XeOa9Dw_FQzLyxQGgf" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="vimager all plugins" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://aescripts.com/authors/vimager/products/" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/all_plugins_logo.png" alt="Vimager All Plugins" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>Vimager All Plugins</h3>
+                         
+                        <div class="post-tags" id="tags-vimager_all_plugins177_5_mb"><span>All Plugins</span><span>After Effects</span><span>Premiere Pro</span><span>Plugins</span></div>
+                        <p class="description">Pack de plugins contenus en un seul téléchargement</p>
+                        
+                        
+                    <div id="info-content-vimager_all_plugins177_5_mb" class="information-toggle-content hidden">
+                        <div class="information">ClearPlus v2.2.1, ColorX v1.0.0, ScaleUP v1.4.4, SpeedX v1.2.0.1, StyleX v1.0.3, DeepClear v1.0, ContrastUp v2.3.1</div>
+                    </div>
+                 
+                        
+                        <div class="card-footer">
+                            <span class="post-size">177.5 MB</span>
+                            <div class="card-footer-buttons">
+                                
+                    <span class="info-button" data-target-id="info-content-vimager_all_plugins177_5_mb" onclick="toggleInformation(this)">
+                        Informations
+                    </span>
+                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=156NegqOdJDs0e3IDWMwTyFdHVJZ-oqJb" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="mettle all plugin" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://aescripts.com/authors/mettle/products/" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/all_plugins_logo.png" alt="Mettle All Plugin" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>Mettle All Plugin</h3>
+                         
+                        <div class="post-tags" id="tags-mettle_all_plugin314_2_mb"><span>All Plugins</span><span>After Effects</span><span>Premiere Pro</span><span>Plugins</span></div>
+                        <p class="description">Pack de plugins contenus en un seul téléchargement</p>
+                        
+                        
+                    <div id="info-content-mettle_all_plugin314_2_mb" class="information-toggle-content hidden">
+                        <div class="information">Mantra v2 v2.25.3, Flux v1.16.3, FreeForm Pro v1.99.9, FreeForm v2.27.3, ShapeShifter v1.99.5, Mettle Flux Presets Panel, Mettle Globe Presets Panel, Mettle Mantra Panel</div>
+                    </div>
+                 
+                        
+                        <div class="card-footer">
+                            <span class="post-size">314.2 MB</span>
+                            <div class="card-footer-buttons">
+                                
+                    <span class="info-button" data-target-id="info-content-mettle_all_plugin314_2_mb" onclick="toggleInformation(this)">
+                        Informations
+                    </span>
+                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1j4DYn1iFAaukxTsMVvk67rkiYXDHUuqA" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="video copilot all plugin" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://www.videocopilot.net/products" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/all_plugins_logo.png" alt="Video Copilot All Plugin" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>Video Copilot All Plugin</h3>
+                         
+                        <div class="post-tags" id="tags-video_copilot_all_plugin314_2_mb"><span>All Plugins</span><span>After Effects</span><span>Plugins</span><span>Video Copilot</span></div>
+                        <p class="description">Pack de plugins contenus en un seul téléchargement</p>
+                        
+                        
+                    <div id="info-content-video_copilot_all_plugin314_2_mb" class="information-toggle-content hidden">
+                        <div class="information">Element 3D v2.2.3, Optical Flares v1.3.8 + Presets, FX Console v1.0.5, Glass Eyes v1.0.6, Heat Distortion v1.0.32, Orb v1.0.3, Reflect v1.0.15, Saber v1.0.40, Sure Target v2.0.11, Twitch</div>
+                    </div>
+                 
+                        
+                        <div class="card-footer">
+                            <span class="post-size">314.2 MB</span>
+                            <div class="card-footer-buttons">
+                                
+                    <span class="info-button" data-target-id="info-content-video_copilot_all_plugin314_2_mb" onclick="toggleInformation(this)">
+                        Informations
+                    </span>
+                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=100VEdHhYiKkSxwPkKE52R1koEHb93Kym" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="newton 4" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://aescripts.com/newton/" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/plugin_logo.png" alt="Newton 4" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>Newton 4</h3>
+                        <div class="version">Version : 4.0.77</div> 
+                        <div class="post-tags" id="tags-newton_410_4_mb"><span>After Effects</span><span>Plugins</span></div>
+                        <p class="description">Plugin pour After Effects</p>
+                        
+                         
+                        
+                        <div class="card-footer">
+                            <span class="post-size">10.4 MB</span>
+                            <div class="card-footer-buttons">
+                                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1-yb1Wk8oeGfNsPvmSQd6vswOyaSOSi7D" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="retro dither" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://aescripts.com/after-effects/image/degradation/retrodither/" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/plugin_logo.png" alt="Retro Dither" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>Retro Dither</h3>
+                        <div class="version">Version : 1.12</div> 
+                        <div class="post-tags" id="tags-retro_dither870_kb"><span>After Effects</span><span>Plugins</span></div>
+                        <p class="description">Plugin pour After Effects</p>
+                        
+                         
+                        
+                        <div class="card-footer">
+                            <span class="post-size">870 KB</span>
+                            <div class="card-footer-buttons">
+                                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1Z8Eh-Ttv4jXnkuzLnkdLKoLy-K4_l7jm" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="loopflow" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://aescripts.com/loopflow/" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/plugin_logo.png" alt="LoopFlow" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>LoopFlow</h3>
+                        <div class="version">Version : 1.3.1</div> 
+                        <div class="post-tags" id="tags-loopflow882_kb"><span>After Effects</span><span>Plugins</span></div>
+                        <p class="description">Plugin pour After Effects</p>
+                        
+                         
+                        
+                        <div class="card-footer">
+                            <span class="post-size">882 KB</span>
+                            <div class="card-footer-buttons">
+                                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1GMFDr7OarSmFqhPhwN3NL2RdCtzMohPj" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="glitch 7in1" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://aesweets.com/glitch-7in1/" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/plugin_logo.png" alt="Glitch 7in1" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>Glitch 7in1</h3>
+                        <div class="version">Version : 1.2.2</div> 
+                        <div class="post-tags" id="tags-glitch_7in1317_kb"><span>After Effects</span><span>Plugins</span></div>
+                        <p class="description">Plugin pour After Effects</p>
+                        
+                         
+                        
+                        <div class="card-footer">
+                            <span class="post-size">317 KB</span>
+                            <div class="card-footer-buttons">
+                                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1FyDUXx_dHxqi1pk4lNfJLUxBM31bwhKv" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="polytrace" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://elementsupply.co/products/polytrace" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/plugin_logo.png" alt="Polytrace" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>Polytrace</h3>
+                        <div class="version">Version : 1.0.0</div> 
+                        <div class="post-tags" id="tags-polytrace306_kb"><span>After Effects</span><span>Plugins</span></div>
+                        <p class="description">Plugin pour After Effects</p>
+                        
+                         
+                        
+                        <div class="card-footer">
+                            <span class="post-size">306 KB</span>
+                            <div class="card-footer-buttons">
+                                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=10rVwF6wwutnvhF8QNNKYpBSMwWeaPEeb" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="mask prompter" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://aescripts.com/mask-prompter/" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/plugin_logo.png" alt="Mask Prompter" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>Mask Prompter</h3>
+                        <div class="version">Version : 2.1.4</div> 
+                        <div class="post-tags" id="tags-mask_prompter6_9_mb"><span>After Effects</span><span>Plugins</span></div>
+                        <p class="description">Plugin pour After Effects</p>
+                        
+                         
+                        
+                        <div class="card-footer">
+                            <span class="post-size">6.9 MB</span>
+                            <div class="card-footer-buttons">
+                                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1rwEeEEt_UCj-qF2fg5nBL73Lce-Z6_m1" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="glitchify" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://elementsupply.co/products/glitchify" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/plugin_logo.png" alt="Glitchify" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>Glitchify</h3>
+                         
+                        <div class="post-tags" id="tags-glitchify373_kb"><span>After Effects</span><span>Plugins</span></div>
+                        <p class="description">Plugin pour After Effects</p>
+                        
+                         
+                        
+                        <div class="card-footer">
+                            <span class="post-size">373 KB</span>
+                            <div class="card-footer-buttons">
+                                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=104vJvjFYXHiSbcnWGgTAtP8sqtA0oiVZ" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="diffusae 2" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://aescripts.com/diffusae/" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/plugin_logo.png" alt="Diffusae 2" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>Diffusae 2</h3>
+                        <div class="version">Version : 2.0.2</div> 
+                        <div class="post-tags" id="tags-diffusae_229_mb"><span>After Effects</span><span>Plugins</span></div>
+                        <p class="description">Plugin pour After Effects</p>
+                        
+                         
+                        
+                        <div class="card-footer">
+                            <span class="post-size">29 MB</span>
+                            <div class="card-footer-buttons">
+                                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1CqblhjrNA7mAl1Au10n9UDSFnJvBhQJx" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="depth scanner" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://aescripts.com/depth-scanner/" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/plugin_logo.png" alt="Depth Scanner" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>Depth Scanner</h3>
+                        <div class="version">Version : 1.16.15</div> 
+                        <div class="post-tags" id="tags-depth_scanner7_1_mb"><span>After Effects</span><span>Plugins</span></div>
+                        <p class="description">Plugin pour After Effects</p>
+                        
+                         
+                        
+                        <div class="card-footer">
+                            <span class="post-size">7.1 MB</span>
+                            <div class="card-footer-buttons">
+                                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1p5_nNgM6ApaagU59w8d2K77CFqF43Fvk" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="dehancer pro" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://www.dehancer.com/shop/aepr/pro" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/plugin_logo.png" alt="Dehancer Pro" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>Dehancer Pro</h3>
+                        <div class="version">Version : 7.1.1</div> 
+                        <div class="post-tags" id="tags-dehancer_pro86_mb"><span>After Effects</span><span>Plugins</span></div>
+                        <p class="description">Plugin pour After Effects</p>
+                        
+                         
+                        
+                        <div class="card-footer">
+                            <span class="post-size">86 MB</span>
+                            <div class="card-footer-buttons">
+                                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1vuYTTzirzuxQaZbH-UVkUKM_-llK92gH" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="crates godrays" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://news.productioncrate.com/download-free-godrays-plugin-for-after-effects/" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/plugin_logo.png" alt="Crates Godrays" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>Crates Godrays</h3>
+                         
+                        <div class="post-tags" id="tags-crates_godrays221_kb"><span>After Effects</span><span>Plugins</span></div>
+                        <p class="description">Plugin pour After Effects</p>
+                        
+                         
+                        
+                        <div class="card-footer">
+                            <span class="post-size">221 KB</span>
+                            <div class="card-footer-buttons">
+                                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=11qx3w2xG-Vnhpp3yvPWCQY6TLtxw6ZKl" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="contrastup" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://aescripts.com/premiere-pro/image/color-correction/contrastup/" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/plugin_logo.png" alt="ContrastUp" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>ContrastUp</h3>
+                        <div class="version">Version : 2.3</div> 
+                        <div class="post-tags" id="tags-contrastup291_kb"><span>After Effects</span><span>Plugins</span></div>
+                        <p class="description">Plugin pour After Effects</p>
+                        
+                         
+                        
+                        <div class="card-footer">
+                            <span class="post-size">291 KB</span>
+                            <div class="card-footer-buttons">
+                                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1l7P4EDFiLAkW4aKHDcwZyAoSdmvqP8eR" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="composite brush" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://aescripts.com/after-effects/image/matte/composite-brush/" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/plugin_logo.png" alt="Composite Brush" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>Composite Brush</h3>
+                        <div class="version">Version : 1.6.7</div> 
+                        <div class="post-tags" id="tags-composite_brush3_7_mb"><span>After Effects</span><span>Plugins</span></div>
+                        <p class="description">Plugin pour After Effects</p>
+                        
+                         
+                        
+                        <div class="card-footer">
+                            <span class="post-size">3.7 MB</span>
+                            <div class="card-footer-buttons">
+                                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1PtUID1ua6NDR69kLk84lw-TC8S8-P7Gp" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="superluminal stardust + library" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://aescripts.com/after-effects/animation/physics-simulation/stardust/" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/plugin_logo.png" alt="Superluminal Stardust + Library" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>Superluminal Stardust + Library</h3>
+                        <div class="version">Version : 1.6.0b + v1.3.0</div> 
+                        <div class="post-tags" id="tags-superluminal_stardust___library645_mb"><span>After Effects</span><span>Plugins</span></div>
+                        <p class="description">Plugin pour After Effects</p>
+                        
+                         
+                        
+                        <div class="card-footer">
+                            <span class="post-size">645 MB</span>
+                            <div class="card-footer-buttons">
+                                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1oHjQAgl1IZvDtHuSzCwbLzudtjmZtpdN" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="omino suite" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://omino.com/store/" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/plugin_logo.png" alt="Omino Suite" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>Omino Suite</h3>
+                        <div class="version">Version : 2.1.41</div> 
+                        <div class="post-tags" id="tags-omino_suite1_1_mb"><span>After Effects</span><span>Plugins</span></div>
+                        <p class="description">Plugin pour After Effects</p>
+                        
+                         
+                        
+                        <div class="card-footer">
+                            <span class="post-size">1.1 MB</span>
+                            <div class="card-footer-buttons">
+                                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1qng7l9zwvHueRVi3IRbeN6ZlbSCb26zf" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="modulation 2" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://aescripts.com/modulation/" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/plugin_logo.png" alt="Modulation 2" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>Modulation 2</h3>
+                         
+                        <div class="post-tags" id="tags-modulation_2357_kb"><span>After Effects</span><span>Plugins</span></div>
+                        <p class="description">Plugin pour After Effects</p>
+                        
+                         
+                        
+                        <div class="card-footer">
+                            <span class="post-size">357 KB</span>
+                            <div class="card-footer-buttons">
+                                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1BqKi1u9-iKQ8p-aoVk5qYRTWZCNXAhou" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="aeviewer pro 2" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://aescripts.com/aeviewer-pro/" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/aeviewer_pro.png" alt="AEViewer Pro 2" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>AEViewer Pro 2</h3>
+                        <div class="version">Version : 2.2</div> 
+                        <div class="post-tags" id="tags-aeviewer_pro_2103_mb"><span>After Effects</span><span>Premiere Pro</span><span>Extensions</span></div>
+                        <p class="description">Extension pour After Effects et Premiere Pro</p>
+                        
+                         
+                        
+                        <div class="card-footer">
+                            <span class="post-size">103 MB</span>
+                            <div class="card-footer-buttons">
+                                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1cYjR0vno4lneRjQezjiW6EGki8yxRt1s" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="bleed" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://aescripts.com/bleed/" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/extension_logo.png" alt="Bleed" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>Bleed</h3>
+                        <div class="version">Version : 1.6.0</div> 
+                        <div class="post-tags" id="tags-bleed3_7_mb"><span>After Effects</span><span>Extensions</span></div>
+                        <p class="description">Extension pour After Effects</p>
+                        
+                         
+                        
+                        <div class="card-footer">
+                            <span class="post-size">3.7 MB</span>
+                            <div class="card-footer-buttons">
+                                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1H8VQGX8B-yuxiLzB5KkGtfyp8leix2_X" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="breeze" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://aescripts.com/breeze/" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/extension_logo.png" alt="Breeze" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>Breeze</h3>
+                        <div class="version">Version : 1.0.1</div> 
+                        <div class="post-tags" id="tags-breeze3_2_mb"><span>After Effects</span><span>Extensions</span></div>
+                        <p class="description">Extension pour After Effects</p>
+                        
+                         
+                        
+                        <div class="card-footer">
+                            <span class="post-size">3.2 MB</span>
+                            <div class="card-footer-buttons">
+                                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=14bX86rKR5L5QInXtAH8y5o7of1NuAocG" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="copy pasta" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://www.pluginplay.app/product/copy-pasta" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/extension_logo.png" alt="Copy Pasta" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>Copy Pasta</h3>
+                        <div class="version">Version : 1.0.4</div> 
+                        <div class="post-tags" id="tags-copy_pasta3_2_mb"><span>After Effects</span><span>Extensions</span></div>
+                        <p class="description">Extension pour After Effects</p>
+                        
+                         
+                        
+                        <div class="card-footer">
+                            <span class="post-size">3.2 MB</span>
+                            <div class="card-footer-buttons">
+                                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1f9bF0KidWk2vDnQ5CtrTbiu3ciMBYTI7" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="crt emulator" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <img src="assets/images/extension_logo.png" alt="CRT Emulator" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                 <div class="post-content">
+                        <h3>CRT Emulator</h3>
+                        <div class="version">Version : 8.2</div> 
+                        <div class="post-tags" id="tags-crt_emulator36_mb"><span>After Effects</span><span>Extensions</span></div>
+                        <p class="description">Extension pour After Effects</p>
+                        
+                         
+                        
+                        <div class="card-footer">
+                            <span class="post-size">36 MB</span>
+                            <div class="card-footer-buttons">
+                                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1D0VmQy7NOY5WcKYBHPdauagW266Q0Qrb" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="datamosh 2" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://aescripts.com/datamosh/" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/extension_logo.png" alt="Datamosh 2" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>Datamosh 2</h3>
+                        <div class="version">Version : 2.6.1</div> 
+                        <div class="post-tags" id="tags-datamosh_21_5_mb"><span>After Effects</span><span>Premiere Pro</span><span>Extensions</span></div>
+                        <p class="description">Extension pour After Effects et Premiere Pro</p>
+                        
+                         
+                        
+                        <div class="card-footer">
+                            <span class="post-size">1.5 MB</span>
+                            <div class="card-footer-buttons">
+                                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1XeKICsx7QmJeqJ_JK-HKDLiWZUNRSAih" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="file hunter" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://aescripts.com/file-hunter/" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/extension_logo.png" alt="File Hunter" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>File Hunter</h3>
+                        <div class="version">Version : 1.0.9</div> 
+                        <div class="post-tags" id="tags-file_hunter2_5_mb"><span>After Effects</span><span>Extensions</span></div>
+                        <p class="description">Extension pour After Effects</p>
+                        
+                         
+                        
+                        <div class="card-footer">
+                            <span class="post-size">2.5 MB</span>
+                            <div class="card-footer-buttons">
+                                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1rwpoVRwpaoFZFMXuecFWpCzUYrZkqDsX" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="flow" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://aescripts.com/flow/" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/extension_logo.png" alt="Flow" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>Flow</h3>
+                        <div class="version">Version : 1.5.2</div> 
+                        <div class="post-tags" id="tags-flow3_9_mb"><span>After Effects</span><span>Extensions</span></div>
+                        <p class="description">Extension pour After Effects</p>
+                        
+                         
+                        
+                        <div class="card-footer">
+                            <span class="post-size">3.9 MB</span>
+                            <div class="card-footer-buttons">
+                                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1uxgh1xSXSJvZ9uKatZ6YoMkRdX91V8Nf" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="jerryflow v2" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://jry-media.store/pages/jerryflow-v2" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/JerryFlowV2.png" alt="JerryFlow V2" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>JerryFlow V2</h3>
+                        <div class="version">Version : 2.3.1</div> 
+                        <div class="post-tags" id="tags-jerryflow_v242_5_mb"><span>After Effects</span><span>Extensions</span></div>
+                        <p class="description">Extension pour After Effects</p>
+                        
+                        
+                    <div id="info-content-jerryflow_v242_5_mb" class="information-toggle-content hidden">
+                        <div class="information">Mot de passe : GRAPHICX</div>
+                    </div>
+                 
+                        
+                        <div class="card-footer">
+                            <span class="post-size">42.5 MB</span>
+                            <div class="card-footer-buttons">
+                                
+                    <span class="info-button" data-target-id="info-content-jerryflow_v242_5_mb" onclick="toggleInformation(this)">
+                        Informations
+                    </span>
+                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1Qc4TGwTsQjRyUaYWAP_3coYJuoU542DI" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="kbar 3" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://aescripts.com/kbar/" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/extension_logo.png" alt="Kbar 3" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>Kbar 3</h3>
+                        <div class="version">Version : 3.1.2</div> 
+                        <div class="post-tags" id="tags-kbar_33_4_mb"><span>After Effects</span><span>Extensions</span></div>
+                        <p class="description">Extension pour After Effects</p>
+                        
+                         
+                        
+                        <div class="card-footer">
+                            <span class="post-size">3.4 MB</span>
+                            <div class="card-footer-buttons">
+                                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1vzDPThHxlwrZZSnCuzpjT106O1t_q13n" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="keystone 2" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://aescripts.com/keystone/" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/extension_logo.png" alt="Keystone 2" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>Keystone 2</h3>
+                        <div class="version">Version : 2.0.3</div> 
+                        <div class="post-tags" id="tags-keystone_24_0_mb"><span>After Effects</span><span>Extensions</span></div>
+                        <p class="description">Extension pour After Effects</p>
+                        
+                         
+                        
+                        <div class="card-footer">
+                            <span class="post-size">4.0 MB</span>
+                            <div class="card-footer-buttons">
+                                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1JTNDqVgu0RYelcl3_8vOXdqxSZuDdgWn" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="lazy 2" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://aescripts.com/after-effects/automation/lazy/" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/extension_logo.png" alt="Lazy 2" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>Lazy 2</h3>
+                        <div class="version">Version : 2.0.8</div> 
+                        <div class="post-tags" id="tags-lazy_23_2_mb"><span>After Effects</span><span>Extensions</span></div>
+                        <p class="description">Extension pour After Effects</p>
+                        
+                         
+                        
+                        <div class="card-footer">
+                            <span class="post-size">3.2 MB</span>
+                            <div class="card-footer-buttons">
+                                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1Nkbj-9hNJbQh8gcxesW7dE2JUv_sPZUM" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="motion 4" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://mtmograph.com/pages/downloads" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/extension_logo.png" alt="Motion 4" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>Motion 4</h3>
+                        <div class="version">Version : 4.3.4</div> 
+                        <div class="post-tags" id="tags-motion_412_mb"><span>After Effects</span><span>Premiere Pro</span><span>Extensions</span></div>
+                        <p class="description">Extension pour After Effects et Premiere Pro</p>
+                        
+                         
+                        
+                        <div class="card-footer">
+                            <span class="post-size">12 MB</span>
+                            <div class="card-footer-buttons">
+                                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=13n2x__UKH036MmlP8MZQ4JRnNMMUv22X" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="overlord" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://battleaxe.co/overlord" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/extension_logo.png" alt="Overlord" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>Overlord</h3>
+                        <div class="version">Version : 1.27</div> 
+                        <div class="post-tags" id="tags-overlord2_4_mb"><span>After Effects</span><span>Extensions</span></div>
+                        <p class="description">Extension pour After Effects</p>
+                        
+                         
+                        
+                        <div class="card-footer">
+                            <span class="post-size">2.4 MB</span>
+                            <div class="card-footer-buttons">
+                                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=14g8E0vFhgr-M7iTy0Ke8d7jx8nYW6XNs" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="theanimescripter" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://github.com/NevermindNilas/TheAnimeScripter" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/extension_logo.png" alt="TheAnimeScripter" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>TheAnimeScripter</h3>
+                        <div class="version">Version : 2.1.1</div> 
+                        <div class="post-tags" id="tags-theanimescripter2_mb"><span>After Effects</span><span>Premiere Pro</span><span>Extensions</span></div>
+                        <p class="description">Extension pour After Effects et Premiere Pro</p>
+                        
+                         
+                        
+                        <div class="card-footer">
+                            <span class="post-size">2 MB</span>
+                            <div class="card-footer-buttons">
+                                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1uO-v5o-6gov5pd-Vmu6w2edvDgZTLPCa" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="fredpelle halationpr" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://fredpelle.tv/products/halationpr" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/fredpelle_halation.png" alt="FredPelle HalationPR" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>FredPelle HalationPR</h3>
+                        <div class="version">Version : 1.0.0</div> 
+                        <div class="post-tags" id="tags-fredpelle_halationpr8_8_mb"><span>After Effects</span><span>Premiere Pro</span><span>Extensions</span><span>FredPelle</span></div>
+                        <p class="description">Extension pour After Effects et Premiere Pro</p>
+                        
+                        
+                    <div id="info-content-fredpelle_halationpr8_8_mb" class="information-toggle-content hidden">
+                        <div class="information">Leaked by https://t.me/dadksy_leaks/</div>
+                    </div>
+                 
+                        
+                        <div class="card-footer">
+                            <span class="post-size">8.8 MB</span>
+                            <div class="card-footer-buttons">
+                                
+                    <span class="info-button" data-target-id="info-content-fredpelle_halationpr8_8_mb" onclick="toggleInformation(this)">
+                        Informations
+                    </span>
+                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1FRA29ZiJJDLMsRtaoH3ZwkjO7wkvZzT_" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="fredpelle lofi" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://fredpelle.tv/products/lofi" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/fredpelle_lofi.png" alt="FredPelle LoFi" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>FredPelle LoFi</h3>
+                        <div class="version">Version : 1.0.0</div> 
+                        <div class="post-tags" id="tags-fredpelle_lofi78_mb"><span>After Effects</span><span>Extensions</span><span>FredPelle</span></div>
+                        <p class="description">Extension pour After Effects</p>
+                        
+                         
+                        
+                        <div class="card-footer">
+                            <span class="post-size">78 MB</span>
+                            <div class="card-footer-buttons">
+                                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1jt9D_RK7YDlEFFsELn5YPxNre_cQjK3g" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="fredpelle matrix" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://fredpelle.tv/products/matrix" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/fredpelle_matrix.png" alt="FredPelle Matrix" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>FredPelle Matrix</h3>
+                        <div class="version">Version : 1.0.0</div> 
+                        <div class="post-tags" id="tags-fredpelle_matrix2_5_mb"><span>After Effects</span><span>Extensions</span><span>FredPelle</span></div>
+                        <p class="description">Extension pour After Effects</p>
+                        
+                        
+                    <div id="info-content-fredpelle_matrix2_5_mb" class="information-toggle-content hidden">
+                        <div class="information">Leaked by https://t.me/dadksy_leaks/</div>
+                    </div>
+                 
+                        
+                        <div class="card-footer">
+                            <span class="post-size">2.5 MB</span>
+                            <div class="card-footer-buttons">
+                                
+                    <span class="info-button" data-target-id="info-content-fredpelle_matrix2_5_mb" onclick="toggleInformation(this)">
+                        Informations
+                    </span>
+                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1NfleQX41V1f-_7v5K41NWF6Q8nl5msyP" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="fredpelle mxm" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://fredpelle.tv/products/mxm-2-0" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/fredpelle_mxm.png" alt="FredPelle MXM" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>FredPelle MXM</h3>
+                        <div class="version">Version : 1.0.1</div> 
+                        <div class="post-tags" id="tags-fredpelle_mxm412_mb"><span>After Effects</span><span>Extensions</span><span>FredPelle</span></div>
+                        <p class="description">Extension pour After Effects</p>
+                        
+                         
+                        
+                        <div class="card-footer">
+                            <span class="post-size">412 MB</span>
+                            <div class="card-footer-buttons">
+                                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1WNRsYippJp6UidTwr_iWPjTGHDfWNapX" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="fredpelle rollback8" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://fredpelle.tv/products/rollback8" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/fredpelle_rollback8.png" alt="FredPelle Rollback8" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>FredPelle Rollback8</h3>
+                        <div class="version">Version : 2.0.0</div> 
+                        <div class="post-tags" id="tags-fredpelle_rollback8826_mb"><span>After Effects</span><span>Extensions</span><span>FredPelle</span></div>
+                        <p class="description">Extension pour After Effects</p>
+                        
+                        
+                    <div id="info-content-fredpelle_rollback8826_mb" class="information-toggle-content hidden">
+                        <div class="information">Leaked by https://t.me/dadksy_leaks/</div>
+                    </div>
+                 
+                        
+                        <div class="card-footer">
+                            <span class="post-size">826 MB</span>
+                            <div class="card-footer-buttons">
+                                
+                    <span class="info-button" data-target-id="info-content-fredpelle_rollback8826_mb" onclick="toggleInformation(this)">
+                        Informations
+                    </span>
+                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1qkz8GjwMFZq6rcbK4K8FMfq8e1ZtFLGf" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="fredpelle spectrum" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://fredpelle.tv/products/spectrum" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/fredpelle_spectrum.png" alt="FredPelle Spectrum" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>FredPelle Spectrum</h3>
+                        <div class="version">Version : 1.0.2</div> 
+                        <div class="post-tags" id="tags-fredpelle_spectrum885_mb"><span>After Effects</span><span>Extensions</span><span>FredPelle</span></div>
+                        <p class="description">Extension pour After Effects</p>
+                        
+                        
+                    <div id="info-content-fredpelle_spectrum885_mb" class="information-toggle-content hidden">
+                        <div class="information">Leaked by https://t.me/dadksy_leaks/</div>
+                    </div>
+                 
+                        
+                        <div class="card-footer">
+                            <span class="post-size">885 MB</span>
+                            <div class="card-footer-buttons">
+                                
+                    <span class="info-button" data-target-id="info-content-fredpelle_spectrum885_mb" onclick="toggleInformation(this)">
+                        Informations
+                    </span>
+                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1BQvMUKWAiH-WuFEOeXcsXOysfT1mEk3-" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="fredpelle vhscam" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://fredpelle.tv/products/vhscam" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/fredpelle_vhscam.png" alt="FredPelle VHScam" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>FredPelle VHScam</h3>
+                        <div class="version">Version : 1.1.0</div> 
+                        <div class="post-tags" id="tags-fredpelle_vhscam95_mb"><span>After Effects</span><span>Extensions</span><span>FredPelle</span></div>
+                        <p class="description">Extension pour After Effects</p>
+                        
+                        
+                    <div id="info-content-fredpelle_vhscam95_mb" class="information-toggle-content hidden">
+                        <div class="information">Leaked by https://t.me/dadksy_leaks/</div>
+                    </div>
+                 
+                        
+                        <div class="card-footer">
+                            <span class="post-size">95 MB</span>
+                            <div class="card-footer-buttons">
+                                
+                    <span class="info-button" data-target-id="info-content-fredpelle_vhscam95_mb" onclick="toggleInformation(this)">
+                        Informations
+                    </span>
+                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=16cObgr08fgypNabpxoTKgTZw7KQqhZ4c" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="fredpelle xerox" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://fredpelle.tv/products/xerox" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/fredpelle_xerox.png" alt="FredPelle Xerox" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>FredPelle Xerox</h3>
+                        <div class="version">Version : 1.0.0</div> 
+                        <div class="post-tags" id="tags-fredpelle_xerox170_mb"><span>After Effects</span><span>Extensions</span><span>FredPelle</span></div>
+                        <p class="description">Extension pour After Effects</p>
+                        
+                        
+                    <div id="info-content-fredpelle_xerox170_mb" class="information-toggle-content hidden">
+                        <div class="information">Leaked by https://t.me/dadksy_leaks/</div>
+                    </div>
+                 
+                        
+                        <div class="card-footer">
+                            <span class="post-size">170 MB</span>
+                            <div class="card-footer-buttons">
+                                
+                    <span class="info-button" data-target-id="info-content-fredpelle_xerox170_mb" onclick="toggleInformation(this)">
+                        Informations
+                    </span>
+                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1pFQfpt7okpjlzKf6Ux-5GEWbtuZorhTX" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="shake sauce 2" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://bryandelimata.com/products/shake-sauce-2" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/shake_sauce.png" alt="Shake Sauce 2" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>Shake Sauce 2</h3>
+                        <div class="version">Version : 1.0.1</div> 
+                        <div class="post-tags" id="tags-shake_sauce_221_mb"><span>After Effects</span><span>Extensions</span></div>
+                        <p class="description">Extension pour After Effects</p>
+                        
+                        
+                    <div id="info-content-shake_sauce_221_mb" class="information-toggle-content hidden">
+                        <div class="information">Leaked by https://t.me/dadksy_leaks/</div>
+                    </div>
+                 
+                        
+                        <div class="card-footer">
+                            <span class="post-size">21 MB</span>
+                            <div class="card-footer-buttons">
+                                
+                    <span class="info-button" data-target-id="info-content-shake_sauce_221_mb" onclick="toggleInformation(this)">
+                        Informations
+                    </span>
+                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1H2f9H2KDJVPFrsk5uRvnNzNy4cNJKpok" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="uwu2x pro" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://uwu2x.alixz.ovh/" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/uwu2x_pro.png" alt="uwu2x Pro" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>uwu2x Pro</h3>
+                        <div class="version">Version : 8.5</div> 
+                        <div class="post-tags" id="tags-uwu2x_pro114_mb"><span>After Effects</span><span>Extensions</span></div>
+                        <p class="description">Extension pour After Effects</p>
+                        
+                         
+                        
+                        <div class="card-footer">
+                            <span class="post-size">114 MB</span>
+                            <div class="card-footer-buttons">
+                                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1gkaa47pVoeC5ws6Sl0Lp2I_63vi5pYnd" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="move anchor point 4" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://aescripts.com/move-anchor-point/" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/move_anchor_point_4.png" alt="Move Anchor Point 4" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>Move Anchor Point 4</h3>
+                        <div class="version">Version : 4.1.2</div> 
+                        <div class="post-tags" id="tags-move_anchor_point_42_7_mb"><span>After Effects</span><span>Extensions</span></div>
+                        <p class="description">Extension pour After Effects</p>
+                        
+                         
+                        
+                        <div class="card-footer">
+                            <span class="post-size">2.7 MB</span>
+                            <div class="card-footer-buttons">
+                                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1aX9h5m_t1QPX1m4eLGsdIVEZCZw0QRl0" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="shape repeater baker" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://aescripts.com/after-effects/utilities/duplicate/shape-repeater-baker/" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/shape_repeater_baker.png" alt="Shape Repeater Baker" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>Shape Repeater Baker</h3>
+                        <div class="version">Version : 1.0</div> 
+                        <div class="post-tags" id="tags-shape_repeater_baker56_kb"><span>After Effects</span><span>Scripts</span></div>
+                        <p class="description">Script pour After Effects</p>
+                        
+                         
+                        
+                        <div class="card-footer">
+                            <span class="post-size">56 KB</span>
+                            <div class="card-footer-buttons">
+                                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1A6mGve-hwpJC2-fD_oYq-l7d_ddouBgV" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="swiss knife" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://aescripts.com/after-effects/utilities/toolkit/swiss-knife/" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/swiss_knife.png" alt="Swiss Knife" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>Swiss Knife</h3>
+                        <div class="version">Version : 1.2.0</div> 
+                        <div class="post-tags" id="tags-swiss_knife1_mb"><span>After Effects</span><span>Scripts</span></div>
+                        <p class="description">Script pour After Effects</p>
+                        
+                         
+                        
+                        <div class="card-footer">
+                            <span class="post-size">1 MB</span>
+                            <div class="card-footer-buttons">
+                                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1pGjgTYX1ZEgY8lWFfp2XyLxK7lGNu4in" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="spiral maker" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://aescripts.com/spiral-maker/" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/spiral_maker.png" alt="Spiral Maker" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>Spiral Maker</h3>
+                        <div class="version">Version : 1.0.1</div> 
+                        <div class="post-tags" id="tags-spiral_maker490_kb"><span>After Effects</span><span>Scripts</span></div>
+                        <p class="description">Script pour After Effects</p>
+                        
+                         
+                        
+                        <div class="card-footer">
+                            <span class="post-size">490 KB</span>
+                            <div class="card-footer-buttons">
+                                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1w9QEB-M30ASetHn7gYvZArgwdG5wWOvl" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="gg bunkai" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://aescripts.com/gg-bunkai/" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/gg_bunkai.png" alt="GG Bunkai" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>GG Bunkai</h3>
+                        <div class="version">Version : 1.4</div> 
+                        <div class="post-tags" id="tags-gg_bunkai58_kb"><span>After Effects</span><span>Scripts</span></div>
+                        <p class="description">Script pour After Effects</p>
+                        
+                        
+                    <div id="info-content-gg_bunkai58_kb" class="information-toggle-content hidden">
+                        <div class="information">Mot de passe : GRAPHICX</div>
+                    </div>
+                 
+                        
+                        <div class="card-footer">
+                            <span class="post-size">58 KB</span>
+                            <div class="card-footer-buttons">
+                                
+                    <span class="info-button" data-target-id="info-content-gg_bunkai58_kb" onclick="toggleInformation(this)">
+                        Informations
+                    </span>
+                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1Ha9rnv9Ws4rcGBibnMqgJcUrG00wIiUF" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="easyshape fx" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://aescripts.com/easyshape-fx/" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/script_logo.png" alt="EasyShape FX" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>EasyShape FX</h3>
+                        <div class="version">Version : 1.0</div> 
+                        <div class="post-tags" id="tags-easyshape_fx84_1_kb"><span>After Effects</span><span>Scripts</span></div>
+                        <p class="description">Script pour After Effects</p>
+                        
+                         
+                        
+                        <div class="card-footer">
+                            <span class="post-size">84.1 KB</span>
+                            <div class="card-footer-buttons">
+                                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1_qg8FIgYftP6nQfWgA2qzp-yoKN2f3sY" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="autosway" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://aescripts.com/autosway/" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/script_logo.png" alt="AutoSway" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>AutoSway</h3>
+                        <div class="version">Version : 1.90</div> 
+                        <div class="post-tags" id="tags-autosway895_kb"><span>After Effects</span><span>Scripts</span></div>
+                        <p class="description">Script pour After Effects</p>
+                        
+                         
+                        
+                        <div class="card-footer">
+                            <span class="post-size">895 KB</span>
+                            <div class="card-footer-buttons">
+                                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=13QucgL16BV87ShuLwTGjToYB1AoUSJr3" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="textevo 2" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://aescripts.com/after-effects/text/textevo/" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/script_logo.png" alt="TextEvo 2" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>TextEvo 2</h3>
+                        <div class="version">Version : 2.0.0</div> 
+                        <div class="post-tags" id="tags-textevo_2421_kb"><span>After Effects</span><span>Scripts</span></div>
+                        <p class="description">Script pour After Effects</p>
+                        
+                        
+                    <div id="info-content-textevo_2421_kb" class="information-toggle-content hidden">
+                        <div class="information">Mot de passe : GRAPHICX</div>
+                    </div>
+                 
+                        
+                        <div class="card-footer">
+                            <span class="post-size">421 KB</span>
+                            <div class="card-footer-buttons">
+                                
+                    <span class="info-button" data-target-id="info-content-textevo_2421_kb" onclick="toggleInformation(this)">
+                        Informations
+                    </span>
+                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1nIypNyRyhkZiS4sP6LLx5Fg5TDD1ZYM9" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="autofill v2" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://aescripts.com/autofill/" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/script_logo.png" alt="AutoFill v2" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>AutoFill v2</h3>
+                        <div class="version">Version : 2.0.0</div> 
+                        <div class="post-tags" id="tags-autofill_v2115_mb"><span>After Effects</span><span>Scripts</span></div>
+                        <p class="description">Script pour After Effects</p>
+                        
+                         
+                        
+                        <div class="card-footer">
+                            <span class="post-size">115 MB</span>
+                            <div class="card-footer-buttons">
+                                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1G3liFez6qX33v3Y98rxvmsCEAZQZGu4L" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="joysticks 'n sliders" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://aescripts.com/joysticks-n-sliders/" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/script_logo.png" alt="Joysticks 'n Sliders" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>Joysticks 'n Sliders</h3>
+                        <div class="version">Version : 1.7.10</div> 
+                        <div class="post-tags" id="tags-joysticks__n_sliders1_mb"><span>After Effects</span><span>Scripts</span></div>
+                        <p class="description">Script pour After Effects</p>
+                        
+                         
+                        
+                        <div class="card-footer">
+                            <span class="post-size">1 MB</span>
+                            <div class="card-footer-buttons">
+                                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=15IhCenbKkKQL9ZKnOy9ZAt5J1ngaVlal" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="duik angela" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://rxlaboratorio.org/rx-tool/duik/" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/script_logo.png" alt="Duik Angela" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>Duik Angela</h3>
+                        <div class="version">Version : 17.1.17</div> 
+                        <div class="post-tags" id="tags-duik_angela33_kb"><span>After Effects</span><span>Scripts</span></div>
+                        <p class="description">Script pour After Effects</p>
+                        
+                         
+                        
+                        <div class="card-footer">
+                            <span class="post-size">33 KB</span>
+                            <div class="card-footer-buttons">
+                                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1vKIHN8WLR8J_wlUpb3tYlsobN9O7yWOB" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="ez tools" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://eztuto.com/product/download-ez-tools-script/" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/script_logo.png" alt="EZ Tools" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>EZ Tools</h3>
+                         
+                        <div class="post-tags" id="tags-ez_tools73_5_kb"><span>After Effects</span><span>Scripts</span></div>
+                        <p class="description">Script pour After Effects</p>
+                        
+                         
+                        
+                        <div class="card-footer">
+                            <span class="post-size">73.5 KB</span>
+                            <div class="card-footer-buttons">
+                                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1pBUAPRsUC6DyR6DLWBXyoRnbfzVYSG_B" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="aw autosaver v2" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://aescripts.com/aw-autosaver/" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/script_logo.png" alt="AW Autosaver v2" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>AW Autosaver v2</h3>
+                        <div class="version">Version : 2.1.1</div> 
+                        <div class="post-tags" id="tags-aw_autosaver_v2871_kb"><span>After Effects</span><span>Scripts</span></div>
+                        <p class="description">Script pour After Effects</p>
+                        
+                         
+                        
+                        <div class="card-footer">
+                            <span class="post-size">871 KB</span>
+                            <div class="card-footer-buttons">
+                                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1jTprUnuD0HwNRd0oR8F5rsGwwtCvX7TZ" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="post-card" data-title="easylayers by lankylucius" style="animation: card-fade-in 0.6s ease-out forwards; animation-delay: 1.2s; opacity: 0;">
+                    
+                    <a href="https://payhip.com/b/7RwpC" target="_blank" rel="noopener noreferrer">
+                        <img src="assets/images/script_logo.png" alt="EasyLayers by LankyLucius" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">
+                    </a>
+                 <div class="post-content">
+                        <h3>EasyLayers by LankyLucius</h3>
+                         
+                        <div class="post-tags" id="tags-easylayers_by_lankylucius61_kb"><span>After Effects</span><span>Scripts</span></div>
+                        <p class="description">Script pour After Effects</p>
+                        
+                         
+                        
+                        <div class="card-footer">
+                            <span class="post-size">61 KB</span>
+                            <div class="card-footer-buttons">
+                                 
+                                <a href="https://drive.google.com/uc?export=download&amp;id=1MI9mpGcm-_nXf1M50Lzfs4eFNQ3KvYZ1" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            </section>
+        </main>
+
+        <footer>
+            <section id="legal-disclaimer">
+                <strong>AVERTISSEMENT LÉGAL ET RESPONSABILITÉ :</strong> Ce site n'héberge, ne stocke ni ne distribue directement aucun fichier. Toutes les ressources sont liées à des services d'hébergement tiers. Nous ne sommes en aucun cas responsables du contenu, de la légalité ou des risques potentiels liés aux sites externes référencés. L'utilisateur utilise ces ressources sous sa propre responsabilité.
+            </section>
+            
+            © 2025 GRAPHICX.STORE. Tous droits réservés. | Contactez-nous pour toute question légale ou DMCA. | <a href="https://discord.com/invite/CNudm6aJ2n" style="color: var(--color-primary); font-weight: 700;">Rejoindre le Discord</a>
+        </footer>
+    </div>
+
+    <script>
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.vx = Math.random() * 2 - 1;
+                this.vy = Math.random() * 2 - 1;
+                this.radius = Math.random() * 2 + 1;
+                this.color = color;
+                this.alpha = 1;
+                this.life = 400;
+                this.maxLife = 400;
+            }
+
+            draw(ctx) {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+                ctx.fillStyle = `rgba(${this.color}, ${this.alpha * 0.5})`;
+                ctx.fill();
+            }
+
+            update(mouse) {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.life--;
+                this.alpha = this.life / this.maxLife;
+
+                const dx = mouse.x - this.x;
+                const dy = mouse.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance < 100) {
+                    const force = 0.05;
+                    this.vx += (dx / distance) * force;
+                    this.vy += (dy / distance) * force;
+                }
+
+                this.vx *= 0.98;
+                this.vy *= 0.98;
+            }
+        }
+
+        let canvas, ctx, mouse, particles;
+        const particleColor = '255, 0, 51'; // Rouge
+
+        function initParticles() {
+            canvas = document.getElementById('particle-canvas');
+            if (!canvas) return;
+            ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            particles = [];
+            mouse = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+
+            window.addEventListener('mousemove', (e) => {
+                mouse.x = e.x;
+                mouse.y = e.y;
+                for(let i = 0; i < 2; i++) {
+                     particles.push(new Particle(e.x, e.y, particleColor));
+                }
+            });
+
+            window.addEventListener('resize', () => {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            });
+
+            animateParticles();
+        }
+
+        function animateParticles() {
+            requestAnimationFrame(animateParticles);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            particles = particles.filter(p => p.life > 0);
+
+            particles.forEach(particle => {
+                particle.update(mouse);
+                particle.draw(ctx);
+            });
+        }
+    </script>
+    
+    <script>
+        const nameSearchBar = document.getElementById('name-search-bar');
+        const tagSearchBar = document.getElementById('tag-search-bar');
+        const tagsSuggestionsContainer = document.getElementById('tag-suggestions');
+        const selectedTagsContainer = document.getElementById('selected-tags-container');
+        const postsContainer = document.getElementById('posts-grid');
+        const clearNameSearchBtn = document.getElementById('clear-name-search'); 
+
+        let allUniqueTags = [];
+        let selectedTags = [];
+        let highlightedSuggestion = -1;
+
+        /**
+         * Génère un ID unique et sécurisé à partir des données du post.
+         */
+        const generatePostId = (post) => 
+            (post.title + post.size).replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+
+
+        /**
+         * Bascule l'affichage du contenu d'information.
+         * Logique affinée pour une transition max-height correcte et fluide.
+         */
+        function toggleInformation(button) {
+            const targetId = button.dataset.targetId;
+            const content = document.getElementById(targetId);
+            
+            if (content) {
+                const isHidden = content.classList.contains('hidden');
+                
+                if (isHidden) {
+                    // Expansion (Ouverture)
+                    content.classList.remove('hidden');
+                    
+                    // 1. Définir temporairement la hauteur sur 'none' pour calculer la hauteur réelle (scrollHeight)
+                    content.style.maxHeight = 'none'; 
+                    const height = content.scrollHeight;
+                    
+                    // 2. Réinitialiser la hauteur à '0' (point de départ de la transition)
+                    content.style.maxHeight = '0'; 
+                    content.style.marginBottom = '0';
+                    
+                    // Force reflow/redraw (important pour que le navigateur voie le changement de 0 à la hauteur réelle)
+                    void content.offsetHeight; 
+                    
+                    // 3. Application de l'ouverture
+                    content.style.maxHeight = height + 'px';
+                    content.style.marginBottom = '15px';
+                    button.textContent = 'Masquer';
+
+                    // 4. Nettoyage après transition : Repasser à 'none' pour rendre le contenu responsive
+                    content.addEventListener('transitionend', function handler() {
+                        if (content.style.maxHeight !== '0px') {
+                           content.style.maxHeight = 'none'; 
+                        }
+                        content.removeEventListener('transitionend', handler);
+                    }, { once: true });
+
+                } else {
+                    // Collapse (Fermeture)
+                    
+                    // 1. Définir la hauteur actuelle (point de départ de la transition)
+                    content.style.maxHeight = content.scrollHeight + 'px'; 
+                    content.style.marginBottom = '15px';
+                    
+                    // Force reflow/redraw
+                    void content.offsetHeight; 
+                    
+                    // 2. Animer vers la fermeture
+                    content.style.maxHeight = '0';
+                    content.style.marginBottom = '0';
+                    button.textContent = 'Informations';
+
+                    // 3. Nettoyage après transition : Ajouter la classe 'hidden'
+                    content.addEventListener('transitionend', function handler() {
+                        content.classList.add('hidden');
+                        content.removeEventListener('transitionend', handler);
+                    }, { once: true });
+                }
+            }
+        }
+        
+        /**
+         * Attache l'écouteur d'événement 'wheel' pour le défilement horizontal.
+         */
+        function attachHorizontalScroll() {
+            document.querySelectorAll('.post-tags').forEach(tagsElement => {
+                tagsElement.addEventListener('wheel', (e) => {
+                    if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+                        e.preventDefault(); 
+                        tagsElement.scrollLeft += e.deltaY;
+                    }
+                });
+            });
+        }
+
+        /**
+         * Génère le HTML pour une seule carte de post.
+         */
+        function createPostCard(post, index) { 
+            const postId = generatePostId(post);
+            const tagsHtml = post.tags.map(tag => `<span>${tag}</span>`).join('');
+            const versionHtml = post.version ? `<div class="version">Version : ${post.version}</div>` : '';
+            
+            let informationContentHtml = '';
+            let infoButtonHtml = '';
+
+            if (post.information && post.information.trim() !== '') {
+                informationContentHtml = `
+                    <div id="info-content-${postId}" class="information-toggle-content hidden">
+                        <div class="information">${post.information}</div>
+                    </div>
+                `;
+                infoButtonHtml = `
+                    <span class="info-button" 
+                          data-target-id="info-content-${postId}" 
+                          onclick="toggleInformation(this)">
+                        Informations
+                    </span>
+                `;
+            }
+
+            // DÉTERMINER SI LE LIEN DE PRÉVISUALISATION EST VALIDE
+            const hasValidPreviewLink = post.preview && post.preview.trim() !== '';
+            const previewLink = hasValidPreviewLink ? post.preview : '#'; 
+
+            // HTML de l'image miniature seule
+            const thumbnailHtml = `<img src="${post.thumbnail}" alt="${post.title}" class="post-thumbnail" onerror="this.onerror=null;this.src='../assets/images/default.jpg';">`;
+            
+            // Condition pour créer le bloc image/lien (UNIQUEMENT si hasValidPreviewLink est vrai)
+            const imageBlockHtml = hasValidPreviewLink
+                ? `
+                    <a href="${previewLink}" target="_blank" rel="noopener noreferrer">
+                        ${thumbnailHtml}
+                    </a>
+                `
+                : `
+                    ${thumbnailHtml}
+                `;
+
+
+            // AJOUT DU STYLE POUR L'ANIMATION ÉTAGÉE (Staggered Animation)
+            const maxIndexForDelay = 15;
+            const delayIndex = Math.min(index, maxIndexForDelay);
+            const cardStyle = `animation: card-fade-in 0.6s ease-out forwards; animation-delay: ${delayIndex * 0.08}s; opacity: 0;`;
+
+
+            return `
+                <div class="post-card" data-title="${post.title.toLowerCase()}" style="${cardStyle}">
+                    ${imageBlockHtml} <div class="post-content">
+                        <h3>${post.title}</h3>
+                        ${versionHtml} 
+                        <div class="post-tags" id="tags-${postId}">${tagsHtml}</div>
+                        <p class="description">${post.description}</p>
+                        
+                        ${informationContentHtml} 
+                        
+                        <div class="card-footer">
+                            <span class="post-size">${post.size}</span>
+                            <div class="card-footer-buttons">
+                                ${infoButtonHtml} 
+                                <a href="${post.file}" class="download-button" target="_blank">Télécharger</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        /**
+         * Met à jour l'URL avec les termes de recherche.
+         */
+        function updateURL() {
+            const nameSearch = nameSearchBar.value.trim();
+            const tagSearch = selectedTags.join('+');
+            
+            const searchTerms = [];
+            if (nameSearch) searchTerms.push(nameSearch);
+            if (tagSearch) searchTerms.push(`tag:${tagSearch}`);
+            
+            const searchParam = searchTerms.join('&');
+            
+            if (searchParam) {
+                const newurl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?search=' + encodeURIComponent(searchParam);
+                window.history.pushState({path: newurl}, '', newurl);
+            } else {
+                const newurl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+                window.history.pushState({path: newurl}, '', newurl);
+            }
+        }
+        
+        /**
+         * Lit l'URL et initialise la recherche.
+         */
+        function initSearchFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const searchParam = urlParams.get('search');
+            
+            if (searchParam) {
+                const terms = decodeURIComponent(searchParam).split('&');
+                
+                terms.forEach(term => {
+                    if (term.startsWith('tag:')) {
+                        const tags = term.substring(4).split('+').filter(t => t.trim() !== '');
+                        tags.forEach(tag => addTag(tag, false)); 
+                    } else {
+                        nameSearchBar.value = term;
+                    }
+                });
+            }
+            // Lancer la recherche initiale
+            handleNameSearchInput(); 
+        }
+
+        /**
+         * Affiche les tags actuellement sélectionnés.
+         */
+        function renderSelectedTags() {
+            // Le fait de ré-écrire l'innerHTML permet de relancer l'animation CSS 'tag-pop-in' pour le nouveau tag.
+            selectedTagsContainer.innerHTML = selectedTags.map(tag => `
+                <span class="selected-tag" data-tag="${tag}">
+                    ${tag}
+                    <button class="remove-tag-btn" onclick="removeTag('${tag}')">&times;</button>
+                </span>
+            `).join('');
+        }
+        
+        /**
+         * Ajoute un tag à la liste de sélection et met à jour.
+         */
+        function addTag(tag, update = true) {
+            tag = tag.trim();
+            // Utiliser toLowerCase pour la comparaison interne des tags
+            const lowerTag = tag.toLowerCase();
+            if (lowerTag && !selectedTags.includes(lowerTag) && allUniqueTags.map(t => t.toLowerCase()).includes(lowerTag)) {
+                // Stocker le tag en minuscule pour la recherche, mais on peut afficher le format original si besoin
+                selectedTags.push(lowerTag); 
+                tagSearchBar.value = '';
+                tagsSuggestionsContainer.classList.remove('active');
+                renderSelectedTags();
+                if (update) {
+                    searchAndFilter();
+                }
+            }
+        }
+        
+        /**
+         * Supprime un tag de la liste de sélection et met à jour.
+         */
+        function removeTag(tag) {
+            selectedTags = selectedTags.filter(t => t !== tag.toLowerCase());
+            renderSelectedTags();
+            searchAndFilter();
+        }
+
+        /**
+         * Affichage des suggestions de tags.
+         */
+        function renderTagSuggestions(filter) {
+            tagsSuggestionsContainer.innerHTML = '';
+            highlightedSuggestion = -1;
+            
+            const lowerFilter = filter.toLowerCase();
+            
+            const filteredSuggestions = allUniqueTags
+                .filter(tag => !selectedTags.includes(tag.toLowerCase()) && tag.toLowerCase().includes(lowerFilter))
+                .slice(0, 5); 
+                
+            if (filteredSuggestions.length > 0) {
+                filteredSuggestions.forEach(tag => {
+                    const item = document.createElement('div');
+                    item.className = 'tag-suggestion-item';
+                    item.textContent = tag;
+                    item.onclick = () => addTag(tag);
+                    tagsSuggestionsContainer.appendChild(item);
+                });
+                tagsSuggestionsContainer.classList.add('active');
+            } else {
+                tagsSuggestionsContainer.classList.remove('active');
+            }
+        }
+        
+        /**
+         * Logique de recherche principale.
+         */
+        function searchAndFilter() {
+            let filteredPosts = window.posts;
+            const nameSearchTerm = nameSearchBar.value.toLowerCase().trim();
+            
+            // 1. Filtrage par noms (logique Phrase Match OR - Stricte sur Titre et Version)
+            if (nameSearchTerm) {
+                // Sépare les termes principaux par '+'. Chaque terme principal est une PHRASE exacte attendue.
+                const primaryTerms = nameSearchTerm.split('+').map(t => t.trim()).filter(t => t);
+
+                filteredPosts = filteredPosts.filter(post => {
+                    // Contenu pertinent pour la recherche de NOM : Titre et Version uniquement (pour éviter la pollution par la description)
+                    const searchableContent = (post.title + ' ' + (post.version || '') + ' ' + (post.information || '')).toLowerCase();
+                    
+                    // Le post est inclus si AU MOINS UN des termes principaux est trouvé
+                    return primaryTerms.some(primaryTerm => {
+                        // VÉRIFICATION DE LA PHRASE EXACTE dans le Titre ou la Version.
+                        return searchableContent.includes(primaryTerm);
+                    });
+                });
+            }
+
+            // 2. Filtrage par tags sélectionnés
+            if (selectedTags.length > 0) {
+                // Un post doit contenir TOUS les tags sélectionnés (logique AND)
+                filteredPosts = filteredPosts.filter(post => {
+                    const postTagsLower = post.tags.map(t => t.toLowerCase());
+                    return selectedTags.every(selectedTag => postTagsLower.includes(selectedTag));
+                });
+            }
+            
+            // Affichage des posts
+            if (filteredPosts.length > 0) {
+                // Utiliser .map avec index pour l'animation étagée
+                postsContainer.innerHTML = filteredPosts.map((post, index) => createPostCard(post, index)).join('');
+                postsContainer.classList.remove('empty-state');
+                attachHorizontalScroll();
+            } else {
+                postsContainer.innerHTML = `<div class="empty-state-message">Aucun résultat trouvé pour votre recherche.</div>`;
+                postsContainer.classList.add('empty-state');
+            }
+            
+            // Mise à jour de l'URL après la recherche 
+            updateURL();
+        }
+        
+        /**
+         * Gère l'input de la barre de recherche des noms et la visibilité du bouton clear.
+         */
+        function handleNameSearchInput() {
+            searchAndFilter(); 
+            
+            // Visibilité du bouton clear
+            if (clearNameSearchBtn) { // Vérification supplémentaire pour éviter les erreurs si l'élément n'est pas trouvé
+                if (nameSearchBar.value.trim() !== '') {
+                    clearNameSearchBtn.style.display = 'block';
+                } else {
+                    clearNameSearchBtn.style.display = 'none';
+                }
+            }
+        }
+
+
+        /**
+         * Initialisation et écouteurs d'événements.
+         */
+        window.onload = () => {
+            initParticles(); 
+
+            if (typeof posts !== 'undefined' && posts.length > 0) {
+                // Collecter tous les tags uniques
+                const tagsSet = new Set();
+                posts.forEach(post => post.tags.forEach(tag => tagsSet.add(tag)));
+                allUniqueTags = Array.from(tagsSet).sort();
+                
+                // Initialiser la recherche depuis l'URL
+                initSearchFromURL();
+                
+                // Événements pour la recherche par nom
+                nameSearchBar.addEventListener('input', handleNameSearchInput);
+                if (clearNameSearchBtn) {
+                    clearNameSearchBtn.addEventListener('click', () => { 
+                        nameSearchBar.value = '';
+                        handleNameSearchInput(); 
+                        nameSearchBar.focus();
+                    });
+                }
+                
+                // Événements pour la recherche par tags
+                tagSearchBar.addEventListener('input', (e) => {
+                    renderTagSuggestions(e.target.value);
+                });
+                
+                // Afficher la liste des tags au focus (clic)
+                tagSearchBar.addEventListener('focus', (e) => {
+                    renderTagSuggestions(e.target.value);
+                });
+                
+                // Gestion des touches (Entrée et Flèches) pour la barre de tags
+                tagSearchBar.addEventListener('keydown', (e) => {
+                    const suggestions = tagsSuggestionsContainer.querySelectorAll('.tag-suggestion-item');
+                    if (suggestions.length === 0) return;
+                    
+                    if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        highlightedSuggestion = (highlightedSuggestion + 1) % suggestions.length;
+                    } else if (e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        highlightedSuggestion = (highlightedSuggestion - 1 + suggestions.length) % suggestions.length;
+                    } else if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if (highlightedSuggestion >= 0) {
+                            suggestions[highlightedSuggestion].click();
+                        } else {
+                            const tagValue = tagSearchBar.value.trim();
+                            // Vérifiez si le tag est dans la liste des tags valides avant de l'ajouter
+                            if(allUniqueTags.map(t => t.toLowerCase()).includes(tagValue.toLowerCase())) {
+                                addTag(tagValue);
+                            }
+                        }
+                        return;
+                    }
+                    
+                    // Mise à jour de la classe 'highlighted'
+                    suggestions.forEach((item, index) => {
+                        item.classList.toggle('highlighted', index === highlightedSuggestion);
+                    });
+                    
+                    if (highlightedSuggestion >= 0) {
+                        suggestions[highlightedSuggestion].scrollIntoView({ block: 'nearest' });
+                    }
+                });
+
+                // Cacher les suggestions lorsqu'on clique en dehors
+                document.addEventListener('click', (e) => {
+                    if (!tagSearchBar.contains(e.target) && !tagsSuggestionsContainer.contains(e.target)) {
+                        tagsSuggestionsContainer.classList.remove('active');
+                    }
+                });
+                
+            } else {
+                postsContainer.innerHTML = 'Erreur : Les données de posts ne sont pas disponibles ou le fichier list.js est manquant.';
+                postsContainer.classList.add('empty-state');
+            }
+        };
+    </script>
+
+
+</body></html>

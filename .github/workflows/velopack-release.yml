@@ -1,0 +1,47 @@
+name: release
+
+permissions:
+  contents: write
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Install Velopack
+        run: dotnet tool install -g vpk
+
+      - name: Restore
+        run: dotnet restore .\TFY.csproj
+
+      - name: Publish
+        run: dotnet publish .\TFY.csproj -c Release -r win-x64 --self-contained false -o publish
+
+      - name: Pack
+        shell: pwsh
+        run: |
+          $version = "${{ github.ref_name }}"
+          if ($version.StartsWith("v")) { $version = $version.Substring(1) }
+          vpk pack -u TFY.Utility.Hub -v $version -p publish --mainExe TFY.exe --releaseDir releases
+
+      - name: Upload
+        shell: pwsh
+        env:
+          RELEASE_REPO_URL: https://github.com/DragosKissLove/TFY-UtilityHub-Releases
+          RELEASE_REPO_TOKEN: ${{ secrets.RELEASE_REPO_TOKEN }}
+        run: |
+          if (-not $env:RELEASE_REPO_TOKEN) { throw "Missing RELEASE_REPO_TOKEN secret" }
+          vpk upload github --repoUrl $env:RELEASE_REPO_URL --token $env:RELEASE_REPO_TOKEN --releaseDir releases

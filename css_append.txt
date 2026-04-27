@@ -1,0 +1,23 @@
+
+/* Detail Cards in Modals (CPU, GPU, RAM) - Stronger Pop */
+.tfy-detail-tile {
+  background: linear-gradient(145deg, rgba(36, 191, 151, 0.08) 0%, rgba(36, 191, 151, 0.02) 100%) !important;
+  border: 1px solid rgba(36, 191, 151, 0.25) !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3), inset 0 0 20px rgba(36, 191, 151, 0.05) !important;
+  transition: all 0.3s ease;
+}
+
+.tfy-detail-tile:hover {
+  border-color: var(--accent) !important;
+  background: linear-gradient(145deg, rgba(36, 191, 151, 0.12) 0%, rgba(36, 191, 151, 0.04) 100%) !important;
+  box-shadow: 0 8px 25px rgba(36, 191, 151, 0.2), inset 0 0 10px rgba(36, 191, 151, 0.1) !important;
+  transform: translateY(-2px);
+}
+
+/* Drag Optimization: Disable heavy effects in Low End Mode */
+.tfy-low-end * {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+  transition: none !important;
+}

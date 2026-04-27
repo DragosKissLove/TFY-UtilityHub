@@ -1,0 +1,59 @@
+﻿{
+    "allowed_mentions":  {
+                             "parse":  [
+
+                                       ]
+                         },
+    "content":  "",
+    "components":  [
+                       {
+                           "type":  1,
+                           "components":  [
+                                              {
+                                                  "label":  "Download TFY Utility Hub",
+                                                  "style":  5,
+                                                  "url":  "https://github.com/DragosKissLove/TFY-UtilityHub-Releases/raw/main/TFY-UtilityHub-Beta-Setup-LATEST.exe",
+                                                  "type":  2,
+                                                  "emoji":  {
+                                                                "id":  "1369112015045525504",
+                                                                "name":  "WinOS"
+                                                            }
+                                              }
+                                          ]
+                       }
+                   ],
+    "embeds":  [
+                   {
+                       "fields":  [
+                                      {
+                                          "inline":  false,
+                                          "name":  "Version",
+                                          "value":  "`5.0.0`"
+                                      },
+                                      {
+                                          "inline":  false,
+                                          "name":  "Changelog",
+                                          "value":  "```diff\r\n+ UI modernizat complet pentru Home, modale si sectiuni principale\n+ System Information actualizat (inclusiv multiple placi video)\n+ Debloating si Backups rafinate pentru flux stabil\n+ Theming extins pe modulele importante\n+ Language coverage extinsa pe functiile principale\n+ Stabilitate generala si polish pe UX\r\n```"
+                                      },
+                                      {
+                                          "inline":  false,
+                                          "name":  "Download Link",
+                                          "value":  "\u003c:WinOS:1369112015045525504\u003e **TFY Utility Hub**"
+                                      },
+                                      {
+                                          "inline":  false,
+                                          "name":  "Notes",
+                                          "value":  "• Daca ai deja TFY instalat, ruleaza installerul din nou pentru update.\n• Daca apare SmartScreen, verifica publisher-ul si continua instalarea.\n• Pentru bug report: screenshot + pasi de reproducere."
+                                      }
+                                  ],
+                       "description":  "\u003c:shield:1464662787912372275\u003e **Release Notes \u0026 Changelog**",
+                       "color":  2895667,
+                       "timestamp":  "2026-03-01T19:31:55.7599549Z",
+                       "footer":  {
+                                      "text":  "TFY Utility Hub • Stable Release",
+                                      "icon_url":  "https://cdn.discordapp.com/emojis/1477742180704718990.png?size=64\u0026quality=lossless"
+                                  },
+                       "title":  "***TFY UTILITY HUB - RELEASE 5.0.0***"
+                   }
+               ]
+}

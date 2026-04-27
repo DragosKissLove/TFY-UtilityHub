@@ -1,0 +1,63 @@
+TFY TOOL - TWEAKS VERIFICATION GUIDE
+=====================================
+
+HOW TO VERIFY IF TWEAKS ARE APPLIED:
+
+The app now shows notifications when you click buttons:
+- GREEN notification = Applied successfully
+- RED notification = Failed (usually needs Admin privileges)
+
+If you see RED notifications, run the app as Administrator.
+
+MANUAL VERIFICATION IN REGISTRY EDITOR:
+======================================
+
+1. Press Windows Key + R
+2. Type: regedit
+3. Click OK
+
+Check these paths:
+
+PREEMPTION:
+- HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\Scheduler
+  Look for: EnablePreemption (should be 0 if disabled)
+- HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\nvlddmkm
+  Look for: DisablePreemption (should be 1 if disabled)
+
+HDCP:
+- HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\0001
+  Look for: RMHdcpKeyglobZero (should be 1 if disabled)
+
+WIN32 PRIORITY SEPARATION:
+- HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\PriorityControl
+  Look for: Win32PrioritySeparation (should show selected hex value)
+
+SVCHOST SPLIT THRESHOLD:
+- HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control
+  Look for: SvcHostSplitThresholdInKB (should be RAM * 1024 * 1024)
+
+NVIDIA P-STATE:
+- HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\0000
+  Look for: DisableDynamicPstate (should be 1 if P-State 0 is enabled)
+
+NVIDIA TELEMETRY:
+- HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\nvlddmkm\Global\Startup
+  Look for: SendTelemetryData (should be 0 if disabled)
+- HKEY_LOCAL_MACHINE\SOFTWARE\NVIDIA Corporation\NvControlPanel2\Client
+  Look for: OptInOrOutPreference (should be 0)
+
+AMD SHADER CACHE:
+- HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\0000\UMD
+  Look for: ShaderCache (binary value)
+
+IMPORTANT NOTES:
+================
+- Most tweaks require ADMINISTRATOR privileges
+- Some tweaks may require system restart to take effect
+- If modification fails, run TFY TOOL as Administrator
+- Backup registry before making changes (regedit -> File -> Export)
+
+If a tweak fails:
+1. Right-click TFY TOOL.exe
+2. Select "Run as Administrator"
+3. Try again
