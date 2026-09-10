@@ -10,15 +10,17 @@
     <Title>TFY Utility Hub</Title>
     <Product>TFY Utility Hub</Product>
     <Company>DragosKissLove</Company>
-    <Version>6.1.2</Version>
+    <Version>6.3.2</Version>
     <Nullable>disable</Nullable>
-    <AssemblyVersion>6.1.1.0</AssemblyVersion>
-    <FileVersion>6.1.1.0</FileVersion>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
     <!-- Embed app icon into TFY.exe so Desktop/Start shortcuts don't show the default icon. -->
     <ApplicationIcon>installer\icon.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
 </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="DiscordRichPresence" Version="1.6.1.70" />
+    <PackageReference Include="Microsoft.Playwright" Version="1.59.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2903.40" />
     <PackageReference Include="System.Management" Version="8.0.0" />
@@ -43,12 +45,38 @@
     <None Remove="tfydlc\**" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Remove="SteamWorker\**" />
+    <EmbeddedResource Remove="SteamWorker\**" />
+    <None Remove="SteamWorker\**" />
+    <Page Remove="SteamWorker\**" />
+    <Compile Remove="TFY.Installer\**" />
+    <EmbeddedResource Remove="TFY.Installer\**" />
+    <None Remove="TFY.Installer\**" />
+    <Page Remove="TFY.Installer\**" />
+  </ItemGroup>
+  <ItemGroup>
     <Compile Remove="installer\**" />
     <EmbeddedResource Remove="installer\**" />
     <None Remove="installer\**" />
+    <Compile Remove="FetchTest\**" />
+    <EmbeddedResource Remove="FetchTest\**" />
+    <None Remove="FetchTest\**" />
+  </ItemGroup>
+
+  <!-- Ensure project/dist is always included in output and publish directories -->
+  <ItemGroup>
+    <Content Include="project\dist\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
   </ItemGroup>
 
   <!-- Scripts folder: .cs is compiled; only script.js is shipped in installer. -->
+  <ItemGroup>
+    <None Update="oneclickrar.cmd">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>
 
 

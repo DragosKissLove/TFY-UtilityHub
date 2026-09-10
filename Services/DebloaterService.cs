@@ -153,6 +153,145 @@ namespace TFY.Services
             return raw.Substring(start, end - start + 1).Trim();
         }
 
+        public List<DebloaterApp> GetStartupApps()
+        {
+            var apps = new List<DebloaterApp>();
+            var startupPaths = new[]
+            {
+                (Microsoft.Win32.Registry.CurrentUser, @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run"),
+                (Microsoft.Win32.Registry.CurrentUser, @"SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce"),
+                (Microsoft.Win32.Registry.LocalMachine, @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run"),
+                (Microsoft.Win32.Registry.LocalMachine, @"SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce"),
+                (Microsoft.Win32.Registry.LocalMachine, @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run"),
+            };
+            foreach (var (hive, subKey) in startupPaths)
+            {
+                try
+                {
+                    using var key = hive.OpenSubKey(subKey);
+                    if (key == null) continue;
+                    foreach (string name in key.GetValueNames())
+                    {
+                        if (string.IsNullOrWhiteSpace(name)) continue;
+                        string value = key.GetValue(name)?.ToString() ?? "";
+                        apps.Add(new DebloaterApp
+                        {
+                            Id = $"{hive.Name}\\{subKey}\\{name}",
+                            Name = name,
+                            Type = "startup",
+                            InstallLocation = value,
+                            RegistryHive = hive == Microsoft.Win32.Registry.CurrentUser ? "HKCU" : "HKLM",
+                            RegistrySubKey = subKey
+                        });
+                    }
+                }
+                catch { }
+            }
+            // Also scan shell:startup folder
+            try
+            {
+                string startupFolder = Environment.GetFolderPath(Environment.SpecialFolder.Startup);
+                if (Directory.Exists(startupFolder))
+                {
+                    foreach (string file in Directory.GetFiles(startupFolder))
+                    {
+                        string fname = Path.GetFileName(file);
+                        apps.Add(new DebloaterApp
+                        {
+                            Id = $"startup-folder:{fname}",
+                            Name = Path.GetFileNameWithoutExtension(fname),
+                            Type = "startup",
+                            InstallLocation = file
+                        });
+                    }
+                }
+            }
+            catch { }
+            return apps;
+        }
+
+        public void EnableStartupEntry(DebloaterApp app)
+        {
+            if (app.Id.StartsWith("startup-folder:"))
+            {
+                // Can't re-enable a deleted shortcut
+                return;
+            }
+            // Registry entry: restore from disabled key
+            try
+            {
+                var parts = ParseRegistryId(app.Id);
+                if (parts == null) return;
+                var hive = parts.Value.hive;
+                // Try to move from DisabledRun back to Run
+                string disabledKey = parts.Value.subKey.Replace(@"\Run", @"\RunDisabled");
+                using var srcKey = hive.OpenSubKey(disabledKey, true);
+                if (srcKey != null)
+                {
+                    object val = srcKey.GetValue(parts.Value.name);
+                    if (val != null)
+                    {
+                        using var dstKey = hive.OpenSubKey(parts.Value.subKey, true);
+                        dstKey?.SetValue(parts.Value.name, val);
+                        srcKey.DeleteValue(parts.Value.name, false);
+                    }
+                }
+            }
+            catch { }
+        }
+
+        public void DisableStartupEntry(DebloaterApp app)
+        {
+            if (app.Id.StartsWith("startup-folder:"))
+            {
+                string fname = app.Id.Substring("startup-folder:".Length);
+                string startupFolder = Environment.GetFolderPath(Environment.SpecialFolder.Startup);
+                string path = Path.Combine(startupFolder, fname);
+                try { if (File.Exists(path)) File.Delete(path); } catch { }
+                return;
+            }
+            // Registry entry: move to disabled key
+            try
+            {
+                var parts = ParseRegistryId(app.Id);
+                if (parts == null) return;
+                var hive = parts.Value.hive;
+                using var srcKey = hive.OpenSubKey(parts.Value.subKey, true);
+                if (srcKey == null) return;
+                object val = srcKey.GetValue(parts.Value.name);
+                if (val != null)
+                {
+                    srcKey.DeleteValue(parts.Value.name, false);
+                }
+            }
+            catch { }
+        }
+
+        private (Microsoft.Win32.RegistryKey hive, string subKey, string name)? ParseRegistryId(string id)
+        {
+            // Format: HKEY_CURRENT_USER\SOFTWARE\...\Run\EntryName
+            try
+            {
+                int firstSlash = id.IndexOf('\\');
+                if (firstSlash < 0) return null;
+                string hiveName = id.Substring(0, firstSlash);
+                string rest = id.Substring(firstSlash + 1);
+                int lastSlash = rest.LastIndexOf('\\');
+                if (lastSlash < 0) return null;
+                string subKey = rest.Substring(0, lastSlash);
+                string name = rest.Substring(lastSlash + 1);
+                Microsoft.Win32.RegistryKey hive = hiveName switch
+                {
+                    "HKEY_CURRENT_USER" => Microsoft.Win32.Registry.CurrentUser,
+                    "HKEY_LOCAL_MACHINE" => Microsoft.Win32.Registry.LocalMachine,
+                    _ => null
+                };
+                if (hive == null) return null;
+                return (hive, subKey, name);
+            }
+            catch { return null; }
+        }
+
         public string UninstallApps(IEnumerable<DebloaterApp> apps, bool deepClean)
         {
             string logPath = CreateLogPath();

@@ -98,32 +98,8 @@ export function BestFinder() {
   // Filter settings
   const [filterType, setFilterType] = useState<'all' | 'official' | 'keyseller'>('all');
   
-  // Price Alert states
-  const [targetPrice, setTargetPrice] = useState('');
-  const [alertSet, setAlertSet] = useState(false);
   const [applyingCouponIdx, setApplyingCouponIdx] = useState<number | null>(null);
   const [activeCoupon, setActiveCoupon] = useState<Record<string, boolean>>({});
-
-  // Discord integration
-  const [discordConnected, setDiscordConnected] = useState(false);
-  const [discordUser, setDiscordUser] = useState<{ id: string; name: string } | null>(null);
-
-  useEffect(() => {
-    const checkDiscord = () => {
-      const id = localStorage.getItem('tfy.discord.id');
-      const name = localStorage.getItem('tfy.discord.name') || 'TFY User';
-      if (id) {
-        setDiscordConnected(true);
-        setDiscordUser({ id, name });
-      } else {
-        setDiscordConnected(false);
-        setDiscordUser(null);
-      }
-    };
-    checkDiscord();
-    window.addEventListener('storage', checkDiscord);
-    return () => window.removeEventListener('storage', checkDiscord);
-  }, []);
 
   // ── WebView Message Listener for 1:1 Allkeyshop Data ───────────────────
   useEffect(() => {
@@ -346,10 +322,6 @@ export function BestFinder() {
       applying: 'Verificare cupon public...',
       couponApplied: 'Cupon valid! -{pct}% aplicat',
       priceTrendTitle: 'Istoric Evoluție Preț (Zile)',
-      priceAlertTitle: 'Setează Alertă',
-      priceAlertSub: 'Te notificăm instant când prețul scade sub valoarea selectată.',
-      priceAlertBtn: 'Salvează',
-      priceAlertSuccess: 'Alertă salvată!',
       cheapestBadge: 'Cel Mai Ieftin',
       resultsFor: 'Oferte găsite pentru',
       officialTab: 'Magazine Oficiale',
@@ -382,10 +354,6 @@ export function BestFinder() {
       applying: 'Verifying public coupon...',
       couponApplied: 'Active! -{pct}% Discount',
       priceTrendTitle: 'Price Trend History (Days)',
-      priceAlertTitle: 'Set Price Alert',
-      priceAlertSub: 'We will notify you immediately when the price drops below your goal.',
-      priceAlertBtn: 'Set Alert',
-      priceAlertSuccess: 'Alert Configured!',
       cheapestBadge: 'Best Offer',
       resultsFor: 'Deals found for',
       officialTab: 'Official Stores',
@@ -742,7 +710,6 @@ export function BestFinder() {
 
     setSearching(true);
     setScanStep(0);
-    setAlertSet(false);
     setActiveCoupon({});
     setSuggestions([]);
 
@@ -819,36 +786,7 @@ export function BestFinder() {
     }, 550);
   };
 
-  const handleSetAlert = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!targetPrice || isNaN(Number(targetPrice)) || !activeResult) return;
-    
-    const target = Number(targetPrice);
 
-    // Send the alert configuration payload to C# backend
-    if ((window as any).chrome?.webview) {
-      const alertPayload = {
-        game: activeResult.title,
-        targetPrice: target,
-        userId: discordUser?.id || '',
-        username: discordUser?.name || 'TFY User',
-        currentPrice: activeResult.deals.length > 0 ? Math.min(...activeResult.deals.map(d => d.price)) : activeResult.basePrice,
-        appId: activeResult.appId || ''
-      };
-      (window as any).chrome.webview.postMessage(`set-price-alert|${JSON.stringify(alertPayload)}`);
-    }
-    
-    setAlertSet(true);
-    if ((window as any).__tfyNotify) {
-      (window as any).__tfyNotify({
-        title: language === 'ro' ? 'Alertă Salvată' : 'Price Alert Active',
-        message: language === 'ro'
-          ? `Te vom notifica direct pe Discord când ${activeResult?.title} scade sub €${targetPrice}!`
-          : `We will notify you directly on Discord when ${activeResult?.title} drops below €${targetPrice}!`,
-        kind: 'success'
-      });
-    }
-  };
 
   // Filter & Default Sort by Price strictly (no options to change sorting, keeps it clean!)
   const processedDeals = activeResult ? activeResult.deals
@@ -932,7 +870,9 @@ export function BestFinder() {
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={t.inputPlaceholder}
               disabled={searching}
-              className="w-full bg-white/[0.03] border border-white/5 rounded-xl pl-9 pr-4 py-2 text-xs text-white placeholder-gray-600 outline-none hover:bg-whi             {suggestions.length > 0 && (
+              className="w-full bg-white/[0.03] border border-white/5 rounded-xl pl-9 pr-4 py-2 text-xs text-white placeholder-gray-600 outline-none hover:bg-white/[0.04] focus:bg-white/[0.06] focus:border-[var(--accent)]/40 transition-all"
+            />
+            {suggestions.length > 0 && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setSuggestions([])} />
                 <div 
@@ -995,11 +935,6 @@ export function BestFinder() {
           <button 
             onClick={() => { setSearchQuery('Cyberpunk 2077'); handleSearch(undefined, 'Cyberpunk 2077'); }}
             className="px-2.5 py-1 rounded-lg bg-white/5 text-[10px] text-gray-400 hover:text-white transition-all cursor-pointer font-bold"
-          >
-            Cyberpunk
-          </button>
-        </div>
-      </div>nter font-bold"
           >
             Cyberpunk
           </button>
@@ -1151,7 +1086,7 @@ export function BestFinder() {
                   {t.cheapestBadge}
                 </div>
                 <div className="text-[12px] font-black text-white mt-1 drop-shadow-[0_0_8px_rgba(var(--accent-rgb),0.4)]">
-                  €{Math.min(...activeResult.deals.map(d=>d.price))}
+                  €{activeResult.deals.length > 0 ? Math.min(...activeResult.deals.map(d=>d.price)) : activeResult.basePrice}
                 </div>
               </div>
               <div 
@@ -1170,73 +1105,96 @@ export function BestFinder() {
           {/* LOWER GRID: OFFERS GRID & LEFT ALERTS/TRENDS COLUMN */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
             
-            {/* LE               {/* COMPACT ALERT BOX */}
+            {/* LEFT COLUMN: ALERT WIDGET & SMOOTH PRICE TREND GRAPH */}
+            <div className="lg:col-span-4 flex flex-col gap-4">
+              
+              {/* COMPACT ALERT BOX */}
+              {/* SMART BUY ADVISOR */}
               <div 
-                className="rounded-2xl border p-4 space-y-3 bg-white/[0.01] border-white/5"
+                className="rounded-2xl border p-4 space-y-3 bg-white/[0.01] border-white/5 relative overflow-hidden"
               >
+                <div className="absolute top-0 right-0 w-24 h-24 bg-[var(--accent)]/[0.03] rounded-full blur-xl pointer-events-none" />
                 <div className="flex items-center gap-1.5 border-b border-white/5 pb-2">
-                  <Bell size={13} className="text-[var(--accent)]" />
-                  <span className="text-[10px] font-bold text-white uppercase tracking-wider font-display">{t.priceAlertTitle}</span>
+                  <Sparkles size={13} className="text-[var(--accent)]" />
+                  <span className="text-[10px] font-bold text-white uppercase tracking-wider font-display">
+                    {language === 'ro' ? 'Smart Buy Advisor' : 'Smart Buy Advisor'}
+                  </span>
                 </div>
-                <p className="text-[9px] text-gray-500 leading-normal">{t.priceAlertSub}</p>
                 
-                {!discordConnected ? (
-                  <div className="p-3 rounded-xl border border-dashed border-white/10 bg-white/[0.01] text-center space-y-2.5 animate-fadeIn">
-                    <p className="text-[9px] text-gray-400 leading-normal">
-                      {language === 'ro' 
-                        ? 'Trebuie să fii conectat cu Discord pentru a primi alerte directe pe serverul tău!' 
-                        : 'Connect your Discord account to set price alerts sent directly to your server!'}
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if ((window as any).chrome?.webview) {
-                          (window as any).chrome.webview.postMessage('discord-login|jade');
-                        }
-                      }}
-                      className="w-full py-1.5 rounded-lg bg-[var(--accent)]/10 hover:bg-[var(--accent)]/20 border border-[var(--accent)]/30 text-[9px] font-black text-white tracking-wide uppercase transition-all cursor-pointer"
-                    >
-                      {language === 'ro' ? 'Conectează Discord' : 'Connect Discord'}
-                    </button>
-                  </div>
-                ) : alertSet ? (
-                  <div 
-                    className="p-2.5 rounded-xl border text-[10px] font-bold flex items-center gap-1.5 animate-fadeIn"
-                    style={{
-                      color: 'var(--accent)',
-                      backgroundColor: 'color-mix(in srgb, var(--accent) 10%, transparent)',
-                      borderColor: 'color-mix(in srgb, var(--accent) 20%, transparent)'
-                    }}
-                  >
-                    <ShieldCheck size={12} />
-                    {t.priceAlertSuccess}
-                  </div>
-                ) : (
-                  <form onSubmit={handleSetAlert} className="flex gap-2 animate-fadeIn">
-                    <div className="relative flex-1">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-gray-500">€</span>
-                      <input 
-                        type="text" 
-                        required
-                        placeholder="e.g. 20"
-                        value={targetPrice}
-                        onChange={(e) => setTargetPrice(e.target.value.replace(/[^0-9\.]/g, ''))}
-                        className="w-full pl-6 pr-3 py-2 rounded-xl bg-white/[0.02] border border-white/5 focus:border-[var(--accent)] text-[10px] text-white outline-none font-bold transition-all"
-                      />
+                {(() => {
+                  const base = activeResult.basePrice;
+                  const currentMin = activeResult.deals.length > 0 
+                    ? Math.min(...activeResult.deals.map(d => d.price)) 
+                    : base;
+                  const discountPct = base > 0 ? Math.round(((base - currentMin) / base) * 100) : 0;
+                  
+                  let buyScore = 50;
+                  let colorClass = 'text-yellow-400';
+                  let adviceRo = 'Prețul este stabil. Monitorizează trendul înainte de achiziție.';
+                  let adviceEn = 'Price is stable. Monitor the trend before purchasing.';
+                  
+                  if (discountPct >= 40) {
+                    buyScore = 95;
+                    colorClass = 'text-emerald-400';
+                    adviceRo = 'Reducere masivă! Prețul este extrem de mic. Cumpără acum cu încredere!';
+                    adviceEn = 'Massive discount! The price is extremely low. Purchase now with confidence!';
+                  } else if (discountPct >= 20) {
+                    buyScore = 82;
+                    colorClass = 'text-emerald-400';
+                    adviceRo = 'Preț excelent. Economisești substanțial față de prețul oficial din magazin.';
+                    adviceEn = 'Great price. You save substantially compared to the official store price.';
+                  } else if (discountPct > 5) {
+                    buyScore = 68;
+                    colorClass = 'text-yellow-400';
+                    adviceRo = 'Reducere decentă. Un moment bun pentru cumpărare, dar pot apărea reduceri mai mari.';
+                    adviceEn = 'Decent discount. Good time to buy, but higher discounts may appear.';
+                  } else {
+                    buyScore = 42;
+                    colorClass = 'text-red-400';
+                    adviceRo = 'Preț aproape de cel întreg. Îți recomandăm să aștepți o campanie promoțională.';
+                    adviceEn = 'Price close to retail. We recommend waiting for a promotional sale.';
+                  }
+
+                  return (
+                    <div className="space-y-2.5 animate-fadeIn">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[9px] text-gray-500 font-bold uppercase tracking-wider">
+                          {language === 'ro' ? 'Scor Achiziție' : 'Purchase Score'}
+                        </span>
+                        <span 
+                          className={`text-xs font-black font-display ${buyScore >= 80 ? 'text-[var(--accent)]' : colorClass}`}
+                          style={buyScore >= 80 ? { textShadow: '0 0 8px rgba(var(--accent-rgb), 0.5)' } : undefined}
+                        >
+                          {buyScore}% - {buyScore >= 80 ? (language === 'ro' ? 'Recomandat' : 'Strong Buy') : buyScore >= 60 ? (language === 'ro' ? 'Ok' : 'Buy') : (language === 'ro' ? 'Așteaptă' : 'Hold')}
+                        </span>
+                      </div>
+                      <div className="w-full bg-white/5 rounded-full h-1.5 overflow-hidden">
+                        <div 
+                          className="h-full rounded-full transition-all duration-500"
+                          style={{ 
+                            width: `${buyScore}%`,
+                            backgroundColor: buyScore >= 80 ? 'var(--accent)' : buyScore >= 60 ? '#facc15' : '#ef4444',
+                            boxShadow: `0 0 8px ${buyScore >= 80 ? 'var(--accent)' : buyScore >= 60 ? '#facc15' : '#ef4444'}`
+                          }}
+                        />
+                      </div>
+                      <p className="text-[10px] text-gray-300 font-medium leading-relaxed bg-white/[0.02] border border-white/5 rounded-xl p-2.5 mt-1">
+                        {language === 'ro' ? adviceRo : adviceEn}
+                      </p>
+                      
+                      <div className="pt-1 flex items-center justify-between text-[9px] text-gray-500 font-semibold border-t border-white/5">
+                        <span>{language === 'ro' ? 'Stoc Disponibil' : 'Stock Status'}</span>
+                        <span 
+                          className="font-bold uppercase tracking-wider flex items-center gap-1.5"
+                          style={{ color: 'var(--accent)', textShadow: '0 0 6px rgba(var(--accent-rgb), 0.4)' }}
+                        >
+                          <span className="w-1.5 h-1.5 rounded-full animate-ping inline-block" style={{ backgroundColor: 'var(--accent)', boxShadow: '0 0 6px var(--accent)' }} />
+                          {language === 'ro' ? 'În Stoc (Instant)' : 'In Stock (Instant)'}
+                        </span>
+                      </div>
                     </div>
-                    <button 
-                      type="submit" 
-                      className="px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 hover:border-[var(--accent)]/40 hover:bg-[var(--accent)]/10 text-[10px] font-bold text-gray-300 hover:text-white transition-all cursor-pointer shrink-0"
-                    >
-                      {t.priceAlertBtn}
-                    </button>
-                  </form>
-                )}
-              </div>
-                      {t.priceAlertBtn}
-                    </button>
-                  </form>
-                )}
+                  );
+                })()}
               </div>
 
               {/* SMOOTH BEZIER SPLINE PRICE TREND GRAPH */}
@@ -1358,7 +1316,10 @@ export function BestFinder() {
                             x2={scaleX(hoverIndex)}
                             y2={innerHeight}
                             stroke="var(--accent)"
-                            s                           {keyshopTrend[hoverIndex] !== undefined && (
+                            strokeWidth="0.6"
+                            strokeDasharray="3 3"
+                          />
+                          {keyshopTrend[hoverIndex] !== undefined && (
                             <circle
                               key="keyshop-dot"
                               cx={scaleX(hoverIndex)}
@@ -1382,23 +1343,28 @@ export function BestFinder() {
                           )}
                           {(() => {
                             const posX = scaleX(hoverIndex);
-                            const posY = Math.max(68, Math.min(scaleY(keyshopTrend[hoverIndex] || 0), scaleY(officialTrend[hoverIndex] || 0)));
+                            const keyY = keyshopTrend[hoverIndex] !== undefined ? scaleY(keyshopTrend[hoverIndex]) : innerHeight / 2;
+                            const offY = officialTrend[hoverIndex] !== undefined ? scaleY(officialTrend[hoverIndex]) : innerHeight / 2;
+                            const posY = Math.min(keyY, offY);
                             
                             // Determine dynamic tooltip X offset to prevent clipping on left/right edges of chart
                             let tooltipXOffset = 0;
-                            if (posX < 65) {
-                              tooltipXOffset = 65 - posX; // Shift right
-                            } else if (posX > innerWidth - 65) {
-                              tooltipXOffset = (innerWidth - 65) - posX; // Shift left
+                            if (posX < 70) {
+                              tooltipXOffset = 70 - posX; // Shift right
+                            } else if (posX > innerWidth - 70) {
+                              tooltipXOffset = (innerWidth - 70) - posX; // Shift left
                             }
 
+                            // Ensure tooltip stays above the dots and within the chart top boundary
+                            const tooltipY = Math.max(50, posY - 10);
+
                             return (
-                              <g transform={`translate(${posX + tooltipXOffset}, ${posY - 52})`}>
+                              <g transform={`translate(${posX + tooltipXOffset}, ${tooltipY - 48})`}>
                                 <rect
-                                  x="-65"
+                                  x="-68"
                                   y="-42"
-                                  width="130"
-                                  height="48"
+                                  width="136"
+                                  height="50"
                                   fill="rgba(10, 13, 20, 0.98)"
                                   stroke="color-mix(in srgb, var(--accent) 70%, rgba(255,255,255,0.2))"
                                   strokeWidth="1.5"
@@ -1406,7 +1372,7 @@ export function BestFinder() {
                                 />
                                 <text
                                   x="0"
-                                  y="-25"
+                                  y="-24"
                                   textAnchor="middle"
                                   fill="#fff"
                                   fontSize="12"
@@ -1417,7 +1383,7 @@ export function BestFinder() {
                                 </text>
                                 <text
                                   x="0"
-                                  y="-9"
+                                  y="-7"
                                   textAnchor="middle"
                                   fill="rgba(255,255,255,0.6)"
                                   fontSize="10"
@@ -1429,9 +1395,6 @@ export function BestFinder() {
                               </g>
                             );
                           })()}
-                        </g>    Official: €{officialTrend[hoverIndex]}
-                            </text>
-                          </g>
                         </g>
                       )}
 

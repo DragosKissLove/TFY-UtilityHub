@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Info as InfoIcon, ExternalLink, Shield, Cpu, Headphones, Layers, Sparkles } from 'lucide-react';
 import { UpdateModal } from '../components/UpdateModal';
 import { getLanguage, onLanguageChange, t, type TfyLanguage } from '../lib/i18n';
@@ -12,7 +12,7 @@ interface UpdateData {
 }
 
 export function Info() {
-  const [appVersion, setAppVersion] = useState('v5.0.0');
+  const [appVersion, setAppVersion] = useState('v6.3.2');
   const [updateStatus, setUpdateStatus] = useState<'idle' | 'checking' | 'available' | 'none' | 'error'>('idle');
   const [updateInfo, setUpdateInfo] = useState<UpdateData | null>(null);
   const [updateOpen, setUpdateOpen] = useState(false);
@@ -65,7 +65,7 @@ export function Info() {
   useEffect(() => onLanguageChange(setLanguage), []);
 
   const versionLabel = useMemo(() => {
-    if (!appVersion) return 'v5.0.0';
+    if (!appVersion) return 'v6.3.2';
     return appVersion.startsWith('v') ? appVersion : `v${appVersion}`;
   }, [appVersion]);
 

@@ -14,7 +14,10 @@ namespace TFY.Services
     {
         private const string ClientId = "1465554212770545728";
         private const string RedirectUri = "http://127.0.0.1:8743/callback/";
-        private const string Scope = "identify";
+        private const string Scope = "identify guilds.members.read";
+
+        public const string OfficialGuildId = "935948883119460432";
+        public const string OwnerUserId = "328152058869972994";
 
         private static readonly string TokenPath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -25,9 +28,9 @@ namespace TFY.Services
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "TFY",
             "boot.log");
-        private const string DeveloperRoleId = "1324496746574905347";
-        private const string TesterRoleId = "1469669066024157234";
-        private const string PremiumRoleId = "1465913284644311161";
+        public const string DeveloperRoleId = "1324496746574905347";
+        public const string TesterRoleId = "1469669066024157234";
+        public const string PremiumRoleId = "1465913284644311161";
 
         private readonly HttpClient _httpClient = new HttpClient();
 
@@ -45,15 +48,17 @@ namespace TFY.Services
                         {
                             if (state.User != null)
                             {
-                                var roles = await ResolveMemberRolesAsync(state.User.Id);
+                                var cachedRoles = state.Roles != null && state.Roles.Count > 0
+                                    ? state.Roles
+                                    : await ResolveMemberRolesAsync(state.User.Id, state.Token?.AccessToken);
                                 return new DiscordState
                                 {
                                     Connected = true,
                                     UserId = state.User.Id,
                                     Username = state.User.DisplayName,
                                     AvatarUrl = state.User.AvatarUrl,
-                                    Roles = roles,
-                                    Tier = ResolveTier(roles)
+                                    Roles = cachedRoles,
+                                    Tier = ResolveTier(cachedRoles)
                                 };
                             }
                             return new DiscordState { Connected = false };
@@ -75,7 +80,11 @@ namespace TFY.Services
 
                     if (state.User != null)
                     {
-                        var roles = await ResolveMemberRolesAsync(state.User.Id);
+                        var roles = await ResolveMemberRolesAsync(state.User.Id, state.Token?.AccessToken);
+                        state.Roles = roles;
+                        state.Tier = ResolveTier(roles);
+                        await SaveStateAsync(state);
+
                         return new DiscordState
                         {
                             Connected = true,
@@ -83,7 +92,7 @@ namespace TFY.Services
                             Username = state.User.DisplayName,
                             AvatarUrl = state.User.AvatarUrl,
                             Roles = roles,
-                            Tier = ResolveTier(roles)
+                            Tier = state.Tier
                         };
                     }
                 }
@@ -93,6 +102,36 @@ namespace TFY.Services
                 }
             }
 
+            return new DiscordState { Connected = false };
+        }
+
+        public DiscordState GetCachedState()
+        {
+            try
+            {
+                if (!File.Exists(TokenPath)) return new DiscordState { Connected = false };
+                string json = File.ReadAllText(TokenPath);
+                var state = JsonConvert.DeserializeObject<DiscordPersistedState>(json);
+                if (state?.User != null)
+                {
+                    var roles = state.Roles ?? new List<string>();
+                    if (state.User.Id == OwnerUserId && !roles.Contains(DeveloperRoleId))
+                    {
+                        roles.Add(DeveloperRoleId);
+                    }
+                    var tier = state.Tier ?? ResolveTier(roles);
+                    return new DiscordState
+                    {
+                        Connected = true,
+                        UserId = state.User.Id,
+                        Username = state.User.DisplayName,
+                        AvatarUrl = state.User.AvatarUrl,
+                        Roles = roles,
+                        Tier = tier
+                    };
+                }
+            }
+            catch { }
             return new DiscordState { Connected = false };
         }
 
@@ -119,14 +158,18 @@ namespace TFY.Services
             var token = await ExchangeCodeAsync(code, verifier);
             var user = await FetchUserAsync(token.AccessToken);
 
+            var loginRoles = await ResolveMemberRolesAsync(user.Id, token.AccessToken);
+            var loginTier = ResolveTier(loginRoles);
+
             var state = new DiscordPersistedState
             {
                 Token = token,
-                User = user
+                User = user,
+                Roles = loginRoles,
+                Tier = loginTier
             };
             await SaveStateAsync(state);
 
-            var loginRoles = await ResolveMemberRolesAsync(user.Id);
             return new DiscordState
             {
                 Connected = true,
@@ -134,7 +177,7 @@ namespace TFY.Services
                 Username = user.DisplayName,
                 AvatarUrl = user.AvatarUrl,
                 Roles = loginRoles,
-                Tier = ResolveTier(loginRoles)
+                Tier = loginTier
             };
         }
 
@@ -155,79 +198,120 @@ namespace TFY.Services
             await Task.CompletedTask;
         }
 
-        private async Task<List<string>> ResolveMemberRolesAsync(string userId)
+        private async Task<List<string>> ResolveMemberRolesAsync(string userId, string? accessToken = null)
         {
-            try
+            var roles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            // 1. Owner bypass
+            if (userId == OwnerUserId)
             {
-                string? botToken = Environment.GetEnvironmentVariable("TFY_DISCORD_BOT_TOKEN");
-                string? guildId = Environment.GetEnvironmentVariable("TFY_DISCORD_GUILD_ID");
-                if (string.IsNullOrWhiteSpace(botToken) || string.IsNullOrWhiteSpace(guildId) || string.IsNullOrWhiteSpace(userId))
-                {
-                    return await ResolveRolesFromRoleApiAsync(userId);
-                }
+                roles.Add(DeveloperRoleId);
+            }
 
-                var request = new HttpRequestMessage(HttpMethod.Get, $"https://discord.com/api/guilds/{guildId}/members/{userId}");
-                request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bot", botToken);
-                var response = await _httpClient.SendAsync(request);
-                if (!response.IsSuccessStatusCode)
+            // 2. Direct Discord User OAuth Member API with accessToken (guilds.members.read scope)
+            if (!string.IsNullOrWhiteSpace(accessToken))
+            {
+                try
                 {
-                    return await ResolveRolesFromRoleApiAsync(userId);
-                }
-
-                var json = await response.Content.ReadAsStringAsync();
-                dynamic member = JsonConvert.DeserializeObject<dynamic>(json);
-                var roles = new List<string>();
-                if (member?.roles != null)
-                {
-                    foreach (var role in member.roles)
+                    using var cts = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(3.5));
+                    var req = new HttpRequestMessage(HttpMethod.Get, $"https://discord.com/api/users/@me/guilds/{OfficialGuildId}/member");
+                    req.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
+                    var res = await _httpClient.SendAsync(req, cts.Token);
+                    if (res.IsSuccessStatusCode)
                     {
-                        var value = role?.ToString();
-                        if (!string.IsNullOrWhiteSpace(value))
+                        var json = await res.Content.ReadAsStringAsync();
+                        dynamic member = JsonConvert.DeserializeObject<dynamic>(json);
+                        if (member?.roles != null)
                         {
-                            roles.Add(value);
+                            foreach (var r in member.roles)
+                            {
+                                string v = r?.ToString();
+                                if (!string.IsNullOrWhiteSpace(v)) roles.Add(v);
+                            }
                         }
                     }
                 }
-                return roles;
+                catch { }
             }
-            catch
+
+            // 3. Discord Bot API if configured
+            string? botToken = Environment.GetEnvironmentVariable("TFY_DISCORD_BOT_TOKEN");
+            string guildId = Environment.GetEnvironmentVariable("TFY_DISCORD_GUILD_ID") ?? OfficialGuildId;
+            if (!string.IsNullOrWhiteSpace(botToken) && !string.IsNullOrWhiteSpace(userId))
             {
-                return await ResolveRolesFromRoleApiAsync(userId);
+                try
+                {
+                    using var cts = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(3.5));
+                    var req = new HttpRequestMessage(HttpMethod.Get, $"https://discord.com/api/guilds/{guildId}/members/{userId}");
+                    req.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bot", botToken);
+                    var res = await _httpClient.SendAsync(req, cts.Token);
+                    if (res.IsSuccessStatusCode)
+                    {
+                        var json = await res.Content.ReadAsStringAsync();
+                        dynamic member = JsonConvert.DeserializeObject<dynamic>(json);
+                        if (member?.roles != null)
+                        {
+                            foreach (var r in member.roles)
+                            {
+                                string v = r?.ToString();
+                                if (!string.IsNullOrWhiteSpace(v)) roles.Add(v);
+                            }
+                        }
+                    }
+                }
+                catch { }
             }
+
+            // 4. Remote role APIs (Cloudflare worker & local bot)
+            if (roles.Count == 0 || (userId == OwnerUserId && roles.Count == 1))
+            {
+                var apiRoles = await ResolveRolesFromRoleApiAsync(userId);
+                foreach (var ar in apiRoles) roles.Add(ar);
+            }
+
+            // Ensure owner always has DeveloperRoleId
+            if (userId == OwnerUserId)
+            {
+                roles.Add(DeveloperRoleId);
+            }
+
+            return new List<string>(roles);
         }
 
         private async Task<List<string>> ResolveRolesFromRoleApiAsync(string userId)
         {
-            try
+            var roles = new List<string>();
+            if (string.IsNullOrWhiteSpace(userId)) return roles;
+
+            var endpoints = new List<string>();
+            var envApi = Environment.GetEnvironmentVariable("TFY_PREMIUM_API");
+            if (!string.IsNullOrWhiteSpace(envApi)) endpoints.Add(envApi);
+            endpoints.Add("https://tfy-api.vi9lomister.workers.dev/check-roles");
+            endpoints.Add("http://127.0.0.1:11874/check-roles");
+            endpoints.Add("http://127.0.0.1:8787/check-roles");
+
+            var body = new StringContent(JsonConvert.SerializeObject(new { userId }), Encoding.UTF8, "application/json");
+
+            foreach (var ep in endpoints)
             {
-                if (string.IsNullOrWhiteSpace(userId)) return new List<string>();
-
-                var premiumApi = Environment.GetEnvironmentVariable("TFY_PREMIUM_API") ?? "http://217.154.161.167:11874/check-role";
-                if (!Uri.TryCreate(premiumApi, UriKind.Absolute, out var premiumUri))
+                try
                 {
-                    return new List<string>();
+                    using var cts = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(2.5));
+                    var response = await _httpClient.PostAsync(ep, body, cts.Token);
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var json = await response.Content.ReadAsStringAsync();
+                        dynamic data = JsonConvert.DeserializeObject<dynamic>(json);
+                        if (data?.hasDeveloper == true) roles.Add(DeveloperRoleId);
+                        if (data?.hasTesting == true) roles.Add(TesterRoleId);
+                        if (data?.hasPremium == true || data?.hasRole == true || data?.premium == true) roles.Add(PremiumRoleId);
+                        if (roles.Count > 0) break;
+                    }
                 }
-
-                var baseUrl = $"{premiumUri.Scheme}://{premiumUri.Host}{(premiumUri.IsDefaultPort ? "" : ":" + premiumUri.Port)}";
-                var body = new StringContent(JsonConvert.SerializeObject(new { userId }), Encoding.UTF8, "application/json");
-                var response = await _httpClient.PostAsync($"{baseUrl}/check-roles", body);
-                if (!response.IsSuccessStatusCode)
-                {
-                    return new List<string>();
-                }
-
-                var json = await response.Content.ReadAsStringAsync();
-                dynamic data = JsonConvert.DeserializeObject<dynamic>(json);
-                var roles = new List<string>();
-                if (data?.hasDeveloper == true) roles.Add(DeveloperRoleId);
-                if (data?.hasTesting == true) roles.Add(TesterRoleId);
-                if (data?.hasPremium == true) roles.Add(PremiumRoleId);
-                return roles;
+                catch { }
             }
-            catch
-            {
-                return new List<string>();
-            }
+
+            return roles;
         }
 
         private string ResolveTier(List<string> roles)
@@ -507,6 +591,8 @@ color:#e6eef5;}}
     {
         public DiscordToken? Token { get; set; }
         public DiscordUser? User { get; set; }
+        public List<string> Roles { get; set; } = new List<string>();
+        public string? Tier { get; set; }
     }
 
     public class DiscordState

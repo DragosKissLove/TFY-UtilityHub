@@ -17,7 +17,7 @@
     <Grid>
         <Border CornerRadius="0" Background="#0B0B0E" ClipToBounds="True" BorderBrush="#0B0B0E" BorderThickness="0">
             <Grid>
-                <wv2:WebView2 x:Name="webView" />
+                <wv2:WebView2 x:Name="webView" DefaultBackgroundColor="#FF0B0B0E" />
             </Grid>
         </Border>
     </Grid>

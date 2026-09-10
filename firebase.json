@@ -5,15 +5,25 @@
             "firebase.json",
             "**/.*",
             "**/node_modules/**",
-            "project/dist/Releases/**/*.exe"
+            "Releases/**/*.exe",
+            "optimizations/**"
         ],
         "rewrites": [
             {
-                "source": "**",
+                "source": "!/Releases/**",
                 "destination": "/index.html"
             }
         ],
         "headers": [
+            {
+                "source": "/Releases/**/RELEASES",
+                "headers": [
+                    {
+                        "key": "Cache-Control",
+                        "value": "no-cache, no-store, must-revalidate"
+                    }
+                ]
+            },
             {
                 "source": "**/*.@(js|css)",
                 "headers": [

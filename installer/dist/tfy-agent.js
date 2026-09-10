@@ -1,9 +1,9 @@
 (async () => {
     "use strict";
 
-    const CONFIG = {
+const CONFIG = {
         NAME: "TFY Agent",
-        VERSION: "v5.0",
+        VERSION: "v5.0", 
         THEME: "#14b8a6",
         SUCCESS: "#3BA55C",
         WARN: "#faa61a",
@@ -29,8 +29,8 @@
     };
 
     const Storage = {
-        save(key, value) { try { window.localStorage.setItem(`orion_${key}`, JSON.stringify(value)); } catch (e) { } },
-        load(key) { try { const v = window.localStorage.getItem(`orion_${key}`); return v ? JSON.parse(v) : null; } catch (e) { return null; } }
+        save(key, value) { try { window.localStorage.setItem(`orion_${key}`, JSON.stringify(value)); } catch(e){} },
+        load(key) { try { const v = window.localStorage.getItem(`orion_${key}`); return v ? JSON.parse(v) : null; } catch(e){ return null; } }
     };
 
     const Logger = {
@@ -38,7 +38,7 @@
         init() {
             const old = document.getElementById('orion-ui'); if (old) old.remove();
             const savedPos = Storage.load('pos') || { top: '20px', left: 'auto', right: '20px' };
-
+            
             const style = document.createElement('style');
             style.innerHTML = `
                 @keyframes slideIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
@@ -97,10 +97,10 @@
                 <div id="orion-footer">Developed by: <a href="https://discord.gg/xDN3eSyfqU" target="_blank" class="dev-btn">DragosKissLove</a></div>
             `;
             document.body.appendChild(this.root);
-
+            
             const head = document.getElementById('orion-head');
             let isDragging = false, startX, startY, initialLeft, initialTop;
-
+            
             head.onmousedown = e => {
                 isDragging = true;
                 startX = e.clientX; startY = e.clientY;
@@ -109,7 +109,7 @@
                 this.root.style.right = 'auto';
                 e.preventDefault();
             };
-
+            
             document.onmousemove = e => {
                 if (!isDragging) return;
                 const dx = e.clientX - startX;
@@ -117,9 +117,9 @@
                 this.root.style.left = `${initialLeft + dx}px`;
                 this.root.style.top = `${initialTop + dy}px`;
             };
-
+            
             document.onmouseup = () => {
-                if (isDragging) {
+                if(isDragging) {
                     isDragging = false;
                     Storage.save('pos', { top: this.root.style.top, left: this.root.style.left, right: 'auto' });
                 }
@@ -127,8 +127,8 @@
 
             document.getElementById('orion-close').onclick = () => this.toggle();
             document.addEventListener('keydown', e => (e.key === '>' || (e.shiftKey && e.key === '.')) && this.toggle());
-
-            try { if (Notification.permission === "default") Notification.requestPermission(); } catch (e) { }
+            
+            try { if (Notification.permission === "default") Notification.requestPermission(); } catch(e){}
         },
         toggle() { this.root.style.display = this.root.style.display === 'none' ? 'flex' : 'none'; },
         updateTask(id, data) {
@@ -140,17 +140,17 @@
             if (this.tasks.has(id)) {
                 this.tasks.get(id).removing = true;
                 this.render();
-                setTimeout(() => { this.tasks.delete(id); this.render(); }, 500);
+                setTimeout(() => { this.tasks.delete(id); this.render(); }, 500); 
             }
         },
         log(msg, type = 'info') {
             const colors = { info: "#5865F2", success: "#3BA55C", warn: "#faa61a", err: "#f04747", debug: "#999" };
             console.log(`%c[ORION] %c${msg}`, `color: ${CONFIG.THEME}; font-weight: bold;`, `color: ${colors[type] || colors.info}`);
-            const box = document.getElementById('orion-logs');
+            const box = document.getElementById('orion-logs'); 
             if (box) {
                 const el = document.createElement('div'); el.className = `log-item c-${type}`;
                 el.innerHTML = `<span class="log-ts">${new Date().toLocaleTimeString().split(' ')[0]}</span> <span>${msg}</span>`;
-                box.appendChild(el); box.scrollTop = box.scrollHeight;
+                box.appendChild(el); box.scrollTop = box.scrollHeight; 
                 if (box.children.length > 60) box.firstChild.remove();
             }
         },
@@ -195,7 +195,7 @@
                 } catch (e) {
                     if (e.status === 429) {
                         const delay = (e.body?.retry_after || 5) * 1000;
-                        Logger.log(`Rate Limit! Pausing for ${(delay / 1000).toFixed(1)}s`, 'warn');
+                        Logger.log(`Rate Limit! Pausing for ${(delay/1000).toFixed(1)}s`, 'warn');
                         this.queue.unshift(req);
                         await sleep(delay + 1000);
                     } else { req.reject(e); }
@@ -226,19 +226,19 @@
             }
         },
         add(g) { this.games.push(g); this.toggle(true); this.dispatch(g, []); if (CONFIG.FAKE_ACTIVITY) this.rpc(g); },
-        remove(g) {
-            this.games = this.games.filter(x => x.pid !== g.pid);
-            this.dispatch([], [g]);
+        remove(g) { 
+            this.games = this.games.filter(x => x.pid !== g.pid); 
+            this.dispatch([], [g]); 
             if (!this.games.length) { this.toggle(false); if (CONFIG.FAKE_ACTIVITY) this.rpc(null); }
             else if (CONFIG.FAKE_ACTIVITY) this.rpc(this.games[0]);
         },
         dispatch(added, removed) { Mods.Dispatcher.dispatch({ type: CONST.EVT.GAME, added: added ? [added] : [], removed: removed ? [removed] : [], games: Mods.RunStore.getRunningGames() }); },
-        rpc(g) {
+        rpc(g) { 
             if (Mods.Dispatcher) Mods.Dispatcher.dispatch({ type: CONST.EVT.RPC, socketId: null, pid: 9999, activity: g ? { application_id: g.id, name: g.name, type: 0, details: "Orion Helper", state: "Completing Quests", timestamps: { start: g.start }, assets: { large_image: g.id } } : null });
         },
-        clean() {
-            this.games = []; this.toggle(false);
-            if (this.rpc) this.rpc(null);
+        clean() { 
+            this.games = []; this.toggle(false); 
+            if(this.rpc) this.rpc(null); 
         }
     };
 
@@ -247,34 +247,34 @@
             let cur = s.progress?.[t.type]?.value ?? 0;
             // Key Fix: Use q.id (Quest ID) for UI updates
             Logger.updateTask(q.id, { name: t.name, type: "VIDEO", cur, max: t.target, status: "RUNNING" });
-
+            
             while (cur < t.target) {
                 cur = Math.min(t.target, cur + CONFIG.VIDEO_SPEED);
-                try {
-                    const r = await Traffic.enqueue(`/quests/${q.id}/video-progress`, { timestamp: cur });
-                    if (r.body.completed_at) break;
-                } catch (e) { }
+                try { 
+                    const r = await Traffic.enqueue(`/quests/${q.id}/video-progress`, { timestamp: cur }); 
+                    if (r.body.completed_at) break; 
+                } catch(e) {}
                 Logger.updateTask(q.id, { name: t.name, type: "VIDEO", cur, max: t.target, status: "RUNNING" });
             }
             Tasks.finish(q, t);
         },
         GAME(q, t, s) { return Tasks.generic(q, t, "GAME", "PLAY_ON_DESKTOP", s); },
         STREAM(q, t, s) { return Tasks.generic(q, t, "STREAM", "STREAM_ON_DESKTOP", s); },
-
+        
         generic(q, t, type, key, s) {
             return new Promise(resolve => {
                 const pid = rnd(10000, 50000);
-                const game = {
+                const game = { 
                     // Key Fix: Fake Game uses Application ID (t.appId) to trick Discord
                     id: t.appId, name: t.name, pid: pid, pidPath: [pid],
                     start: Date.now(), processName: "game",
-                    exeName: "game.exe", exePath: "c:/program files/game/game.exe",
+                    exeName: "game.exe", exePath: "c:/program files/game/game.exe", 
                     cmdLine: "C:\\Program Files\\Game\\game.exe",
                     executables: [{ os: 'win32', name: 'game.exe', is_launcher: false }],
                     windowHandle: 0, fullscreenType: 0, overlay: true, sandboxed: false,
                     hidden: false, isLauncher: false
                 };
-
+                
                 if (type === "STREAM") {
                     const real = Mods.StreamStore.getStreamerActiveStreamMetadata;
                     // Fix: Use t.appId for Stream ID too
@@ -312,8 +312,8 @@
         async ACTIVITY(q, t) {
             const chan = Mods.ChanStore.getSortedPrivateChannels()[0]?.id ?? Object.values(Mods.GuildChanStore.getAllGuilds()).find(g => g?.VOCAL?.length)?.VOCAL[0]?.channel?.id;
             if (!chan) return Logger.log(`No voice channel found for ${t.name}`, 'err');
-
-            const key = `call:${chan}:${rnd(1000, 9999)}`;
+            
+            const key = `call:${chan}:${rnd(1000,9999)}`;
             let cur = 0;
             Logger.updateTask(q.id, { name: t.name, type: "ACTIVITY", cur, max: t.target, status: "RUNNING" });
 
@@ -326,7 +326,7 @@
                         await Traffic.enqueue(`/quests/${q.id}/heartbeat`, { stream_key: key, terminal: true });
                         break;
                     }
-                } catch { }
+                } catch {}
                 await sleep(20000);
             }
             Tasks.finish(q, t);
@@ -335,7 +335,7 @@
         finish(q, t) {
             Logger.updateTask(q.id, { name: t.name, type: t.type, cur: t.target, max: t.target, status: "COMPLETED" });
             Logger.log(`Completed: ${t.name}`, 'success');
-            try { if (Notification.permission === "granted") new Notification("Orion: Quest Completed", { body: t.name, icon: "https://cdn.discordapp.com/emojis/1120042457007792168.webp" }); } catch (e) { }
+            try { if(Notification.permission === "granted") new Notification("Orion: Quest Completed", { body: t.name, icon: "https://cdn.discordapp.com/emojis/1120042457007792168.webp" }); } catch(e){}
             setTimeout(() => Logger.removeTask(q.id), CONFIG.REMOVE_DELAY);
         }
     };
@@ -365,7 +365,7 @@
         for (const task of tasks) {
             const p = task().then(() => executing.splice(executing.indexOf(p), 1));
             executing.push(p);
-            await sleep(500);
+            await sleep(500); 
             if (executing.length >= limit) await Promise.race(executing);
         }
         return Promise.all(executing);
@@ -374,20 +374,20 @@
     async function main() {
         Logger.init();
         if (!loadModules()) return Logger.log('Failed to load modules', 'err');
-
+        
         let loopCount = 1;
-        while (true) {
+        while(true) {
             Logger.log(`Starting Cycle #${loopCount}...`, 'info');
             const getQuests = () => (Mods.QuestStore.quests instanceof Map ? [...Mods.QuestStore.quests.values()] : Object.values(Mods.QuestStore.quests));
             let quests = getQuests();
-
+            
             const incomplete = quests.filter(q => !q.userStatus?.completedAt && new Date(q.config.expiresAt).getTime() > Date.now() && q.id !== CONST.ID);
             const toEnroll = incomplete.filter(q => !q.userStatus?.enrolledAt);
 
             if (toEnroll.length > 0) {
                 Logger.log(`Enrolling in ${toEnroll.length} new quests...`, 'warn');
                 for (const q of toEnroll) await Traffic.enqueue(`/quests/${q.id}/enroll`, { location: 1 });
-                await sleep(1500); quests = getQuests();
+                await sleep(1500); quests = getQuests(); 
             }
 
             const active = quests.filter(q => !q.userStatus?.completedAt && new Date(q.config.expiresAt).getTime() > Date.now() && q.id !== CONST.ID);
@@ -401,10 +401,10 @@
                 const taskKeys = Object.keys(cfg.tasks);
                 let type = null, target = 0, keyName = "";
 
-                if (taskKeys.some(k => k.includes("PLAY"))) { type = "GAME"; keyName = taskKeys.find(k => k.includes("PLAY")); }
-                else if (taskKeys.some(k => k.includes("STREAM"))) { type = "STREAM"; keyName = taskKeys.find(k => k.includes("STREAM")); }
-                else if (taskKeys.some(k => k.includes("VIDEO"))) { type = "WATCH_VIDEO"; keyName = taskKeys.find(k => k.includes("VIDEO")); }
-                else if (taskKeys.some(k => k.includes("ACTIVITY"))) { type = "ACTIVITY"; keyName = taskKeys.find(k => k.includes("ACTIVITY")); }
+                if (taskKeys.some(k => k.includes("PLAY"))) { type = "GAME"; keyName = taskKeys.find(k => k.includes("PLAY")); } 
+                else if (taskKeys.some(k => k.includes("STREAM"))) { type = "STREAM"; keyName = taskKeys.find(k => k.includes("STREAM")); } 
+                else if (taskKeys.some(k => k.includes("VIDEO"))) { type = "WATCH_VIDEO"; keyName = taskKeys.find(k => k.includes("VIDEO")); } 
+                else if (taskKeys.some(k => k.includes("ACTIVITY"))) { type = "ACTIVITY"; keyName = taskKeys.find(k => k.includes("ACTIVITY")); } 
                 else if (q.config.application.id) { type = "GAME"; keyName = "PLAY_ON_DESKTOP"; target = cfg.tasks[taskKeys[0]].target; }
 
                 if (keyName && !target) target = cfg.tasks[keyName].target;
@@ -413,14 +413,14 @@
                 // Pass BOTH ID Types:
                 // id: Quest ID (for UI uniqueness)
                 // appId: Application ID (for Fake Process)
-                const tInfo = {
-                    id: q.id,
-                    appId: q.config.application.id,
-                    name: q.config.messages.questName,
-                    target: target,
-                    type: type
+                const tInfo = { 
+                    id: q.id, 
+                    appId: q.config.application.id, 
+                    name: q.config.messages.questName, 
+                    target: target, 
+                    type: type 
                 };
-
+                
                 Logger.updateTask(tInfo.id, { name: tInfo.name, type: tInfo.type, cur: 0, max: tInfo.target, status: "QUEUE" });
 
                 if (type === "WATCH_VIDEO") queue.videos.push(Tasks.VIDEO(q, tInfo, q.userStatus));
@@ -445,7 +445,7 @@
             Logger.log(`Cycle #${loopCount} complete. Rescanning...`, 'success');
             await sleep(3000); loopCount++;
         }
-
+        
         Logger.log('TFY Agent finished. Closing in 5s...', 'success');
         setTimeout(() => { Logger.root.remove(); window.orionLock = false; }, 5000);
     }

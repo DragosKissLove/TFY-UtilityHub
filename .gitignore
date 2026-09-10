@@ -26,3 +26,39 @@ Desktop.ini
 
 # Accidental/placeholder files
 3.0.9)
+
+# Compiled and published files
+publish/
+publish_installer/
+*.exe
+Releases/
+Backups/
+TFY.Installer/*.zip
+TFY.Installer/extracted_*/
+bot/node_modules/
+*.nupkg
+
+# Large downloaded binaries
+spotdl.exe
+
+# Firebase hosting caches
+.firebase/
+.firebaserc
+
+# Temp / Scratch files
+scratch/
+scratch_*/
+scratch_*.*
+*.tmp
+*.log
+tmp_webhook_payload.json
+tmp_send_webhook.ps1
+steam_names_cache.json
+*.png.backup
+authentic_main_ui.png
+restored_settings*.png
+
+# Release & Webhook automation scripts (sensitive)
+send_announcement.py
+TFY_Release_Announcer.py
+send_release_webhook_*.ps1

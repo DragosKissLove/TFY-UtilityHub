@@ -5,13 +5,13 @@
 AppId={{TFY.Utility.Hub}}
 AppName=TFY Utility Hub Beta
 AppPublisher=DragosKissLove
-AppVersion=6.1.1
-AppVerName=TFY Utility Hub v6.1.1
+AppVersion=6.2.8
+AppVerName=TFY Utility Hub v6.2.8
 DefaultDirName={autopf}\TFY Utility Hub
 DefaultGroupName=TFY Utility Hub
 DisableProgramGroupPage=yes
 OutputDir=.
-OutputBaseFilename=TFY-UtilityHub-Setup-LATEST
+OutputBaseFilename=TFY-Setup-v6.2.8-Metadata
 Compression=lzma2
 SolidCompression=yes
 SetupIconFile=icon.ico
@@ -69,3 +69,4 @@ begin
     DelTree(ExpandConstant('{app}\project\dist'), True, True, True);
   end;
 end;
+

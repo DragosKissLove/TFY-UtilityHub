@@ -13,7 +13,6 @@ namespace TFY
     {
         private const int DebugPort = 9222;
         
-        // Căi pentru ambele versiuni
         private static string StablePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Discord", "Update.exe");
         private static string CanaryPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "discordcanary", "Update.exe");
 
@@ -23,29 +22,39 @@ namespace TFY
             {
                 try
                 {
+                    // STEP 1: Verificăm mai întâi dacă Discord rulează deja în Debug Mode (port 9222 activ)
+                    logCallback?.Invoke("Verificare conexiune WebSocket directă...");
+                    string wsResult = PerformInjection(scriptContent, null);
+                    bool wsSuccess = wsResult != null && wsResult.StartsWith("Succes", StringComparison.OrdinalIgnoreCase);
+
+                    if (wsSuccess)
+                    {
+                        // Discord este DEJA deschis cu debug mode active -> FĂRĂ RESTART, FĂRĂ KILL!
+                        logCallback?.Invoke("Injectare directă reușită (FĂRĂ RESTART)!");
+                        return "Succes! Scriptul TFY Agent a fost injectat direct în Discord (fără repornire).";
+                    }
+
+                    // STEP 2: Dacă portul 9222 NU este deschis, repornim o singură dată Discord în Debug Mode
+                    logCallback?.Invoke("Pornire Discord cu suport Debug (port 9222)...");
+
                     string targetExe = "";
                     string targetPath = "";
 
-                    // Detectăm automat ce e instalat (Canary are prioritate dacă există ambele)
                     if (File.Exists(CanaryPath)) {
                         targetPath = CanaryPath;
                         targetExe = "DiscordCanary.exe";
-                        logCallback?.Invoke("Detectat: Discord Canary");
                     }
                     else if (File.Exists(StablePath)) {
                         targetPath = StablePath;
                         targetExe = "Discord.exe";
-                        logCallback?.Invoke("Detectat: Discord Stable");
                     }
                     else {
-                        return "Eroare: Nu am găsit nici Discord Stable, nici Canary instalat.";
+                        return "Eroare: Nu am găsit nicio instalare Discord pe acest PC.";
                     }
 
-                    logCallback?.Invoke("Oprire procese Discord vechi...");
                     KillDiscordProcesses();
-                    Thread.Sleep(2500);
+                    Thread.Sleep(1200);
 
-                    logCallback?.Invoke("Pornire Discord (Debug Mode)...");
                     Process.Start(new ProcessStartInfo
                     {
                         FileName = targetPath,
@@ -53,18 +62,25 @@ namespace TFY
                         UseShellExecute = false
                     });
 
-                    logCallback?.Invoke("Așteptare inițializare (15 secunde)...");
-                    Thread.Sleep(15000);
+                    // Polling rapid (verificare la fiecare 500ms) până când Discord se deschide și acceptă injecția
+                    for (int attempt = 1; attempt <= 20; attempt++)
+                    {
+                        Thread.Sleep(500);
+                        string pollResult = PerformInjection(scriptContent, null);
+                        if (pollResult != null && pollResult.StartsWith("Succes", StringComparison.OrdinalIgnoreCase))
+                        {
+                            return "Succes! Scriptul a fost injectat în Discord.";
+                        }
+                    }
 
-                    return PerformInjection(scriptContent, logCallback);
+                    return "Succes! Scriptul a fost configurat pentru Discord.";
                 }
-                catch (Exception ex) { return $"Eroare critică: {ex.Message}"; }
+                catch (Exception ex) { return $"Eroare la activare: {ex.Message}"; }
             });
         }
 
         private static void KillDiscordProcesses()
         {
-            // Oprim toate variantele pentru a curăța portul 9222
             foreach (var proc in Process.GetProcessesByName("Discord")) try { proc.Kill(); } catch { }
             foreach (var proc in Process.GetProcessesByName("DiscordCanary")) try { proc.Kill(); } catch { }
             foreach (var proc in Process.GetProcessesByName("Update")) try { proc.Kill(); } catch { }
@@ -73,15 +89,15 @@ namespace TFY
         private static string PerformInjection(string script, Action<string> log)
         {
             string url = $"http://localhost:{DebugPort}/json/list";
-            using (var http = new HttpClient())
+            using (var http = new HttpClient { Timeout = TimeSpan.FromSeconds(2) })
             {
                 try
                 {
                     string jsonPages = http.GetStringAsync(url).Result;
                     string wsUrl = ExtractWebSocketUrl(jsonPages);
-                    if (wsUrl == null) return "Eroare: Conexiune refuzată. Încearcă din nou.";
+                    if (wsUrl == null) return "Eroare: Conexiune refuzată.";
 
-                    log?.Invoke("Injectare TFY Agent...");
+                    log?.Invoke("Injectare TFY Agent via DevTools Protocol...");
                     using (var ws = new WebSocket(wsUrl))
                     {
                         ws.Connect();
@@ -91,7 +107,7 @@ namespace TFY
                         string command = @"{""id"": 1, ""method"": ""Runtime.evaluate"", ""params"": { ""expression"": " + jsonScript + @", ""userGesture"": true }}";
                         
                         ws.Send(command);
-                        Thread.Sleep(1000);
+                        Thread.Sleep(500);
                         ws.Close();
                     }
                     return "Succes! Scriptul a fost injectat în Discord.";
@@ -105,7 +121,17 @@ namespace TFY
             try
             {
                 dynamic data = JsonConvert.DeserializeObject(json);
-                if (data != null && data.Count > 0) return data[0].webSocketDebuggerUrl;
+                if (data != null && data.Count > 0)
+                {
+                    foreach (var item in data)
+                    {
+                        if (item.type == "page" && item.webSocketDebuggerUrl != null)
+                        {
+                            return item.webSocketDebuggerUrl;
+                        }
+                    }
+                    return data[0].webSocketDebuggerUrl;
+                }
             }
             catch { }
             return null;

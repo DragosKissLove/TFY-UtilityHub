@@ -9,8 +9,30 @@ namespace TFY
 {
     public partial class App : Application
     {
-        internal const string UpdateUrl = "https://tfy-project.web.app/Releases";
+        private static string SettingsPath =>
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "TFY", "settings.json");
+
+        internal static string UpdateUrl
+        {
+            get
+            {
+                try
+                {
+                    if (File.Exists(SettingsPath))
+                    {
+                        string json = File.ReadAllText(SettingsPath);
+                        if (json.Contains("\"betaChannel\":true") || json.Contains("\"betaChannel\": true"))
+                        {
+                            return "https://tfy-project.web.app/Releases/beta/";
+                        }
+                    }
+                }
+                catch { }
+                return "https://tfy-project.web.app/Releases/stable/";
+            }
+        }
         public HardwareMonitorService? HardwareMonitor { get; private set; }
+        private static System.Threading.Mutex? _appMutex;
         private static string LogPath =>
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "TFY", "boot.log");
 
@@ -18,27 +40,47 @@ namespace TFY
         {
             try
             {
-                VelopackApp.Build().Run();
-            }
-            catch (Exception ex)
-            {
-                // Guard against Velopack install/uninstall hook crashes
-                WriteLog("Velopack hook error: " + ex.Message);
-            }
+                WriteLog("OnStartup initiated. Args: " + string.Join(" ", e.Args));
+                try
+                {
+                    VelopackApp.Build().Run();
+                }
+                catch (Exception ex)
+                {
+                    WriteLog("Velopack hook error: " + ex.Message);
+                }
 
-            SetupCrashLogging();
-            WriteLog("App starting");
-            try
-            {
-                HardwareMonitor = new HardwareMonitorService();
+                // Single Instance Protection
+                const string mutexName = "Global\\TFY_Utility_Hub_Single_Instance_Mutex";
+                _appMutex = new System.Threading.Mutex(true, mutexName, out bool createdNew);
+                if (!createdNew)
+                {
+                    WriteLog("Single instance mutex exists, exiting duplicate instance.");
+                    _appMutex.Dispose();
+                    _appMutex = null;
+                    Application.Current.Shutdown();
+                    return;
+                }
+
+                SetupCrashLogging();
+                WriteLog("App starting");
+                try
+                {
+                    HardwareMonitor = new HardwareMonitorService();
+                }
+                catch (Exception ex)
+                {
+                    WriteLog("Hardware monitor init failed: " + ex);
+                    HardwareMonitor = null;
+                }
+                TryUpdateInBackground();
+                base.OnStartup(e);
             }
-            catch (Exception ex)
+            catch (Exception fatalEx)
             {
-                WriteLog("Hardware monitor init failed: " + ex);
-                HardwareMonitor = null;
+                WriteLog("FATAL OnStartup EXCEPTION: " + fatalEx);
+                MessageBox.Show("Fatal Startup Error: " + fatalEx.ToString(), "TFY Startup Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
-            TryUpdateInBackground();
-            base.OnStartup(e);
         }
 
 
@@ -77,8 +119,24 @@ namespace TFY
             {
                 try
                 {
-                    var manager = new UpdateManager(UpdateUrl);
-                    var update = await manager.CheckForUpdatesAsync();
+                    Velopack.UpdateInfo? update = null;
+                    try
+                    {
+                        var manager = new UpdateManager(new Velopack.Sources.SimpleWebSource(UpdateUrl));
+                        update = await manager.CheckForUpdatesAsync();
+                    }
+                    catch { }
+
+                    if (update == null)
+                    {
+                        try
+                        {
+                            var manager = new UpdateManager(new Velopack.Sources.GithubSource("https://github.com/DragosKissLove/TFY-UtilityHub-Releases", null, false));
+                            update = await manager.CheckForUpdatesAsync();
+                        }
+                        catch { }
+                    }
+
                     if (update == null)
                     {
                         WriteLog("Updater: no updates available.");

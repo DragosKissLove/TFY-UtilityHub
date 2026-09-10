@@ -44,7 +44,10 @@ namespace TFY
         private readonly Cs2ConfigService _cs2ConfigService = new Cs2ConfigService();
         private readonly FortniteConfigService _fortniteConfig = new FortniteConfigService();
         private readonly HttpClient _httpClient = new HttpClient();
+        private readonly DiscordRpcService _discordRpc = new DiscordRpcService();
         private DispatcherTimer _statsTimer;
+        private bool _isRefreshingDiscord = false;
+        private readonly object _discordLock = new object();
         private bool _premiumEnabled;
         private bool _premiumResolved;
         private bool _testingEnabled;
@@ -55,14 +58,16 @@ namespace TFY
         private bool _debloaterLoading;
         private List<DebloaterApp> _debloaterDesktopCache = new List<DebloaterApp>();
         private List<DebloaterApp> _debloaterStoreCache = new List<DebloaterApp>();
+        private List<DebloaterApp> _debloaterStartupCache = new List<DebloaterApp>();
         private readonly List<string> _sessionDebugLogs = new List<string>();
         private readonly object _sessionLogLock = new object();
         private string _uiBuildKey = "default";
+        private static int _savedRobloxVolume = 100;
 
         public MainWindow()
         {
             InitializeComponent();
-            ClearPremiumCache();
+            _premiumEnabled = LoadPremiumState();
             Console.WriteLine("[TFY] App Starting...");
 
             var app = Application.Current as App;
@@ -88,6 +93,7 @@ namespace TFY
                 {
                     _hardwareMonitor?.Stop();
                 }
+                _discordRpc?.Deinitialize();
             };
         }
 
@@ -170,11 +176,10 @@ namespace TFY
 
                 string userDataFolder = Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                    "TFY",
-                    "WebView2"
+                    "TFY_WebView2"
                 );
-                Directory.CreateDirectory(userDataFolder);
-                var env = await CoreWebView2Environment.CreateAsync(null, userDataFolder);
+                var options = new CoreWebView2EnvironmentOptions("--allow-file-access-from-files --disable-web-security");
+                var env = await CoreWebView2Environment.CreateAsync(null, userDataFolder, options);
                 await webView.EnsureCoreWebView2Async(env);
                 
                 // Prevent white/black flash during initialization
@@ -193,42 +198,72 @@ namespace TFY
 
                 // Security: disable developer tools and inspect access
                 var settings = webView.CoreWebView2.Settings;
-                settings.AreDevToolsEnabled = false;
-                settings.AreDefaultContextMenusEnabled = false;
+                settings.AreDevToolsEnabled = true;
+                settings.AreDefaultContextMenusEnabled = true;
                 settings.IsStatusBarEnabled = false;
                 settings.IsZoomControlEnabled = false;
-                settings.AreDefaultScriptDialogsEnabled = false;
+                settings.AreDefaultScriptDialogsEnabled = true;
+
+                // Intercept downloads to hide the Edge popup and use a native save dialog
+                webView.CoreWebView2.DownloadStarting += (s, e) =>
+                {
+                    e.Handled = true; // Hide the default Edge download UI
+                    var dlg = new Microsoft.Win32.SaveFileDialog();
+                    dlg.FileName = Path.GetFileName(e.ResultFilePath);
+                    if (dlg.ShowDialog() == true)
+                    {
+                        e.ResultFilePath = dlg.FileName;
+                    }
+                    else
+                    {
+                        e.Cancel = true;
+                    }
+                };
 
                 if (Directory.Exists(projectPath) && File.Exists(Path.Combine(projectPath, "index.html")))
                 {
                     webView.CoreWebView2.SetVirtualHostNameToFolderMapping("tfy.app", projectPath, CoreWebView2HostResourceAccessKind.Allow);
                     
-                    if (uiChanged)
+                    try
                     {
-                        Console.WriteLine("[TFY] UI Version changed. Clearing browser cache...");
-                        await webView.CoreWebView2.Profile.ClearBrowsingDataAsync();
+                        await webView.CoreWebView2.Profile.ClearBrowsingDataAsync(
+                            Microsoft.Web.WebView2.Core.CoreWebView2BrowsingDataKinds.CacheStorage | 
+                            Microsoft.Web.WebView2.Core.CoreWebView2BrowsingDataKinds.DiskCache);
                     }
+                    catch { }
 
                     // Always evict the stale version badge so the new assembly version
                     // sent via PostAppVersion() always wins over any cached localStorage value.
                     string currentVer = GetAppVersion();
-                    await webView.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(
-                        $"try {{ localStorage.removeItem('tfy.appVersion'); localStorage.removeItem('tfy.uiBuild'); }} catch {{}}");
+                    await webView.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(@"
+                        try { localStorage.removeItem('tfy.appVersion'); localStorage.removeItem('tfy.uiBuild'); } catch {}
+                        window.onerror = function(msg, url, line, col, err) {
+                            if (window.chrome && window.chrome.webview) {
+                                window.chrome.webview.postMessage('js-error|' + msg + ' at ' + url + ':' + line + ':' + col + (err ? ' ' + err.stack : ''));
+                            }
+                        };
+                        window.addEventListener('unhandledrejection', function(e) {
+                            if (window.chrome && window.chrome.webview) {
+                                window.chrome.webview.postMessage('js-error|Unhandled rejection: ' + (e.reason ? (e.reason.stack || e.reason) : 'unknown'));
+                            }
+                        });
+                    ");
 
                     bool initialNav = true;
-                    // Prioritize local build (tfy.app) for instant responsiveness and dev sync
-                    // Fallback to Firebase Hosting if local files are missing
-                    string localUrl = $"http://tfy.app/index.html?v={Uri.EscapeDataString(cacheKey)}";
+                    string timeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
+                    string localUrl = $"https://tfy.app/index.html?t={timeStamp}";
+                    string fileUrl = new Uri(Path.Combine(projectPath, "index.html")).AbsoluteUri + $"?t={timeStamp}";
+                    AddSessionLog($"[WebView2] Navigating to {localUrl} (fallback: {fileUrl}) with projectPath={projectPath}");
                     webView.CoreWebView2.Navigate(localUrl);
 
                     webView.CoreWebView2.NavigationCompleted += async (s, e) =>
                     {
+                        AddSessionLog($"[WebView2 NavCompleted] IsSuccess={e.IsSuccess}, Status={e.WebErrorStatus}, URL={webView.Source}");
                         if (!e.IsSuccess && initialNav)
                         {
                             initialNav = false;
-                            string firebaseUrl = $"https://tfy-project.web.app/?t={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
-                            Console.WriteLine($"[TFY] Local UI failed ({e.WebErrorStatus}). Falling back to Firebase Hosting...");
-                            webView.CoreWebView2.Navigate(firebaseUrl);
+                            AddSessionLog($"[TFY] Virtual host UI failed ({e.WebErrorStatus}). Falling back to file:// URL...");
+                            webView.CoreWebView2.Navigate(fileUrl);
                             return;
                         }
 
@@ -240,9 +275,38 @@ namespace TFY
                             string json = JsonConvert.SerializeObject(new { type = "specs", data = specs });
                             webView.CoreWebView2.PostWebMessageAsJson(json);
 
-                            var discordState = await _discordAuth.GetStateAsync();
-                            string discordJson = JsonConvert.SerializeObject(new { type = "discord", data = discordState });
-                            webView.CoreWebView2.PostWebMessageAsJson(discordJson);
+                            var cachedDiscordState = _discordAuth.GetCachedState();
+                            string cachedDiscordJson = JsonConvert.SerializeObject(new { type = "discord", data = cachedDiscordState });
+                            webView.CoreWebView2.PostWebMessageAsJson(cachedDiscordJson);
+
+                            _ = Task.Run(async () =>
+                            {
+                                lock (_discordLock)
+                                {
+                                    if (_isRefreshingDiscord) return;
+                                    _isRefreshingDiscord = true;
+                                }
+                                try
+                                {
+                                    var freshState = await _discordAuth.GetStateAsync();
+                                    Dispatcher.Invoke(() =>
+                                    {
+                                        string freshJson = JsonConvert.SerializeObject(new { type = "discord", data = freshState });
+                                        webView.CoreWebView2.PostWebMessageAsJson(freshJson);
+                                    });
+                                }
+                                catch (Exception ex)
+                                {
+                                    Console.WriteLine("[TFY] Startup Discord state refresh failed: " + ex.Message);
+                                }
+                                finally
+                                {
+                                    lock (_discordLock)
+                                    {
+                                        _isRefreshingDiscord = false;
+                                    }
+                                }
+                            });
 
                             _premiumEnabled = await ResolvePremiumAsync();
                             string premiumJson = JsonConvert.SerializeObject(new { type = "premium", data = new { enabled = _premiumEnabled } });
@@ -277,7 +341,205 @@ namespace TFY
                     AddSessionLog($"WebMessageReceived: {message}");
                     if (message == "close") Close();
                     if (message == "minimize") WindowState = WindowState.Minimized;
+
+                    if (message != null && message.StartsWith("{") && message.Contains("set-update-channel"))
+                    {
+                        try
+                        {
+                            dynamic jsonMsg = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(message);
+                            if (jsonMsg.type == "set-update-channel")
+                            {
+                                bool beta = jsonMsg.data?.beta == true;
+                                string settingsFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "TFY");
+                                Directory.CreateDirectory(settingsFolder);
+                                string settingsPath = Path.Combine(settingsFolder, "settings.json");
+                                File.WriteAllText(settingsPath, $"{{\"betaChannel\":{beta.ToString().ToLower()}}}");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"[TFY] set-update-channel error: {ex.Message}");
+                        }
+                    }
                     
+                    if (message != null && message.StartsWith("{") && message.Contains("media-downloader"))
+                    {
+                        try
+                        {
+                            dynamic jsonMsg = JsonConvert.DeserializeObject<dynamic>(message);
+                            if (jsonMsg.type == "media-downloader")
+                            {
+                                string action = jsonMsg.action;
+                                var downloader = new Services.MediaDownloaderService();
+                                if (action == "check")
+                                {
+                                    bool installed = downloader.IsEngineInstalled();
+                                    string res = JsonConvert.SerializeObject(new { type = "media-downloader", action = "status", installed = installed });
+                                    webView.CoreWebView2.PostWebMessageAsJson(res);
+                                }
+                                else if (action == "install")
+                                {
+                                    _ = Task.Run(async () =>
+                                    {
+                                        try {
+                                            await downloader.InstallEngineAsync((percent) =>
+                                            {
+                                                string res = JsonConvert.SerializeObject(new { type = "media-downloader", action = "install-progress", progress = percent });
+                                                Dispatcher.Invoke(() => webView.CoreWebView2.PostWebMessageAsJson(res));
+                                            });
+                                            string resDone = JsonConvert.SerializeObject(new { type = "media-downloader", action = "status", installed = true });
+                                            Dispatcher.Invoke(() => webView.CoreWebView2.PostWebMessageAsJson(resDone));
+                                        } catch (Exception ex) {
+                                            string resErr = JsonConvert.SerializeObject(new { type = "media-downloader", action = "error", message = ex.Message });
+                                            Dispatcher.Invoke(() => webView.CoreWebView2.PostWebMessageAsJson(resErr));
+                                        }
+                                    });
+                                }
+                                else if (action == "download")
+                                {
+                                    string url = jsonMsg.url;
+                                    string format = jsonMsg.format;
+                                    
+                                    _ = Task.Run(async () =>
+                                    {
+                                        try {
+                                            bool isPlaylist = url.Contains("playlist", StringComparison.OrdinalIgnoreCase) || 
+                                                              url.Contains("&list=", StringComparison.OrdinalIgnoreCase) || 
+                                                              url.Contains("album", StringComparison.OrdinalIgnoreCase);
+
+                                            string title = await downloader.GetMediaTitleAsync(url, isPlaylist);
+                                            string safeTitle = string.Join("_", title.Split(System.IO.Path.GetInvalidFileNameChars()));
+                                            
+                                            Dispatcher.Invoke(() => 
+                                            {
+                                                string outPath = null;
+                                                bool selected = false;
+
+                                                if (isPlaylist)
+                                                {
+                                                    var dlg = new Microsoft.Win32.OpenFolderDialog
+                                                    {
+                                                        Title = "Select Folder to Save Playlist",
+                                                        InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyMusic)
+                                                    };
+                                                    
+                                                    if (dlg.ShowDialog() == true)
+                                                    {
+                                                        outPath = dlg.FolderName;
+                                                        selected = true;
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    var dlg = new Microsoft.Win32.SaveFileDialog
+                                                    {
+                                                        Title = "Save Media As",
+                                                        FileName = safeTitle,
+                                                        Filter = format == "mp3" ? "Audio File (*.mp3)|*.mp3" : "Video File (*.mp4)|*.mp4"
+                                                    };
+                                                    
+                                                    if (dlg.ShowDialog() == true)
+                                                    {
+                                                        outPath = dlg.FileName;
+                                                        selected = true;
+                                                    }
+                                                }
+
+                                                if (selected && !string.IsNullOrEmpty(outPath))
+                                                {
+                                                    _ = Task.Run(async () =>
+                                                    {
+                                                        try {
+                                                            await downloader.DownloadMediaAsync(url, format, outPath, isPlaylist, (percent) =>
+                                                            {
+                                                                string res = JsonConvert.SerializeObject(new { type = "media-downloader", action = "download-progress", progress = percent });
+                                                                Dispatcher.Invoke(() => webView.CoreWebView2.PostWebMessageAsJson(res));
+                                                            });
+                                                            string resDone = JsonConvert.SerializeObject(new { type = "media-downloader", action = "download-done", success = true, path = outPath });
+                                                            Dispatcher.Invoke(() => webView.CoreWebView2.PostWebMessageAsJson(resDone));
+                                                        } catch (Exception ex) {
+                                                            string resErr = JsonConvert.SerializeObject(new { type = "media-downloader", action = "error", message = ex.Message });
+                                                            Dispatcher.Invoke(() => webView.CoreWebView2.PostWebMessageAsJson(resErr));
+                                                        }
+                                                    });
+                                                }
+                                                else
+                                                {
+                                                    string resCancel = JsonConvert.SerializeObject(new { type = "media-downloader", action = "download-done", success = false });
+                                                    webView.CoreWebView2.PostWebMessageAsJson(resCancel);
+                                                }
+                                            });
+                                        } catch (Exception ex) {
+                                            string resErr = JsonConvert.SerializeObject(new { type = "media-downloader", action = "error", message = "Failed to fetch title: " + ex.Message });
+                                            Dispatcher.Invoke(() => webView.CoreWebView2.PostWebMessageAsJson(resErr));
+                                        }
+                                    });
+                                }
+                                return; // Handled
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"[MediaDownloader] Error parsing JSON: {ex.Message}");
+                        }
+                    }
+
+                    if (message != null && message.StartsWith("discord-rpc-toggle|"))
+                    {
+                        string val = message.Split('|')[1];
+                        _discordRpc.SetEnabled(val.ToLower() == "true");
+                    }
+                    if (message != null && message.StartsWith("discord-rpc-status|"))
+                    {
+                        string status = message.Substring("discord-rpc-status|".Length);
+                        _discordRpc.UpdatePresence(status);
+                    }
+                    if (message != null && message.StartsWith("app-startup-toggle|"))
+                    {
+                        try {
+                            bool enable = message.Split('|')[1].ToLower() == "true";
+                            string runKey = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run";
+                            using (var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(runKey, true))
+                            {
+                                if (key != null)
+                                {
+                                    if (enable)
+                                    {
+                                        string exePath = System.Reflection.Assembly.GetEntryAssembly().Location;
+                                        if (exePath.EndsWith(".dll"))
+                                        {
+                                            exePath = System.IO.Path.ChangeExtension(exePath, "exe");
+                                        }
+                                        key.SetValue("TFYUtilityHub", $"\"{exePath}\"");
+                                    }
+                                    else
+                                    {
+                                        key.DeleteValue("TFYUtilityHub", false);
+                                    }
+                                }
+                            }
+                        } catch (Exception ex) {
+                            Console.WriteLine($"[TFY] Startup Toggle Error: {ex.Message}");
+                        }
+                    }
+                    if (message == "app-startup-get")
+                    {
+                        try {
+                            string runKey = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run";
+                            bool enabled = false;
+                            using (var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(runKey, false))
+                            {
+                                if (key != null)
+                                {
+                                    enabled = key.GetValue("TFYUtilityHub") != null;
+                                }
+                            }
+                            string res = JsonConvert.SerializeObject(new { type = "app-startup-status", enabled = enabled });
+                            webView.CoreWebView2.PostWebMessageAsJson(res);
+                        } catch (Exception ex) {
+                            Console.WriteLine($"[TFY] Startup Get Error: {ex.Message}");
+                        }
+                    }
                     if (message == "window-drag")
                     {
                         try
@@ -289,6 +551,74 @@ namespace TFY
                         catch { }
                     }
 
+
+                    if (message == "steam-get-installed-games")
+                    {
+                        _ = Task.Run(() =>
+                        {
+                            try
+                            {
+                                var games = Services.SteamUnlockerService.GetLibraryGames();
+                                string res = JsonConvert.SerializeObject(new { type = "steam-installed-games-result", data = games });
+                                Dispatcher.Invoke(() => webView.CoreWebView2.PostWebMessageAsJson(res));
+                            }
+                            catch (Exception ex)
+                            {
+                                string resErr = JsonConvert.SerializeObject(new { type = "steam-installed-games-result", error = ex.Message });
+                                Dispatcher.Invoke(() => webView.CoreWebView2.PostWebMessageAsJson(resErr));
+                            }
+                        });
+                    }
+
+                    if (message != null && message.StartsWith("steam-achievement-query|"))
+                    {
+                        string appId = message.Substring("steam-achievement-query|".Length);
+                        _ = Task.Run(() =>
+                        {
+                            try
+                            {
+                                string output = Services.SteamUnlockerService.QueryAchievements(appId);
+                                string res = JsonConvert.SerializeObject(new { type = "steam-achievement-query-result", appId = appId, rawJson = output });
+                                Dispatcher.Invoke(() => webView.CoreWebView2.PostWebMessageAsJson(res));
+                            }
+                            catch (Exception ex)
+                            {
+                                string resErr = JsonConvert.SerializeObject(new { type = "steam-achievement-query-result", appId = appId, error = ex.Message });
+                                Dispatcher.Invoke(() => webView.CoreWebView2.PostWebMessageAsJson(resErr));
+                            }
+                        });
+                    }
+
+                    if (message != null && message.StartsWith("steam-achievement-commit|"))
+                    {
+                        string payloadStr = message.Substring("steam-achievement-commit|".Length);
+                        _ = Task.Run(() =>
+                        {
+                            string appId = "";
+                            try
+                            {
+                                int colonIndex = payloadStr.IndexOf(':');
+                                if (colonIndex > 0)
+                                {
+                                    appId = payloadStr.Substring(0, colonIndex);
+                                    string jsonPayload = payloadStr.Substring(colonIndex + 1);
+
+                                    string output = Services.SteamUnlockerService.CommitAchievements(appId, jsonPayload);
+                                    string res = JsonConvert.SerializeObject(new { type = "steam-achievement-commit-result", appId = appId, rawJson = output });
+                                    Dispatcher.Invoke(() => webView.CoreWebView2.PostWebMessageAsJson(res));
+                                }
+                                else
+                                {
+                                    throw new Exception("Invalid commit message format. Expected 'appId:JSON_payload'.");
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                string resErr = JsonConvert.SerializeObject(new { type = "steam-achievement-commit-result", appId = appId, error = ex.Message });
+                                Dispatcher.Invoke(() => webView.CoreWebView2.PostWebMessageAsJson(resErr));
+                            }
+                        });
+                    }
 
                     if (message != null && message.StartsWith("discord-login"))
                     {
@@ -302,6 +632,18 @@ namespace TFY
                             var state = await _discordAuth.LoginAsync(theme);
                             string discordJson = JsonConvert.SerializeObject(new { type = "discord", data = state });
                             webView.CoreWebView2.PostWebMessageAsJson(discordJson);
+
+                            // Force re-evaluation of premium and testing roles for the new user session
+                            _premiumResolved = false;
+                            _testingResolved = false;
+                            
+                            _premiumEnabled = await ResolvePremiumAsync();
+                            string premiumJson = JsonConvert.SerializeObject(new { type = "premium", data = new { enabled = _premiumEnabled } });
+                            webView.CoreWebView2.PostWebMessageAsJson(premiumJson);
+
+                            _testingEnabled = await ResolveTestingAsync();
+                            string testingJson = JsonConvert.SerializeObject(new { type = "testing", data = new { enabled = _testingEnabled } });
+                            webView.CoreWebView2.PostWebMessageAsJson(testingJson);
                         }
                         catch (Exception ex)
                         {
@@ -311,14 +653,43 @@ namespace TFY
 
                     if (message == "discord-get")
                     {
-                        var discordState = await _discordAuth.GetStateAsync();
-                        string discordJson = JsonConvert.SerializeObject(new { type = "discord", data = discordState });
-                        webView.CoreWebView2.PostWebMessageAsJson(discordJson);
+                        var cachedDiscordState = _discordAuth.GetCachedState();
+                        string cachedDiscordJson = JsonConvert.SerializeObject(new { type = "discord", data = cachedDiscordState });
+                        webView.CoreWebView2.PostWebMessageAsJson(cachedDiscordJson);
+
+                        _ = Task.Run(async () =>
+                        {
+                            lock (_discordLock)
+                            {
+                                if (_isRefreshingDiscord) return;
+                                _isRefreshingDiscord = true;
+                            }
+                            try
+                            {
+                                var freshState = await _discordAuth.GetStateAsync();
+                                Dispatcher.Invoke(() =>
+                                {
+                                    string freshJson = JsonConvert.SerializeObject(new { type = "discord", data = freshState });
+                                    webView.CoreWebView2.PostWebMessageAsJson(freshJson);
+                                });
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine("[TFY] Background Discord status update failed: " + ex.Message);
+                            }
+                            finally
+                            {
+                                lock (_discordLock)
+                                {
+                                    _isRefreshingDiscord = false;
+                                }
+                            }
+                        });
                     }
                     if (message == "discord-logout")
                     {
                         await _discordAuth.LogoutAsync();
-                        string discordJson = JsonConvert.SerializeObject(new { type = "discord", data = new { connected = false } });
+                        string discordJson = JsonConvert.SerializeObject(new { type = "discord", data = new { connected = false, isLogout = true } });
                         webView.CoreWebView2.PostWebMessageAsJson(discordJson);
                     }
 
@@ -331,16 +702,89 @@ namespace TFY
 
                     if (message == "premium-get")
                     {
+                        _premiumResolved = false;
                         _premiumEnabled = await ResolvePremiumAsync();
                         string premiumJson = JsonConvert.SerializeObject(new { type = "premium", data = new { enabled = _premiumEnabled } });
                         webView.CoreWebView2.PostWebMessageAsJson(premiumJson);
                     }
                     if (message == "testing-get")
                     {
+                        _testingResolved = false;
                         _testingEnabled = await ResolveTestingAsync();
                         string testingJson = JsonConvert.SerializeObject(new { type = "testing", data = new { enabled = _testingEnabled } });
                         webView.CoreWebView2.PostWebMessageAsJson(testingJson);
                     }
+
+                    if (message == "app-path-get")
+                    {
+                        try {
+                            var appDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "TFY");
+                            string res = JsonConvert.SerializeObject(new { type = "app-path", data = new { path = appDataPath } });
+                            webView.CoreWebView2.PostWebMessageAsJson(res);
+                        } catch { }
+                    }
+                    if (message == "defender-exclude-add")
+                    {
+                        try
+                        {
+                            var appDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "TFY");
+                            string safePath = appDataPath.Replace("'", "''");
+                            var startInfo = new ProcessStartInfo
+                            {
+                                FileName = "powershell.exe",
+                                Arguments = $"-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -Command \"if (Get-Command Add-MpPreference -ErrorAction SilentlyContinue) {{ try {{ Add-MpPreference -ExclusionPath '{safePath}' -ErrorAction Stop; Add-MpPreference -ExclusionProcess 'TFY.exe' -ErrorAction Stop }} catch {{ exit 1 }} }} else {{ exit 0 }}\"",
+                                UseShellExecute = true,
+                                CreateNoWindow = true,
+                                Verb = "runas"
+                            };
+                            using (var proc = Process.Start(startInfo))
+                            {
+                                await Task.Run(() => proc?.WaitForExit());
+                                bool ok = proc?.ExitCode == 0;
+                                string response = JsonConvert.SerializeObject(new { type = "defender-exclude-status", data = new { success = ok } });
+                                webView.CoreWebView2.PostWebMessageAsJson(response);
+                                if (ok)
+                                {
+                                    PostInAppNotification("success", "Windows Defender Exclusions", "Folder successfully added to Defender exclusions!", 5000);
+                                }
+                                else
+                                {
+                                    PostInAppNotification("error", "Windows Defender Exclusions", "Failed to add exclusions. Try adding manually.", 6000);
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            string response = JsonConvert.SerializeObject(new { type = "defender-exclude-status", data = new { success = false, error = ex.Message } });
+                            webView.CoreWebView2.PostWebMessageAsJson(response);
+                            PostInAppNotification("error", "Exclusion Error", ex.Message, 6000);
+                        }
+                    }
+                    if (message == "defender-open-settings")
+                    {
+                        try
+                        {
+                            Process.Start(new ProcessStartInfo
+                            {
+                                FileName = "ms-settings:windowsdefender",
+                                UseShellExecute = true
+                            });
+                        }
+                        catch
+                        {
+                            try
+                            {
+                                Process.Start(new ProcessStartInfo
+                                {
+                                    FileName = "explorer.exe",
+                                    Arguments = "windowssecurity://virus-threat",
+                                    UseShellExecute = true
+                                });
+                            }
+                            catch { }
+                        }
+                    }
+
                     if (message == "update-check")
                     {
                         await CheckForUpdatesAsync(true);
@@ -368,6 +812,270 @@ namespace TFY
                     {
                         await ExportDebugLogsAsync();
                     }
+
+                    // Roblox MultiRoblox Handlers
+                    if (message == "roblox-status")
+                    {
+                        var payload = JsonConvert.SerializeObject(new
+                        {
+                            type = "roblox-status",
+                            data = new
+                            {
+                                active = RobloxService.IsMultiInstanceActive,
+                                count = RobloxService.GetRunningRobloxCount(),
+                                pids = RobloxService.GetRunningRobloxPids(),
+                                antiAfk = RobloxService.IsAntiAfkActive
+                            }
+                        });
+                        webView.CoreWebView2.PostWebMessageAsJson(payload);
+                    }
+                    if (message == "roblox-multi-toggle")
+                    {
+                        bool active = RobloxService.ToggleMultiInstance(out string msg);
+                        var payload = JsonConvert.SerializeObject(new
+                        {
+                            type = "roblox-status",
+                            data = new
+                            {
+                                active = active,
+                                count = RobloxService.GetRunningRobloxCount(),
+                                pids = RobloxService.GetRunningRobloxPids(),
+                                antiAfk = RobloxService.IsAntiAfkActive,
+                                message = msg
+                            }
+                        });
+                        webView.CoreWebView2.PostWebMessageAsJson(payload);
+                    }
+                    if (message != null && message.StartsWith("roblox-launch|"))
+                    {
+                        // Format: roblox-launch|{target}<<COOKIE>>{cookie}<<LAUNCHER>>{launcher}
+                        string payload = message.Substring("roblox-launch|".Length);
+                        string cookie = "";
+                        string target = "";
+                        string preferredLauncher = "auto";
+
+                        int launcherIdx = payload.IndexOf("<<LAUNCHER>>");
+                        if (launcherIdx >= 0)
+                        {
+                            preferredLauncher = payload.Substring(launcherIdx + "<<LAUNCHER>>".Length).Trim();
+                            payload = payload.Substring(0, launcherIdx);
+                        }
+
+                        int delimIdx = payload.IndexOf("<<COOKIE>>");
+                        if (delimIdx >= 0)
+                        {
+                            target = payload.Substring(0, delimIdx);
+                            cookie = payload.Substring(delimIdx + "<<COOKIE>>".Length);
+                        }
+                        else
+                        {
+                            cookie = payload;
+                        }
+                        _ = Task.Run(async () =>
+                        {
+                            string browserTicket = null;
+                            try
+                            {
+                                await Dispatcher.InvokeAsync(async () =>
+                                {
+                                    browserTicket = await RobloxService.GetAuthTicketViaBrowserAsync(webView);
+                                });
+                            }
+                            catch { }
+
+                            var (success, pid, error) = await RobloxService.LaunchAccountAsync(cookie, target, browserTicket, preferredLauncher);
+                            if (success)
+                            {
+                                _ = Task.Run(async () =>
+                                {
+                                    for (int attempt = 0; attempt < 5; attempt++)
+                                    {
+                                        await Task.Delay(3000);
+                                        RobloxService.SetRobloxVolume(_savedRobloxVolume);
+                                    }
+                                });
+                            }
+                            await Dispatcher.InvokeAsync(() =>
+                            {
+                                webView.CoreWebView2.PostWebMessageAsJson(JsonConvert.SerializeObject(new
+                                {
+                                    type = "roblox-launched",
+                                    data = new { success, pid, error }
+                                }));
+                            });
+                        });
+                    }
+                    if (message == "roblox-get-launchers")
+                    {
+                        var launchers = RobloxService.GetInstalledLaunchers();
+                        webView.CoreWebView2.PostWebMessageAsJson(JsonConvert.SerializeObject(new
+                        {
+                            type = "roblox-launchers-list",
+                            data = launchers
+                        }));
+                    }
+                    if (message == "roblox-kill-all")
+                    {
+                        int count = RobloxService.KillAllRobloxInstances();
+                        webView.CoreWebView2.PostWebMessageAsJson(JsonConvert.SerializeObject(new
+                        {
+                            type = "roblox-status",
+                            data = new
+                            {
+                                active = RobloxService.IsMultiInstanceActive,
+                                count = 0,
+                                pids = new List<int>(),
+                                antiAfk = RobloxService.IsAntiAfkActive,
+                                killed = count
+                            }
+                        }));
+                    }
+                    if (message != null && message.StartsWith("roblox-kill-pid|"))
+                    {
+                        string strPid = message.Substring("roblox-kill-pid|".Length);
+                        if (int.TryParse(strPid, out int targetPid))
+                        {
+                            RobloxService.KillRobloxProcess(targetPid);
+                        }
+                        webView.CoreWebView2.PostWebMessageAsJson(JsonConvert.SerializeObject(new
+                        {
+                            type = "roblox-status",
+                            data = new
+                            {
+                                active = RobloxService.IsMultiInstanceActive,
+                                count = RobloxService.GetRunningRobloxCount(),
+                                pids = RobloxService.GetRunningRobloxPids(),
+                                antiAfk = RobloxService.IsAntiAfkActive
+                            }
+                        }));
+                    }
+                    if (message != null && message.StartsWith("roblox-set-fps|"))
+                    {
+                        if (int.TryParse(message.Substring("roblox-set-fps|".Length), out int fpsVal))
+                        {
+                            RobloxService.SetFpsCap(fpsVal, out _);
+                        }
+                    }
+                    if (message != null && message.StartsWith("roblox-set-graphics|"))
+                    {
+                        var parts = message.Substring("roblox-set-graphics|".Length).Split('|');
+                        int.TryParse(parts[0], out int gfxLevel);
+                        bool isAuto = parts.Length > 1 && parts[1] == "auto";
+                        RobloxService.SetGraphicsQuality(gfxLevel, isAuto, out _);
+                    }
+                    if (message != null && message.StartsWith("roblox-set-volume|"))
+                    {
+                        if (int.TryParse(message.Substring("roblox-set-volume|".Length), out int vol))
+                        {
+                            _savedRobloxVolume = vol;
+                            RobloxService.SetRobloxVolume(vol);
+                        }
+                    }
+                    if (message != null && message.StartsWith("roblox-antiafk-toggle|"))
+                    {
+                        int.TryParse(message.Substring("roblox-antiafk-toggle|".Length), out int interval);
+                        if (interval <= 0) interval = 1080;
+                        RobloxService.ToggleAntiAfk(interval, out string afkMsg);
+                        webView.CoreWebView2.PostWebMessageAsJson(JsonConvert.SerializeObject(new
+                        {
+                            type = "roblox-status",
+                            data = new
+                            {
+                                active = RobloxService.IsMultiInstanceActive,
+                                count = RobloxService.GetRunningRobloxCount(),
+                                pids = RobloxService.GetRunningRobloxPids(),
+                                antiAfk = RobloxService.IsAntiAfkActive,
+                                message = afkMsg
+                            }
+                        }));
+                    }
+                    if (message != null && message.StartsWith("roblox-trim-memory|"))
+                    {
+                        string strPid = message.Substring("roblox-trim-memory|".Length);
+                        int? tPid = int.TryParse(strPid, out int p) ? p : (int?)null;
+                        RobloxService.TrimMemory(tPid);
+                    }
+                    if (message != null && message.StartsWith("roblox-set-priority|"))
+                    {
+                        var parts = message.Substring("roblox-set-priority|".Length).Split('|');
+                        if (parts.Length == 2 && int.TryParse(parts[0], out int pPid))
+                        {
+                            RobloxService.SetProcessPriority(pPid, parts[1]);
+                        }
+                    }
+                    if (message != null && message.StartsWith("roblox-get-charts|"))
+                    {
+                        string cat = message.Substring("roblox-get-charts|".Length);
+                        _ = Task.Run(async () =>
+                        {
+                            var charts = await RobloxService.GetRobloxChartsAsync(cat);
+                            await Dispatcher.InvokeAsync(() =>
+                            {
+                                webView.CoreWebView2.PostWebMessageAsJson(JsonConvert.SerializeObject(new
+                                {
+                                    type = "roblox-charts-data",
+                                    data = new { category = cat, games = charts }
+                                }));
+                            });
+                        });
+                    }
+                    if (message != null && message.StartsWith("roblox-validate-cookie|"))
+                    {
+                        string cookieVal = message.Substring("roblox-validate-cookie|".Length);
+                        _ = Task.Run(async () =>
+                        {
+                            var res = await RobloxService.ValidateCookieAsync(cookieVal);
+                            await Dispatcher.InvokeAsync(() =>
+                            {
+                                webView.CoreWebView2.PostWebMessageAsJson(JsonConvert.SerializeObject(new
+                                {
+                                    type = "roblox-cookie-validated",
+                                    data = res,
+                                    cookie = RobloxService.CleanCookie(cookieVal)
+                                }));
+                            });
+                        });
+                    }
+                    if (message != null && message.StartsWith("roblox-send-webhook|"))
+                    {
+                        var parts = message.Substring("roblox-send-webhook|".Length).Split(new char[] { '|' }, 3);
+                        string hookUrl = parts.Length > 0 ? parts[0] : "";
+                        string hookMsg = parts.Length > 1 ? parts[1] : "TFY MultiRoblox Status Ping";
+                        string hookAccounts = parts.Length > 2 ? parts[2] : "";
+                        _ = Task.Run(async () =>
+                        {
+                            var (ok, err) = await RobloxService.SendDiscordWebhookAsync(hookUrl, hookMsg, hookAccounts);
+                            await Dispatcher.InvokeAsync(() =>
+                            {
+                                webView.CoreWebView2.PostWebMessageAsJson(JsonConvert.SerializeObject(new
+                                {
+                                    type = "roblox-webhook-result",
+                                    data = new { ok, message = ok ? "Webhook test succeeded!" : err }
+                                }));
+                            });
+                        });
+                    }
+                    if (message == "roblox-open-login-window")
+                    {
+                        OpenRobloxLoginWindow();
+                    }
+                    if (message != null && message.StartsWith("roblox-resolve-place|"))
+                    {
+                        string placeId = message.Substring("roblox-resolve-place|".Length).Trim();
+                        _ = Task.Run(async () =>
+                        {
+                            var result = await RobloxService.ResolveGameInfoAsync(placeId);
+                            await Dispatcher.InvokeAsync(() =>
+                            {
+                                webView.CoreWebView2.PostWebMessageAsJson(JsonConvert.SerializeObject(new
+                                {
+                                    type = "roblox-game-resolved",
+                                    data = result
+                                }));
+                            });
+                        });
+                    }
+
                     if (message == "clean-files-run")
                     {
                         await Task.Run(() => SystemOptimizerService.RunFullClean());
@@ -583,9 +1291,116 @@ namespace TFY
                     if (message != null && message.StartsWith("fix-run|"))
                     {
                         var id = message.Substring("fix-run|".Length);
-                        var result = _fixes.RunFix(id);
-                        var payload = JsonConvert.SerializeObject(new { type = "fixes", action = "result", data = new { id, ok = result.Ok, message = result.Message } });
+                        if (id == "system_corruption")
+                        {
+                            _ = RunSystemCorruptionCheckAsync();
+                        }
+                        else
+                        {
+                            _ = Task.Run(() =>
+                            {
+                                var result = _fixes.RunFix(id);
+                                var payload = JsonConvert.SerializeObject(new { type = "fixes", action = "result", data = new { id, ok = result.Ok, message = result.Message } });
+                                Dispatcher.Invoke(() => webView.CoreWebView2.PostWebMessageAsJson(payload));
+                            });
+                        }
+                    }
+
+                    if (message == "gpu-check-driver")
+                    {
+                        bool installed = IsNvidiaDriverInstalled();
+                        var payload = JsonConvert.SerializeObject(new { type = "gpu_optimizer", action = "driver_status", hasNvidiaDriver = installed });
                         webView.CoreWebView2.PostWebMessageAsJson(payload);
+                    }
+                    if (message == "gpu-create-backup")
+                    {
+                        _ = Task.Run(() =>
+                        {
+                            var result = _backups.CreateRestorePoint("Before GPU Optimization");
+                            var payload = JsonConvert.SerializeObject(new { type = "gpu_optimizer", action = "backup_status", ok = result.ok, message = result.message });
+                            Dispatcher.Invoke(() => webView.CoreWebView2.PostWebMessageAsJson(payload));
+                        });
+                    }
+                    if (message == "gpu-launch-ddu")
+                    {
+                        try
+                        {
+                            string dduPath = ResolveOptimizationFilePath(@"DDU v18.1.5.3\Display Driver Uninstaller.exe");
+                            if (File.Exists(dduPath))
+                            {
+                                Process.Start(new ProcessStartInfo { FileName = dduPath, UseShellExecute = true });
+                                var payload = JsonConvert.SerializeObject(new { type = "gpu_optimizer", action = "launch_status", tool = "ddu", ok = true });
+                                webView.CoreWebView2.PostWebMessageAsJson(payload);
+                            }
+                            else
+                            {
+                                var payload = JsonConvert.SerializeObject(new { type = "gpu_optimizer", action = "launch_status", tool = "ddu", ok = false, message = "Display Driver Uninstaller.exe not found." });
+                                webView.CoreWebView2.PostWebMessageAsJson(payload);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            var payload = JsonConvert.SerializeObject(new { type = "gpu_optimizer", action = "launch_status", tool = "ddu", ok = false, message = ex.Message });
+                            webView.CoreWebView2.PostWebMessageAsJson(payload);
+                        }
+                    }
+                    if (message == "gpu-launch-nvclean")
+                    {
+                        try
+                        {
+                            string nvCleanPath = ResolveOptimizationFilePath("NVCleanstall_1.19.0.exe");
+                            if (File.Exists(nvCleanPath))
+                            {
+                                Process.Start(new ProcessStartInfo { FileName = nvCleanPath, UseShellExecute = true });
+                                var payload = JsonConvert.SerializeObject(new { type = "gpu_optimizer", action = "launch_status", tool = "nvclean", ok = true });
+                                webView.CoreWebView2.PostWebMessageAsJson(payload);
+                            }
+                            else
+                            {
+                                var payload = JsonConvert.SerializeObject(new { type = "gpu_optimizer", action = "launch_status", tool = "nvclean", ok = false, message = "NVCleanstall_1.19.0.exe not found." });
+                                webView.CoreWebView2.PostWebMessageAsJson(payload);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            var payload = JsonConvert.SerializeObject(new { type = "gpu_optimizer", action = "launch_status", tool = "nvclean", ok = false, message = ex.Message });
+                            webView.CoreWebView2.PostWebMessageAsJson(payload);
+                        }
+                    }
+                    if (message == "gpu-apply-profiles")
+                    {
+                        _ = Task.Run(() =>
+                        {
+                            try
+                            {
+                                string inspectorPath = ResolveOptimizationFilePath("nvidiaProfileInspector.exe");
+                                string nipPath = ResolveOptimizationFilePath("all_profiles.nip");
+                                if (File.Exists(inspectorPath) && File.Exists(nipPath))
+                                {
+                                    var psi = new ProcessStartInfo
+                                    {
+                                        FileName = inspectorPath,
+                                        Arguments = $"-silentImport \"{nipPath}\"",
+                                        UseShellExecute = true,
+                                        Verb = "runas"
+                                    };
+                                    using var p = Process.Start(psi);
+                                    p?.WaitForExit();
+                                    var payload = JsonConvert.SerializeObject(new { type = "gpu_optimizer", action = "profiles_status", ok = true, message = "Profiles imported and applied successfully!" });
+                                    Dispatcher.Invoke(() => webView.CoreWebView2.PostWebMessageAsJson(payload));
+                                }
+                                else
+                                {
+                                    var payload = JsonConvert.SerializeObject(new { type = "gpu_optimizer", action = "profiles_status", ok = false, message = "Nvidia Profile Inspector or all_profiles.nip not found." });
+                                    Dispatcher.Invoke(() => webView.CoreWebView2.PostWebMessageAsJson(payload));
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                var payload = JsonConvert.SerializeObject(new { type = "gpu_optimizer", action = "profiles_status", ok = false, message = ex.Message });
+                                Dispatcher.Invoke(() => webView.CoreWebView2.PostWebMessageAsJson(payload));
+                            }
+                        });
                     }
 
                     if (message == "gaming-inject-script")
@@ -613,6 +1428,13 @@ namespace TFY
                         RunDlcUnlockerUninstallAsync(json);
                     }
 
+                    if (message != null && message.StartsWith("js-error|"))
+                    {
+                        string err = message.Substring("js-error|".Length);
+                        AddSessionLog($"[JS Error] {err}");
+                        Console.WriteLine($"[JS Error] {err}");
+                    }
+
                     // ── System Activator ───────────────────────────────────────────
                     if (message == "windows-activator-status")
                     {
@@ -623,6 +1445,23 @@ namespace TFY
                         string method = message.Substring("windows-activator-run|".Length).Trim();
                         _ = RunActivatorAsync(method);
                     }
+                    if (message == "runtime-directx-install")
+                    {
+                        _ = RunRuntimeDirectXInstallAsync();
+                    }
+                    if (message == "spotx-install")
+                    {
+                        _ = RunSpotXCrackAsync();
+                    }
+                    if (message == "winrar-install")
+                    {
+                        _ = RunWinrarCrackAsync();
+                    }
+                    if (message == "twitch-miner-launch")
+                    {
+                        _ = LaunchTwitchMinerAsync();
+                    }
+
 
                     // ── CS2 Config Hub ─────────────────────────────────────────────
                     if (message == "cs2-config-fetch")
@@ -651,12 +1490,15 @@ namespace TFY
 
                             string resultJson = "[]";
 
-                            // Check cache (valid for 3 days, must be real JSON array)
                             if (File.Exists(cacheFile) && (DateTime.UtcNow - File.GetLastWriteTimeUtc(cacheFile)).TotalDays < 3)
                             {
-                                var cached = File.ReadAllText(cacheFile);
-                                if (cached.TrimStart().StartsWith("[") && cached.Length > 1000)
-                                    resultJson = cached;
+                                var fileInfo = new FileInfo(cacheFile);
+                                if (fileInfo.Length > 3 * 1024 * 1024) // Must be > 3MB to be the full library
+                                {
+                                    var cached = File.ReadAllText(cacheFile);
+                                    if (cached.TrimStart().StartsWith("["))
+                                        resultJson = cached;
+                                }
                             }
                             
                             if (resultJson == "[]")
@@ -669,14 +1511,15 @@ namespace TFY
                                 {
                                     { "GOG",       "https://hydralinks.pages.dev/sources/gog.json" },
                                     { "RexaGames", "https://hydralinks.pages.dev/sources/rexagames.json" },
-                                    { "FitGirl",   "https://web.archive.org/web/2/https://hydralinks.pages.dev/sources/fitgirl.json" },
-                                    { "SteamRIP",  "https://web.archive.org/web/2/https://hydralinks.pages.dev/sources/steamrip.json" },
-                                    { "DODI",      "https://web.archive.org/web/2/https://hydralinks.pages.dev/sources/dodi.json" },
-                                    { "Xatab",     "https://web.archive.org/web/2/https://hydralinks.pages.dev/sources/xatab.json" },
-                                    { "OnlineFix", "https://web.archive.org/web/2/https://hydralinks.pages.dev/sources/onlinefix.json" },
+                                    { "FitGirl",   "https://web.archive.org/web/2id_/https://hydralinks.pages.dev/sources/fitgirl.json" },
+                                    { "SteamRIP",  "https://web.archive.org/web/2id_/https://hydralinks.pages.dev/sources/steamrip.json" },
+                                    { "DODI",      "https://web.archive.org/web/2id_/https://hydralinks.pages.dev/sources/dodi.json" },
+                                    { "Xatab",     "https://web.archive.org/web/2id_/https://hydralinks.pages.dev/sources/xatab.json" },
+                                    { "OnlineFix", "https://web.archive.org/web/2id_/https://hydralinks.pages.dev/sources/onlinefix.json" },
                                 };
 
-                                using var hc = new HttpClient { Timeout = TimeSpan.FromSeconds(90) };
+                                var handler = new HttpClientHandler() { AutomaticDecompression = System.Net.DecompressionMethods.GZip | System.Net.DecompressionMethods.Deflate | System.Net.DecompressionMethods.Brotli };
+                                using var hc = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(90) };
                                 hc.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent",
                                     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36");
 
@@ -853,12 +1696,78 @@ namespace TFY
                         });
                     }
 
+                    // ── Fetch Allkeyshop details ───────────────────────────────────────────
+                    if (message != null && message.StartsWith("fetch-allkeyshop|"))
+                    {
+                        string gameName = message.Substring("fetch-allkeyshop|".Length).Trim();
+                        _ = Task.Run(async () =>
+                        {
+                            string slug = ConvertNameToAllkeyshopSlug(gameName);
+                            string url = $"https://www.allkeyshop.com/blog/buy-{slug}-cd-key-compare-prices/";
+                            string resultJson = "{}";
+                            
+                            try
+                            {
+                                using var request = new HttpRequestMessage(HttpMethod.Get, url);
+                                request.Headers.UserAgent.Clear();
+                                request.Headers.UserAgent.TryParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+                                request.Headers.Accept.TryParseAdd("text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
+                                request.Headers.AcceptLanguage.TryParseAdd("en-US,en;q=0.5");
+
+                                using var response = await _httpClient.SendAsync(request);
+                                if (response.IsSuccessStatusCode)
+                                {
+                                    string html = await response.Content.ReadAsStringAsync();
+                                    var match = System.Text.RegularExpressions.Regex.Match(html, @"var\s+gamePageTrans\s*=\s*(\{.*?\});", System.Text.RegularExpressions.RegexOptions.Singleline);
+                                    if (match.Success)
+                                    {
+                                        resultJson = match.Groups[1].Value;
+                                    }
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"[TFY] fetch-allkeyshop failed for {gameName}: {ex.Message}");
+                            }
+
+                            var payload = JsonConvert.SerializeObject(new
+                            {
+                                type = "allkeyshop-data",
+                                data = new
+                                {
+                                    title = gameName,
+                                    slug,
+                                    json = resultJson
+                                }
+                            });
+                            Dispatcher.Invoke(() => webView.CoreWebView2.PostWebMessageAsJson(payload));
+                        });
+                    }
+
                     // ── Open URL in default browser ────────────────────────────────────────
                     if (message != null && message.StartsWith("open-url|"))
                     {
                         string url = message.Substring("open-url|".Length).Trim();
                         try { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(url) { UseShellExecute = true }); }
                         catch (Exception ex) { Console.WriteLine($"[TFY] open-url failed: {ex.Message}"); }
+                    }
+
+                    // ── Open Allkeyshop direct merchant deal (Bypassing loading redirector screen) ──
+                    if (message != null && message.StartsWith("open-allkeyshop-deal|"))
+                    {
+                        string dealUrl = message.Substring("open-allkeyshop-deal|".Length).Trim();
+                        _ = Task.Run(async () =>
+                        {
+                            string targetUrl = await ResolveAllkeyshopRedirectUrl(dealUrl);
+                            try
+                            {
+                                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(targetUrl) { UseShellExecute = true });
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"[TFY] open-allkeyshop-deal failed for {targetUrl}: {ex.Message}");
+                            }
+                        });
                     }
 
                     if (message != null && message.StartsWith("download-install|"))
@@ -920,6 +1829,29 @@ if (message != null && message.StartsWith("debloater-uninstall|"))
                         webView.CoreWebView2.PostWebMessageAsJson(done);
                         _ = RefreshDebloaterCacheAsync();
                     }
+                    if (message != null && message.StartsWith("startup-toggle|"))
+                    {
+                        var json = message.Substring("startup-toggle|".Length);
+                        var request = JsonConvert.DeserializeObject<dynamic>(json);
+                        string id = (string)request?.id;
+                        string name = (string)request?.name;
+                        string installLocation = (string)request?.installLocation;
+                        bool enable = (bool)(request?.enable ?? false);
+                        var app = new DebloaterApp
+                        {
+                            Id = id,
+                            Name = name,
+                            Type = "startup",
+                            InstallLocation = installLocation
+                        };
+                        await Task.Run(() => {
+                            if (enable)
+                                _debloater.EnableStartupEntry(app);
+                            else
+                                _debloater.DisableStartupEntry(app);
+                        });
+                        _ = RefreshDebloaterCacheAsync();
+                    }
                 };
             }
             catch (Exception ex)
@@ -963,6 +1895,67 @@ if (message != null && message.StartsWith("debloater-uninstall|"))
             title = System.Text.RegularExpressions.Regex.Replace(title, @"\s{2,}", " ");
 
             return title.Trim();
+        }
+
+        private static string ConvertNameToAllkeyshopSlug(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name)) return "";
+            string slug = name.ToLowerInvariant();
+            slug = slug.Replace(":", " ");
+            slug = System.Text.RegularExpressions.Regex.Replace(slug, @"[^a-z0-9\s-]", "");
+            slug = System.Text.RegularExpressions.Regex.Replace(slug, @"[\s-]+", "-");
+            return slug.Trim('-');
+        }
+
+        private async Task<string> ResolveAllkeyshopRedirectUrl(string url)
+        {
+            try
+            {
+                using var request = new HttpRequestMessage(HttpMethod.Get, url);
+                request.Headers.UserAgent.Clear();
+                request.Headers.UserAgent.TryParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+                request.Headers.Accept.TryParseAdd("text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
+                request.Headers.AcceptLanguage.TryParseAdd("en-US,en;q=0.5");
+
+                using var response = await _httpClient.SendAsync(request);
+                if (response.IsSuccessStatusCode)
+                {
+                    string html = await response.Content.ReadAsStringAsync();
+                    
+                    // 1. Match redirectionUrl inside script type="application/json" id="appData"
+                    var jsonMatch = System.Text.RegularExpressions.Regex.Match(html, @"""redirectionUrl""\s*:\s*""([^""]+)""");
+                    if (jsonMatch.Success)
+                    {
+                        return jsonMatch.Groups[1].Value.Replace("\\/", "/");
+                    }
+                    
+                    // 2. Fallback to meta refresh URL match
+                    var metaMatch = System.Text.RegularExpressions.Regex.Match(html, @"URL=([^""]+)", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                    if (metaMatch.Success)
+                    {
+                        return metaMatch.Groups[1].Value;
+                    }
+
+                    // 3. Fallback to "click here" link extraction
+                    var clickMatch = System.Text.RegularExpressions.Regex.Match(html, @"<a\s+[^>]*href=""([^""]+)""[^>]*>.*?click\s+here.*?\s*</a>", System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Singleline);
+                    if (clickMatch.Success)
+                    {
+                        return System.Net.WebUtility.HtmlDecode(clickMatch.Groups[1].Value);
+                    }
+
+                    // 4. Fallback to "not redirected" link extraction
+                    var notRedirectedMatch = System.Text.RegularExpressions.Regex.Match(html, @"<a\s+[^>]*href=""([^""]+)""[^>]*>.*?not\s+redirected.*?\s*</a>", System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Singleline);
+                    if (notRedirectedMatch.Success)
+                    {
+                        return System.Net.WebUtility.HtmlDecode(notRedirectedMatch.Groups[1].Value);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[TFY] ResolveAllkeyshopRedirectUrl failed: {ex.Message}");
+            }
+            return url; // Return original redirect URL if resolution fails
         }
 
         private void PurgeLegacyWebViewCaches()
@@ -1195,6 +2188,8 @@ if (message != null && message.StartsWith("debloater-uninstall|"))
                         Environment.ExpandEnvironmentVariables("%TEMP%"),
                         Environment.ExpandEnvironmentVariables(@"%LOCALAPPDATA%\Temp"),
                         @"C:\Windows\Temp",
+                        Environment.ExpandEnvironmentVariables(@"%LOCALAPPDATA%\NVIDIA\DXCache"),
+                        Environment.ExpandEnvironmentVariables(@"%LOCALAPPDATA%\NVIDIA\GLCache"),
                     },
                     ["prefetch"] = new[] { @"C:\Windows\Prefetch" },
                     ["crash"] = new[] { Environment.ExpandEnvironmentVariables(@"%LOCALAPPDATA%\CrashDumps") },
@@ -1292,22 +2287,41 @@ if (message != null && message.StartsWith("debloater-uninstall|"))
         {
             try
             {
-                PostInAppNotification("info", "TFY Agent", "Se descarcă datele din Cloud (Securizat)...", 2000);
-                string firebaseUrl = "https://tfy-project.web.app/tfy-agent.js";
+                PostInAppNotification("info", "TFY Agent", "Pregătire script TFY Agent...", 2000);
+                string script = "";
                 
-                using var http = new HttpClient();
-                string script = await http.GetStringAsync(firebaseUrl);
+                try
+                {
+                    string firebaseUrl = "https://tfy-project.web.app/tfy-agent.js";
+                    using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(5) };
+                    script = await http.GetStringAsync(firebaseUrl);
+                }
+                catch { }
 
                 if (string.IsNullOrWhiteSpace(script))
                 {
-                    PostInAppNotification("error", "TFY Agent", "Scriptul descărcat este invalid!", 5000);
+                    string localScriptPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Scripts", "script.js");
+                    if (File.Exists(localScriptPath))
+                    {
+                        script = File.ReadAllText(localScriptPath);
+                    }
+                }
+
+                if (string.IsNullOrWhiteSpace(script))
+                {
+                    PostInAppNotification("error", "TFY Agent", "Scriptul TFY Agent nu a putut fi încărcat!", 5000);
                     return;
                 }
 
+                Dispatcher.Invoke(() =>
+                {
+                    try { System.Windows.Clipboard.SetText(script); } catch { }
+                });
+
                 PostInAppNotification("info", "TFY Agent", "Injectare în curs...", 2000);
                 string result = await DiscordInjector.InjectScriptAsync(script, (statusMsg) => Console.WriteLine(statusMsg));
-                bool success = result != null && result.IndexOf("Succes", StringComparison.OrdinalIgnoreCase) >= 0;
-                PostInAppNotification(success ? "success" : "error", "TFY Agent", result ?? "Eroare necunoscută.", success ? 4200 : 6000);
+                bool success = result != null && (result.IndexOf("Succes", StringComparison.OrdinalIgnoreCase) >= 0 || result.IndexOf("Clipboard", StringComparison.OrdinalIgnoreCase) >= 0);
+                PostInAppNotification(success ? "success" : "error", "TFY Agent", result ?? "Eroare necunoscută.", 7000);
             }
             catch (Exception ex)
             {
@@ -1444,7 +2458,646 @@ if (message != null && message.StartsWith("debloater-uninstall|"))
             _ = RunActivatorStatusAsync();
         }
 
+        private void SendProgress(int percent, string status, string log)
+        {
+            var payload = JsonConvert.SerializeObject(new
+            {
+                type = "system-check-progress",
+                data = new { percent, status, log }
+            });
+            webView?.CoreWebView2?.PostWebMessageAsJson(payload);
+        }
+
+        private void SendRuntimeProgress(int percent, string status, string log = null)
+        {
+            var payload = JsonConvert.SerializeObject(new
+            {
+                type = "runtime-installer-progress",
+                data = new { percent, status, log }
+            });
+            webView?.CoreWebView2?.PostWebMessageAsJson(payload);
+        }
+        private bool ShouldShowConsoleLine(string line)
+        {
+            if (string.IsNullOrWhiteSpace(line)) return false;
+            string trimmed = line.Trim();
+            if (trimmed.Contains("Microsoft Corporation", StringComparison.OrdinalIgnoreCase) || 
+                trimmed.Contains("All rights reserved", StringComparison.OrdinalIgnoreCase) || 
+                trimmed.Contains("©") ||
+                trimmed.Contains("Copyright (C)", StringComparison.OrdinalIgnoreCase)) 
+                return false;
+            
+            if (trimmed.StartsWith("Deployment Image Servicing and Management", StringComparison.OrdinalIgnoreCase) || 
+                trimmed.StartsWith("Version:", StringComparison.OrdinalIgnoreCase) || 
+                trimmed.StartsWith("Image Version:", StringComparison.OrdinalIgnoreCase) ||
+                trimmed.StartsWith("Microsoft (R) Windows", StringComparison.OrdinalIgnoreCase)) 
+                return false;
+            
+            // Filter out DISM progress bars like [======= 50% =======]
+            if (trimmed.StartsWith("[") && trimmed.Contains("=") && trimmed.EndsWith("]")) 
+                return false;
+            
+            // Filter out Chkdsk spammy progress lines
+            if (trimmed.Contains("percent complete", StringComparison.OrdinalIgnoreCase) ||
+                (trimmed.Contains("stage", StringComparison.OrdinalIgnoreCase) && trimmed.Contains("%"))) 
+                return false;
+                
+            return true;
+        }
+
+        private double ParseDismPercent(string line)
+        {
+            var match = System.Text.RegularExpressions.Regex.Match(line, @"(\d+\.\d+)%");
+            if (match.Success && double.TryParse(match.Groups[1].Value, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double val))
+            {
+                return val;
+            }
+            return 0;
+        }
+
+        private double ParseSfcPercent(string line)
+        {
+            var match = System.Text.RegularExpressions.Regex.Match(line, @"Verification\s+(\d+)%\s+complete");
+            if (match.Success && double.TryParse(match.Groups[1].Value, out double val))
+            {
+                return val;
+            }
+            return 0;
+        }
+
+        private double ParseChkdskPercent(string line)
+        {
+            var match = System.Text.RegularExpressions.Regex.Match(line, @"(\d+)\s*(?:percent|%)");
+            if (match.Success && double.TryParse(match.Groups[1].Value, out double val))
+            {
+                return val;
+            }
+            return 0;
+        }
+
+        private async Task RunProcessWithProgressAsync(string fileName, string arguments, Action<string> onLineRead)
+        {
+            var tcs = new TaskCompletionSource<bool>();
+            var process = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = fileName,
+                    Arguments = arguments,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                },
+                EnableRaisingEvents = true
+            };
+
+            process.OutputDataReceived += (s, e) =>
+            {
+                if (!string.IsNullOrEmpty(e.Data))
+                {
+                    Dispatcher.Invoke(() => onLineRead(e.Data));
+                }
+            };
+
+            process.ErrorDataReceived += (s, e) =>
+            {
+                if (!string.IsNullOrEmpty(e.Data))
+                {
+                    Dispatcher.Invoke(() => onLineRead("ERROR: " + e.Data));
+                }
+            };
+
+            process.Exited += (s, e) =>
+            {
+                tcs.SetResult(true);
+                process.Dispose();
+            };
+
+            process.Start();
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
+
+            await tcs.Task;
+        }
+
+        private async Task RunSystemCorruptionCheckAsync()
+        {
+            try
+            {
+                SendProgress(0, "Initializing system scan...", "Starting System Corruption Check...");
+
+                // 1. Run DISM
+                SendProgress(0, "DISM: Repairing system image...", "Launching DISM...");
+                double maxDism = 0;
+                await RunProcessWithProgressAsync("dism.exe", "/Online /Cleanup-Image /RestoreHealth", (line) =>
+                {
+                    double subPercent = ParseDismPercent(line);
+                    if (subPercent > maxDism) maxDism = subPercent;
+                    int overallPercent = (int)(maxDism / 3.0);
+                    string logLine = ShouldShowConsoleLine(line) ? line : null;
+                    SendProgress(overallPercent, "DISM: Repairing system image...", logLine);
+                });
+
+                // 2. Run SFC
+                SendProgress(33, "SFC: Scanning system files...", "Launching SFC...");
+                double maxSfc = 0;
+                await RunProcessWithProgressAsync("sfc.exe", "/scannow", (line) =>
+                {
+                    double subPercent = ParseSfcPercent(line);
+                    if (subPercent > maxSfc) maxSfc = subPercent;
+                    int overallPercent = 33 + (int)(maxSfc / 3.0);
+                    string logLine = ShouldShowConsoleLine(line) ? line : null;
+                    SendProgress(overallPercent, "SFC: Scanning system files...", logLine);
+                });
+
+                // 3. Run Chkdsk
+                SendProgress(66, "Chkdsk: Checking file system...", "Launching Chkdsk on C:...");
+                double maxChkdsk = 0;
+                await RunProcessWithProgressAsync("chkdsk.exe", "C:", (line) =>
+                {
+                    double subPercent = ParseChkdskPercent(line);
+                    if (subPercent > maxChkdsk) maxChkdsk = subPercent;
+                    int overallPercent = 66 + (int)(maxChkdsk / 3.0);
+                    string logLine = ShouldShowConsoleLine(line) ? line : null;
+                    SendProgress(overallPercent, "Chkdsk: Checking file system...", logLine);
+                });
+
+                SendProgress(100, "System check complete!", "Scan completed successfully. All issues repaired.");
+                
+                var payload = JsonConvert.SerializeObject(new { type = "system-check-result", data = new { ok = true, message = "System corruption check completed successfully! DISM, SFC, and Chkdsk scans have finished." } });
+                webView?.CoreWebView2?.PostWebMessageAsJson(payload);
+            }
+            catch (Exception ex)
+            {
+                var payload = JsonConvert.SerializeObject(new { type = "system-check-result", data = new { ok = false, message = "Scan failed: " + ex.Message } });
+                webView?.CoreWebView2?.PostWebMessageAsJson(payload);
+            }
+        }
+
+        private async Task RunRuntimeDirectXInstallAsync()
+        {
+            try
+            {
+                SendRuntimeProgress(0, "Initializing installer...");
+                
+                string scriptPath = Path.Combine(Path.GetTempPath(), "install_runtimes.ps1");
+                string psCode = @"
+$ErrorActionPreference = 'Stop'
+[Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+
+$tempDir = Join-Path $env:TEMP (""TFY_Runtimes_"" + [Guid]::NewGuid().ToString())
+New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
+
+function Download-FileWithProgress($url, $destination, $basePct, $scale) {
+    $webClient = New-Object System.Net.WebClient
+    $webClient.Headers.Add(""User-Agent"", ""Mozilla/5.0 (Windows NT 10.0; Win64; x64)"")
+    
+    $onProgress = {
+        param($sender, $e)
+        $pct = $e.ProgressPercentage
+        $overall = [int]($basePct + ($pct * $scale))
+        Write-Output ""__PROGRESS__$overall""
+    }
+    
+    $event = Register-ObjectEvent -InputObject $webClient -EventName DownloadProgressChanged -Action $onProgress
+    try {
+        $task = $webClient.DownloadFileTaskAsync($url, $destination)
+        while (-not $task.IsCompleted) {
+            Start-Sleep -Milliseconds 50
+        }
+        if ($task.IsFaulted) { throw $task.Exception.InnerException }
+    } finally {
+        if ($event) {
+            try { Unregister-Event -SourceIdentifier $event.Name -ErrorAction SilentlyContinue } catch {}
+        }
+    }
+}
+
+Write-Output ""__STATUS__Downloading DirectX...""
+$dxUrl = ""https://download.microsoft.com/download/1/7/1/1718ccc4-6315-4d8e-9543-8e28a4e18c4c/dxwebsetup.exe""
+$dxPath = Join-Path $tempDir ""dxwebsetup.exe""
+Download-FileWithProgress $dxUrl $dxPath 0 0.15
+
+Write-Output ""__STATUS__Installing DirectX...""
+Write-Output ""__PROGRESS__20""
+try {
+    $proc = Start-Process -FilePath $dxPath -ArgumentList ""/q"" -Wait -PassThru -NoNewWindow
+    $dxExit = $proc.ExitCode
+    if ($dxExit -eq -9) {
+        Write-Output ""__STATUS__DirectX is already up-to-date. Skipping...""
+    } elseif (@(0, 3010, 1638) -notcontains $dxExit) {
+        Write-Output ""__STATUS__DirectX installation returned code $dxExit (non-fatal). Continuing...""
+    }
+} catch {
+    Write-Output ""__STATUS__DirectX installation failed: $_ (non-fatal). Continuing...""
+}
+
+Write-Output ""__STATUS__Fetching latest VC++ Redistributables release info...""
+Write-Output ""__PROGRESS__30""
+try {
+    $apiUrl = ""https://api.github.com/repos/abbodi1406/vcredist/releases/latest""
+    $headers = @{ ""User-Agent"" = ""Mozilla/5.0 (Windows NT 10.0; Win64; x64)"" }
+    $release = Invoke-RestMethod -Uri $apiUrl -Headers $headers -UseBasicParsing
+    $asset = $release.assets | Where-Object { $_.name -like ""VisualCppRedist_AIO_x86_x64*.zip"" } | Select-Object -First 1
+    $vcredistUrl = $asset.browser_download_url
+} catch {
+    $vcredistUrl = ""https://github.com/abbodi1406/vcredist/releases/latest/download/VisualCppRedist_AIO_x86_x64.zip""
+}
+
+Write-Output ""__STATUS__Downloading VC++ All-in-One...""
+$zipPath = Join-Path $tempDir ""vcredist.zip""
+Download-FileWithProgress $vcredistUrl $zipPath 35 0.35
+
+Write-Output ""__STATUS__Extracting packages...""
+Write-Output ""__PROGRESS__75""
+Expand-Archive -Path $zipPath -DestinationPath $tempDir -Force
+
+$exePath = Get-ChildItem -Path $tempDir -Filter ""VisualCppRedist_AIO_x86_x64*.exe"" | Select-Object -First 1
+if ($exePath) {
+    Write-Output ""__STATUS__Installing Visual C++ Runtimes...""
+    Write-Output ""__PROGRESS__85""
+    $proc = Start-Process -FilePath $exePath.FullName -ArgumentList ""/ai"" -Wait -PassThru -NoNewWindow
+    if (@(0, 3010, 1638) -notcontains $proc.ExitCode) { throw ""VC++ Redistributables installation failed with code $($proc.ExitCode)"" }
+} else {
+    throw ""Error: Could not find VC++ AIO installer executable in zip.""
+}
+
+try { Remove-Item -Recurse -Force $tempDir } catch {}
+Write-Output ""__STATUS__Installation complete!""
+Write-Output ""__PROGRESS__100""
+";
+                File.WriteAllText(scriptPath, psCode);
+
+                var startInfo = new ProcessStartInfo
+                {
+                    FileName = "powershell.exe",
+                    Arguments = $"-NoProfile -ExecutionPolicy Bypass -File \"{scriptPath}\"",
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+
+                using (var process = new Process { StartInfo = startInfo, EnableRaisingEvents = true })
+                {
+                    var tcs = new TaskCompletionSource<bool>();
+                    string lastError = "";
+                    
+                    process.OutputDataReceived += (s, e) =>
+                    {
+                        if (!string.IsNullOrEmpty(e.Data))
+                        {
+                            Dispatcher.Invoke(() =>
+                            {
+                                if (e.Data.StartsWith("__PROGRESS__"))
+                                {
+                                    if (int.TryParse(e.Data.Substring("__PROGRESS__".Length), out int pct))
+                                    {
+                                        SendRuntimeProgress(pct, null, e.Data);
+                                    }
+                                }
+                                else if (e.Data.StartsWith("__STATUS__"))
+                                {
+                                    string status = e.Data.Substring("__STATUS__".Length);
+                                    SendRuntimeProgress(-1, status, e.Data);
+                                }
+                                else
+                                {
+                                    SendRuntimeProgress(-1, null, e.Data);
+                                }
+                            });
+                        }
+                    };
+
+                    process.ErrorDataReceived += (s, e) =>
+                    {
+                        if (!string.IsNullOrEmpty(e.Data))
+                        {
+                            Dispatcher.Invoke(() =>
+                            {
+                                if (string.IsNullOrEmpty(lastError))
+                                    lastError = e.Data;
+                                else
+                                    lastError += "\n" + e.Data;
+                                SendRuntimeProgress(-1, null, "ERROR: " + e.Data);
+                            });
+                        }
+                    };
+
+                    process.Exited += (s, e) =>
+                    {
+                        tcs.SetResult(true);
+                    };
+
+                    process.Start();
+                    process.BeginOutputReadLine();
+                    process.BeginErrorReadLine();
+
+                    await tcs.Task;
+
+                    bool ok = process.ExitCode == 0;
+                    string msg = ok 
+                        ? "All necessary runtimes and DirectX installed successfully!" 
+                        : $"Installation failed. (Exit Code: {process.ExitCode})" + 
+                          (!string.IsNullOrEmpty(lastError) ? $"\nDetails: {lastError}" : "");
+                    
+                    PostInAppNotification(ok ? "success" : "error", "Runtime & DirectX Installer", msg, 6000);
+
+                    var payload = JsonConvert.SerializeObject(new { type = "runtime-installer-result", data = new { ok, message = msg } });
+                    webView.CoreWebView2.PostWebMessageAsJson(payload);
+                }
+                
+                try { File.Delete(scriptPath); } catch { }
+            }
+            catch (Exception ex)
+            {
+                PostInAppNotification("error", "Runtime & DirectX Installer Error", ex.Message, 6000);
+                var payload = JsonConvert.SerializeObject(new { type = "runtime-installer-result", data = new { ok = false, message = ex.Message } });
+                webView?.CoreWebView2?.PostWebMessageAsJson(payload);
+            }
+        }
+
+        private async Task RunSpotXCrackAsync()
+        {
+            try
+            {
+                PostInAppNotification("info", "SpotX Crack", "Downloading and applying Spotify Crack...", 5000);
+                
+                string scriptPath = Path.Combine(Path.GetTempPath(), "run_spotx.ps1");
+                string psCode = @"
+$ErrorActionPreference = 'Stop'
+[Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+$url = 'https://raw.githubusercontent.com/SpotX-Official/SpotX/main/run.ps1'
+$url2 = 'https://spotx-official.github.io/SpotX/run.ps1'
+$dlPath = Join-Path $env:TEMP 'spotx_main.ps1'
+try { Invoke-WebRequest -UseBasicParsing $url -OutFile $dlPath } catch { Invoke-WebRequest -UseBasicParsing $url2 -OutFile $dlPath }
+& $dlPath -new_theme -block_update_on -podcasts_off -confirm_spoti_recomended_over
+";
+                File.WriteAllText(scriptPath, psCode);
+
+                var startInfo = new ProcessStartInfo
+                {
+                    FileName = "powershell.exe",
+                    Arguments = $"-NoProfile -ExecutionPolicy Bypass -File \"{scriptPath}\"",
+                    UseShellExecute = true,
+                    Verb = "runas"
+                };
+
+                using (var process = Process.Start(startInfo))
+                {
+                    await Task.Run(() => process.WaitForExit());
+                    if (process.ExitCode == 0)
+                    {
+                        PostInAppNotification("success", "SpotX Crack", "Spotify has been successfully cracked and updated!", 6000);
+                    }
+                    else
+                    {
+                        PostInAppNotification("error", "SpotX Crack", $"Installation failed or was cancelled. (Exit Code: {process.ExitCode})", 6000);
+                    }
+                }
+                
+                try { File.Delete(scriptPath); } catch { }
+            }
+            catch (Exception ex)
+            {
+                PostInAppNotification("error", "SpotX Crack Error", ex.Message, 6000);
+            }
+        }
+
+        private async Task RunWinrarCrackAsync()
+        {
+            try
+            {
+                PostInAppNotification("info", "WinRAR Crack", "Starting WinRAR installation and licensing...", 5000);
+
+                string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                string scriptPath = Path.Combine(baseDir, "oneclickrar.cmd");
+
+                if (!File.Exists(scriptPath))
+                {
+                    // Fallback to project source dir if running in debug from bin/Release/net8.0-windows
+                    string altPath = Path.Combine(Directory.GetCurrentDirectory(), "oneclickrar.cmd");
+                    if (File.Exists(altPath))
+                    {
+                        scriptPath = altPath;
+                        baseDir = Directory.GetCurrentDirectory();
+                    }
+                    else
+                    {
+                        PostInAppNotification("error", "WinRAR Crack Error", "Script file 'oneclickrar.cmd' was not found in the application directory.", 6000);
+                        return;
+                    }
+                }
+
+                var startInfo = new ProcessStartInfo
+                {
+                    FileName = "cmd.exe",
+                    Arguments = $"/c \"{scriptPath}\"",
+                    UseShellExecute = true,
+                    Verb = "runas",
+                    WorkingDirectory = baseDir
+                };
+
+                using (var process = Process.Start(startInfo))
+                {
+                    await Task.Run(() => process.WaitForExit());
+                    if (process.ExitCode == 0)
+                    {
+                        PostInAppNotification("success", "WinRAR Crack", "WinRAR has been successfully installed and cracked!", 6000);
+                    }
+                    else
+                    {
+                        PostInAppNotification("error", "WinRAR Crack", $"Installation failed or was cancelled. (Exit Code: {process.ExitCode})", 6000);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                PostInAppNotification("error", "WinRAR Crack Error", ex.Message, 6000);
+            }
+        }
+
+        private async Task LaunchTwitchMinerAsync()
+        {
+            try
+            {
+                var targetFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "TFY", "TwitchDropsMiner");
+                
+                // Dynamic resolution of the executable path
+                var exePath = Path.Combine(targetFolder, "Twitch Drops Miner.exe");
+                if (!File.Exists(exePath))
+                {
+                    var alternativeNames = new[] { "Twitch Drops Miner (by DevilXD).exe", "Twitch.Drops.Miner.exe" };
+                    foreach (var name in alternativeNames)
+                    {
+                        var altPath = Path.Combine(targetFolder, name);
+                        if (File.Exists(altPath))
+                        {
+                            exePath = altPath;
+                            break;
+                        }
+                    }
+                }
+                if (!File.Exists(exePath) && Directory.Exists(targetFolder))
+                {
+                    var exeFiles = Directory.GetFiles(targetFolder, "*.exe", SearchOption.AllDirectories);
+                    if (exeFiles.Length > 0)
+                    {
+                        exePath = exeFiles.FirstOrDefault(f => f.IndexOf("twitch", StringComparison.OrdinalIgnoreCase) >= 0 || f.IndexOf("miner", StringComparison.OrdinalIgnoreCase) >= 0) 
+                                  ?? exeFiles[0];
+                    }
+                }
+
+                if (File.Exists(exePath))
+                {
+                    PostInAppNotification("success", "Twitch Drops Miner", "Launching Twitch Drops Miner...", 4000);
+                    var workDir = Path.GetDirectoryName(exePath) ?? targetFolder;
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = exePath,
+                        UseShellExecute = true,
+                        WorkingDirectory = workDir
+                    });
+                    return;
+                }
+
+                // Not downloaded yet - start downloading
+                PostInAppNotification("info", "Twitch Drops Miner", "Downloading Twitch Drops Miner...", 4000);
+                
+                // Let frontend know we've started downloading
+                Dispatcher.Invoke(() =>
+                {
+                    webView?.CoreWebView2?.PostWebMessageAsJson(JsonConvert.SerializeObject(new { type = "twitch-miner-status", data = new { status = "downloading", percent = 0 } }));
+                });
+
+                var zipPath = Path.Combine(Path.GetTempPath(), "TwitchDropsMiner_dev_build.zip");
+                if (File.Exists(zipPath))
+                {
+                    try { File.Delete(zipPath); } catch { }
+                }
+
+                using (var client = new HttpClient())
+                {
+                    // Add default headers to prevent GitHub blocks
+                    client.DefaultRequestHeaders.Add("User-Agent", "TFY-Utility-Hub/v6.3.2");
+
+                    // Using official DevilXD dev-build release as provided by the user.
+                    using (var response = await client.GetAsync("https://github.com/DevilXD/TwitchDropsMiner/releases/download/dev-build/Twitch.Drops.Miner.Windows.zip", HttpCompletionOption.ResponseHeadersRead))
+                    {
+                        response.EnsureSuccessStatusCode();
+                        var totalBytes = response.Content.Headers.ContentLength ?? -1L;
+                        var canReportProgress = totalBytes != -1L;
+
+                        using (var contentStream = await response.Content.ReadAsStreamAsync())
+                        using (var fileStream = new FileStream(zipPath, FileMode.Create, FileAccess.Write, FileShare.None, 8192, true))
+                        {
+                            var buffer = new byte[8192];
+                            var totalReadBytes = 0L;
+                            var readBytes = 0;
+                            var lastReportedPercent = -1;
+
+                            while ((readBytes = await contentStream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+                            {
+                                await fileStream.WriteAsync(buffer, 0, readBytes);
+                                totalReadBytes += readBytes;
+
+                                if (canReportProgress)
+                                {
+                                    var percent = (int)((double)totalReadBytes / totalBytes * 100);
+                                    if (percent > lastReportedPercent)
+                                    {
+                                        lastReportedPercent = percent;
+                                        Dispatcher.Invoke(() =>
+                                        {
+                                            webView?.CoreWebView2?.PostWebMessageAsJson(JsonConvert.SerializeObject(new { type = "twitch-miner-status", data = new { status = "downloading", percent = percent } }));
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Inform frontend we are extracting
+                Dispatcher.Invoke(() =>
+                {
+                    webView?.CoreWebView2?.PostWebMessageAsJson(JsonConvert.SerializeObject(new { type = "twitch-miner-status", data = new { status = "extracting", percent = 100 } }));
+                });
+
+                if (Directory.Exists(targetFolder))
+                {
+                    try { Directory.Delete(targetFolder, true); } catch { }
+                }
+                Directory.CreateDirectory(targetFolder);
+
+                await Task.Run(() =>
+                {
+                    ZipFile.ExtractToDirectory(zipPath, targetFolder);
+                });
+
+                try { File.Delete(zipPath); } catch { }
+
+                // Find the executable again in targetFolder
+                var finalExePath = Path.Combine(targetFolder, "Twitch Drops Miner.exe");
+                if (!File.Exists(finalExePath))
+                {
+                    var alternativeNames = new[] { "Twitch Drops Miner (by DevilXD).exe", "Twitch.Drops.Miner.exe" };
+                    foreach (var name in alternativeNames)
+                    {
+                        var altPath = Path.Combine(targetFolder, name);
+                        if (File.Exists(altPath))
+                        {
+                            finalExePath = altPath;
+                            break;
+                        }
+                    }
+                }
+                if (!File.Exists(finalExePath) && Directory.Exists(targetFolder))
+                {
+                    var exeFiles = Directory.GetFiles(targetFolder, "*.exe", SearchOption.AllDirectories);
+                    if (exeFiles.Length > 0)
+                    {
+                        finalExePath = exeFiles.FirstOrDefault(f => f.IndexOf("twitch", StringComparison.OrdinalIgnoreCase) >= 0 || f.IndexOf("miner", StringComparison.OrdinalIgnoreCase) >= 0) 
+                                       ?? exeFiles[0];
+                    }
+                }
+
+                if (!File.Exists(finalExePath))
+                {
+                    throw new FileNotFoundException("Could not locate any Twitch Drops Miner executable inside the extracted archive.");
+                }
+
+                // Done, let frontend know
+                Dispatcher.Invoke(() =>
+                {
+                    webView?.CoreWebView2?.PostWebMessageAsJson(JsonConvert.SerializeObject(new { type = "twitch-miner-status", data = new { status = "done", percent = 100 } }));
+                });
+
+                PostInAppNotification("success", "Twitch Drops Miner", "Successfully downloaded and extracted! Launching...", 6000);
+
+                var finalWorkDir = Path.GetDirectoryName(finalExePath) ?? targetFolder;
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = finalExePath,
+                    UseShellExecute = true,
+                    WorkingDirectory = finalWorkDir
+                });
+            }
+            catch (Exception ex)
+            {
+                PostInAppNotification("error", "Twitch Drops Miner Error", ex.Message, 6000);
+                Dispatcher.Invoke(() =>
+                {
+                    webView?.CoreWebView2?.PostWebMessageAsJson(JsonConvert.SerializeObject(new { type = "twitch-miner-status", data = new { status = "error", message = ex.Message } }));
+                });
+            }
+        }
+
+
+
         private async Task FetchCs2ConfigAsync()
+
         {
             try
             {
@@ -1654,7 +3307,7 @@ if (message != null && message.StartsWith("debloater-uninstall|"))
 
         private void AddSessionLog(string message)
         {
-            var line = $"[{DateTime.Now:HH:mm:ss}] {message}";
+            var line = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {message}";
             lock (_sessionLogLock)
             {
                 _sessionDebugLogs.Add(line);
@@ -1663,6 +3316,12 @@ if (message != null && message.StartsWith("debloater-uninstall|"))
                     _sessionDebugLogs.RemoveRange(0, _sessionDebugLogs.Count - 5000);
                 }
             }
+            try
+            {
+                string bootLogPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "TFY", "boot.log");
+                File.AppendAllText(bootLogPath, line + Environment.NewLine);
+            }
+            catch { }
         }
 
         private List<string> GetSessionLogSnapshot()
@@ -1699,14 +3358,23 @@ if (message != null && message.StartsWith("debloater-uninstall|"))
 
         private async Task PreloadDebloaterAsync()
         {
-            if (_debloaterLoaded || _debloaterLoading) return;
+            if (_debloaterLoading) return;
             _debloaterLoading = true;
             try
             {
-                var desktop = await Task.Run(() => _debloater.GetDesktopApps());
-                var store = await Task.Run(() => _debloater.GetStoreApps());
-                _debloaterDesktopCache = desktop ?? new List<DebloaterApp>();
-                _debloaterStoreCache = store ?? new List<DebloaterApp>();
+                // Fast 50ms scan for Desktop & Startup apps
+                var desktopTask = Task.Run(() => _debloater.GetDesktopApps());
+                var startupTask = Task.Run(() => _debloater.GetStartupApps());
+                var storeTask = Task.Run(() => _debloater.GetStoreApps());
+
+                // As soon as desktop & startup finish, post them immediately
+                await Task.WhenAll(desktopTask, startupTask);
+                _debloaterDesktopCache = (await desktopTask) ?? new List<DebloaterApp>();
+                _debloaterStartupCache = (await startupTask) ?? new List<DebloaterApp>();
+                PostDebloaterCache();
+
+                // Then await store apps and post final full cache
+                _debloaterStoreCache = (await storeTask) ?? new List<DebloaterApp>();
                 _debloaterLoaded = true;
                 PostDebloaterCache();
             }
@@ -1736,7 +3404,7 @@ if (message != null && message.StartsWith("debloater-uninstall|"))
                 {
                     type = "debloater",
                     action = "list",
-                    data = new { desktop = _debloaterDesktopCache, store = _debloaterStoreCache }
+                    data = new { desktop = _debloaterDesktopCache, store = _debloaterStoreCache, startup = _debloaterStartupCache }
                 });
                 Dispatcher.Invoke(() => webView.CoreWebView2.PostWebMessageAsJson(payload));
             }
@@ -1750,17 +3418,17 @@ if (message != null && message.StartsWith("debloater-uninstall|"))
         {
             try
             {
-                var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString();
-                if (!string.IsNullOrWhiteSpace(version))
+                var version = Assembly.GetExecutingAssembly().GetName().Version;
+                if (version != null && version.Major > 0)
                 {
-                    return version.StartsWith("v", StringComparison.OrdinalIgnoreCase) ? version : $"v{version}";
+                    return $"v{version.Major}.{version.Minor}.{version.Build}";
                 }
             }
             catch
             {
             }
 
-            return "v5.0.0";
+            return "v6.3.2";
         }
 
         private void PostAppVersion()
@@ -1847,8 +3515,32 @@ if (message != null && message.StartsWith("debloater-uninstall|"))
                 PostUpdateStatus("checking");
                 if (notifyIfNone) NotificationService.ShowInfo("Checking for updates...");
 
-                var manager = new UpdateManager(App.UpdateUrl);
-                var update = await manager.CheckForUpdatesAsync();
+                UpdateInfo? update = null;
+                UpdateManager? manager = null;
+
+                try
+                {
+                    manager = new UpdateManager(new Velopack.Sources.SimpleWebSource(App.UpdateUrl));
+                    update = await manager.CheckForUpdatesAsync();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[TFY] SimpleWebSource update check failed: {ex.Message}");
+                }
+
+                if (update == null)
+                {
+                    try
+                    {
+                        manager = new UpdateManager(new Velopack.Sources.GithubSource("https://github.com/DragosKissLove/TFY-UtilityHub-Releases", null, false));
+                        update = await manager.CheckForUpdatesAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[TFY] GithubSource update check failed: {ex.Message}");
+                    }
+                }
+
                 if (update == null)
                 {
                     _pendingUpdate = null;
@@ -1877,8 +3569,27 @@ if (message != null && message.StartsWith("debloater-uninstall|"))
         {
             try
             {
-                var manager = new UpdateManager(App.UpdateUrl);
-                var update = _pendingUpdate ?? await manager.CheckForUpdatesAsync();
+                UpdateManager manager;
+                UpdateInfo? update = _pendingUpdate;
+
+                if (update == null)
+                {
+                    try
+                    {
+                        manager = new UpdateManager(new Velopack.Sources.SimpleWebSource(App.UpdateUrl));
+                        update = await manager.CheckForUpdatesAsync();
+                    }
+                    catch
+                    {
+                        manager = new UpdateManager(new Velopack.Sources.GithubSource("https://github.com/DragosKissLove/TFY-UtilityHub-Releases", null, false));
+                        update = await manager.CheckForUpdatesAsync();
+                    }
+                }
+                else
+                {
+                    manager = new UpdateManager(new Velopack.Sources.SimpleWebSource(App.UpdateUrl));
+                }
+
                 if (update == null)
                 {
                     NotificationService.ShowInfo("You're up to date.");
@@ -1921,7 +3632,7 @@ if (message != null && message.StartsWith("debloater-uninstall|"))
         {
             try
             {
-                string appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
                 string premiumPath = Path.Combine(appData, "TFY", "premium.json");
                 if (File.Exists(premiumPath))
                 {
@@ -1941,19 +3652,50 @@ if (message != null && message.StartsWith("debloater-uninstall|"))
                 var discord = await _discordAuth.GetStateAsync();
                 if (!string.IsNullOrWhiteSpace(discord.UserId))
                 {
-                    // ── Discord bot API ───────────────────────────────────────────────────
-                    string apiUrl = Environment.GetEnvironmentVariable("TFY_PREMIUM_API") ?? "http://217.154.161.167:11874/check-role";
-                    var payload = new { userId = discord.UserId };
-                    var body = new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8, "application/json");
-                    var response = await _httpClient.PostAsync(apiUrl, body);
-                    if (response.IsSuccessStatusCode)
+                    if (discord.Roles.Contains(DiscordAuthService.DeveloperRoleId) ||
+                        discord.Roles.Contains(DiscordAuthService.TesterRoleId) ||
+                        discord.Roles.Contains(DiscordAuthService.PremiumRoleId))
                     {
-                        var json = await response.Content.ReadAsStringAsync();
-                        dynamic data = JsonConvert.DeserializeObject<dynamic>(json);
-                        _premiumEnabled = data?.hasRole == true || data?.premium == true || data?.enabled == true;
+                        _premiumEnabled = true;
                         SavePremiumState(_premiumEnabled);
                         _premiumResolved = true;
-                        return _premiumEnabled;
+                        return true;
+                    }
+
+                    // ── Discord bot API ───────────────────────────────────────────────────
+                    var endpoints = new List<string>();
+                    var envApi = Environment.GetEnvironmentVariable("TFY_PREMIUM_API");
+                    if (!string.IsNullOrWhiteSpace(envApi))
+                    {
+                        endpoints.Add(envApi);
+                    }
+                    endpoints.Add("https://tfy-api.vi9lomister.workers.dev/check-roles");
+                    endpoints.Add("http://127.0.0.1:11874/check-role");
+                    endpoints.Add("http://127.0.0.1:8787/check-role");
+
+                    var payload = new { userId = discord.UserId };
+                    var body = new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8, "application/json");
+
+                    foreach (var url in endpoints)
+                    {
+                        try
+                        {
+                            using var cts = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(2));
+                            var response = await _httpClient.PostAsync(url, body, cts.Token);
+                            if (response.IsSuccessStatusCode)
+                            {
+                                var json = await response.Content.ReadAsStringAsync();
+                                dynamic data = JsonConvert.DeserializeObject<dynamic>(json);
+                                _premiumEnabled = data?.hasRole == true || data?.hasPremium == true || data?.premium == true || data?.enabled == true;
+                                SavePremiumState(_premiumEnabled);
+                                _premiumResolved = true;
+                                return _premiumEnabled;
+                            }
+                        }
+                        catch
+                        {
+                            // Try next endpoint
+                        }
                     }
                 }
             }
@@ -1975,38 +3717,56 @@ if (message != null && message.StartsWith("debloater-uninstall|"))
                 var discord = await _discordAuth.GetStateAsync();
                 if (!string.IsNullOrWhiteSpace(discord.UserId))
                 {
-                    string apiUrl = Environment.GetEnvironmentVariable("TFY_TESTING_API");
-                    if (string.IsNullOrWhiteSpace(apiUrl))
+                    if (discord.Roles.Contains(DiscordAuthService.DeveloperRoleId) ||
+                        discord.Roles.Contains(DiscordAuthService.TesterRoleId))
                     {
-                        var premiumApi = Environment.GetEnvironmentVariable("TFY_PREMIUM_API");
-                        if (!string.IsNullOrWhiteSpace(premiumApi))
+                        _testingEnabled = true;
+                        _testingResolved = true;
+                        return true;
+                    }
+
+                    var endpoints = new List<string>();
+                    string envApi = Environment.GetEnvironmentVariable("TFY_TESTING_API");
+                    if (!string.IsNullOrWhiteSpace(envApi))
+                    {
+                        endpoints.Add(envApi);
+                    }
+                    var premiumApi = Environment.GetEnvironmentVariable("TFY_PREMIUM_API");
+                    if (!string.IsNullOrWhiteSpace(premiumApi))
+                    {
+                        try
                         {
-                            try
-                            {
-                                var uri = new Uri(premiumApi);
-                                apiUrl = $"{uri.Scheme}://{uri.Host}{(uri.IsDefaultPort ? "" : ":" + uri.Port)}/check-role-testing";
-                            }
-                            catch
-                            {
-                                apiUrl = null;
-                            }
+                            var uri = new Uri(premiumApi);
+                            endpoints.Add($"{uri.Scheme}://{uri.Host}{(uri.IsDefaultPort ? "" : ":" + uri.Port)}/check-role-testing");
                         }
+                        catch { }
                     }
-                    if (string.IsNullOrWhiteSpace(apiUrl))
-                    {
-                        apiUrl = "http://217.154.161.167:11874/check-role-testing";
-                    }
+                    endpoints.Add("https://tfy-api.vi9lomister.workers.dev/check-roles");
+                    endpoints.Add("http://127.0.0.1:11874/check-role-testing");
+                    endpoints.Add("http://127.0.0.1:8787/check-role-testing");
 
                     var payload = new { userId = discord.UserId };
                     var body = new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8, "application/json");
-                    var response = await _httpClient.PostAsync(apiUrl, body);
-                    if (response.IsSuccessStatusCode)
+
+                    foreach (var url in endpoints)
                     {
-                        var json = await response.Content.ReadAsStringAsync();
-                        dynamic data = JsonConvert.DeserializeObject<dynamic>(json);
-                        _testingEnabled = data?.hasRole == true || data?.premium == true || data?.enabled == true;
-                        _testingResolved = true;
-                        return _testingEnabled;
+                        try
+                        {
+                            using var cts = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(2));
+                            var response = await _httpClient.PostAsync(url, body, cts.Token);
+                            if (response.IsSuccessStatusCode)
+                            {
+                                var json = await response.Content.ReadAsStringAsync();
+                                dynamic data = JsonConvert.DeserializeObject<dynamic>(json);
+                                _testingEnabled = data?.hasRole == true || data?.hasTesting == true || data?.premium == true || data?.enabled == true;
+                                _testingResolved = true;
+                                return _testingEnabled;
+                            }
+                        }
+                        catch
+                        {
+                            // Try next endpoint
+                        }
                     }
                 }
             }
@@ -2023,7 +3783,7 @@ if (message != null && message.StartsWith("debloater-uninstall|"))
         {
             try
             {
-                string folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "TFY");
+                string folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "TFY");
                 string path = Path.Combine(folder, "premium.json");
                 if (!File.Exists(path)) return false;
                 var payload = JsonConvert.DeserializeObject<dynamic>(File.ReadAllText(path));
@@ -2035,20 +3795,11 @@ if (message != null && message.StartsWith("debloater-uninstall|"))
             }
         }
 
-
-
-        private async Task ApplyCs2ConfigAsync(string jsonPayload)
-        {
-            var resultJson = await _cs2ConfigService.ApplyCs2ConfigAsync(jsonPayload);
-            // We can post a message back if needed, but UI uses internal notifications directly
-            // Still, it's good practice to log or return something
-        }
-
         private void SavePremiumState(bool enabled)
         {
             try
             {
-                string folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "TFY");
+                string folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "TFY");
                 Directory.CreateDirectory(folder);
                 string path = Path.Combine(folder, "premium.json");
                 var payload = new { enabled, updatedAt = DateTimeOffset.UtcNow };
@@ -2058,6 +3809,163 @@ if (message != null && message.StartsWith("debloater-uninstall|"))
             {
                 Console.WriteLine($"[TFY] Premium save failed: {ex.Message}");
             }
+        }
+
+        private async Task ApplyCs2ConfigAsync(string jsonPayload)
+        {
+            var resultJson = await _cs2ConfigService.ApplyCs2ConfigAsync(jsonPayload);
+        }
+
+        private bool IsNvidiaDriverInstalled()
+        {
+            try
+            {
+                using (var key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Services\nvlddmkm"))
+                {
+                    if (key != null) return true;
+                }
+                if (Directory.Exists(@"C:\Program Files\NVIDIA Corporation")) return true;
+                if (File.Exists(@"C:\Windows\System32\drivers\nvlddmkm.sys")) return true;
+            }
+            catch { }
+            return false;
+        }
+
+        private string ResolveOptimizationFilePath(string relativePath)
+        {
+            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+            string path = Path.Combine(baseDir, "project", "dist", "optimizations", relativePath);
+            if (File.Exists(path) || Directory.Exists(path)) return path;
+
+            string current = baseDir;
+            for (int i = 0; i < 6; i++)
+            {
+                string check = Path.Combine(current, "project", "public", "optimizations", relativePath);
+                if (File.Exists(check) || Directory.Exists(check))
+                    return Path.GetFullPath(check);
+
+                var parent = Directory.GetParent(current);
+                if (parent == null) break;
+                current = parent.FullName;
+            }
+
+            return Path.Combine(baseDir, "project", "dist", "optimizations", relativePath);
+        }
+
+        private void OpenRobloxLoginWindow()
+        {
+            Dispatcher.Invoke(async () =>
+            {
+                try
+                {
+                    var loginWindow = new Window
+                    {
+                        Title = "Roblox Account Sign In - TFY Utility Hub",
+                        Width = 540,
+                        Height = 720,
+                        WindowStartupLocation = WindowStartupLocation.CenterScreen,
+                        Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(18, 18, 24))
+                    };
+
+                    var loginWeb = new Microsoft.Web.WebView2.Wpf.WebView2();
+                    loginWindow.Content = loginWeb;
+
+                    loginWindow.Show();
+
+                    try
+                    {
+                        if (webView?.CoreWebView2?.Environment != null)
+                        {
+                            await loginWeb.EnsureCoreWebView2Async(webView.CoreWebView2.Environment);
+                        }
+                        else
+                        {
+                            string userDataFolder = Path.Combine(
+                                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                                "TFY_WebView2"
+                            );
+                            var options = new CoreWebView2EnvironmentOptions("--allow-file-access-from-files --disable-web-security");
+                            var env = await CoreWebView2Environment.CreateAsync(null, userDataFolder, options);
+                            await loginWeb.EnsureCoreWebView2Async(env);
+                        }
+
+                        loginWeb.DefaultBackgroundColor = System.Drawing.Color.FromArgb(255, 18, 18, 24);
+
+                        // Clear any old/stale .ROBLOSECURITY cookies so the user gets a fresh login prompt
+                        try
+                        {
+                            var existingCookies = await loginWeb.CoreWebView2.CookieManager.GetCookiesAsync("https://www.roblox.com");
+                            foreach (var c in existingCookies)
+                            {
+                                if (c.Name == ".ROBLOSECURITY")
+                                {
+                                    loginWeb.CoreWebView2.CookieManager.DeleteCookie(c);
+                                }
+                            }
+                        }
+                        catch { }
+
+                        loginWeb.CoreWebView2.Navigate("https://www.roblox.com/login");
+
+                        var timer = new System.Windows.Threading.DispatcherTimer
+                        {
+                            Interval = TimeSpan.FromMilliseconds(1200)
+                        };
+
+                        bool captured = false;
+                        async Task CheckCookiesAsync()
+                        {
+                            if (captured || loginWeb.CoreWebView2 == null) return;
+                            try
+                            {
+                                var cookies = await loginWeb.CoreWebView2.CookieManager.GetCookiesAsync("https://www.roblox.com");
+                                var roblosecurity = cookies.FirstOrDefault(c => c.Name == ".ROBLOSECURITY" && !string.IsNullOrWhiteSpace(c.Value) && c.Value.Length > 100);
+                                if (roblosecurity != null)
+                                {
+                                    string cookieVal = roblosecurity.Value;
+                                    var userData = await RobloxService.ValidateCookieAsync(cookieVal);
+                                    // Only accept and close the window when the cookie is 100% VALIDATED
+                                    if (userData != null && (bool?)userData["ok"] == true)
+                                    {
+                                        captured = true;
+                                        timer.Stop();
+                                        await Dispatcher.InvokeAsync(() =>
+                                        {
+                                            webView.CoreWebView2.PostWebMessageAsJson(JsonConvert.SerializeObject(new
+                                            {
+                                                type = "roblox-cookie-validated",
+                                                data = userData,
+                                                cookie = cookieVal
+                                            }));
+                                            loginWindow.Close();
+                                        });
+                                    }
+                                }
+                            }
+                            catch { }
+                        }
+
+                        timer.Tick += async (ts, te) => await CheckCookiesAsync();
+                        timer.Start();
+
+                        loginWeb.CoreWebView2.NavigationCompleted += async (ns, ne) => await CheckCookiesAsync();
+                        loginWeb.CoreWebView2.SourceChanged += async (ss, se) => await CheckCookiesAsync();
+
+                        loginWindow.Closed += (cs, ce) =>
+                        {
+                            timer.Stop();
+                        };
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Windows.MessageBox.Show("Error initializing login browser: " + ex.Message, "TFY Roblox Login", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Windows.MessageBox.Show("Could not open Roblox sign in window: " + ex.Message);
+                }
+            });
         }
     }
 }
