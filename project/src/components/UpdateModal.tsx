@@ -17,16 +17,37 @@ interface UpdateModalProps {
     language: TfyLanguage;
 }
 
+function getRealReleaseNotes(v?: string, lang: TfyLanguage = 'ro'): string[] {
+    if (v === '6.3.2' || v === 'v6.3.2') {
+        if (lang === 'ro') {
+            return [
+                '[NEW] MultiRoblox — Rulează conturi nelimitate, reconectare automată (Passive Rejoin) și catalog 16:9.',
+                '[UPDATED] Debloating Sort — Filtrare rapidă pe categorii, căutare inteligentă și sortare instantă.',
+                '[FIXED] Bug Fixes — Rezolvat erori vizuale, slidere modernizate și stabilitate generală.'
+            ];
+        }
+        return [
+            '[NEW] MultiRoblox — Run unlimited accounts, Passive Rejoin auto-reconnection & 16:9 widescreen charts.',
+            '[UPDATED] Debloating Sort — Instant category filtering, smart search & fast list sorting.',
+            '[FIXED] Bug Fixes — Resolved UI glitches, modernized drag sliders & overall stability improvements.'
+        ];
+    }
+    return [];
+}
+
 export function UpdateModal({ isOpen, onClose, updateInfo, language }: UpdateModalProps) {
     const isMandatory = updateInfo?.mandatory;
 
-    const notes = updateInfo?.notes && updateInfo.notes.length > 0
-        ? updateInfo.notes
-        : [
-            t(language, 'about.note1'),
-            t(language, 'about.note2'),
-            t(language, 'about.note3')
-        ];
+    const realNotes = getRealReleaseNotes(updateInfo?.latestVersion, language);
+    const notes = realNotes.length > 0
+        ? realNotes
+        : (updateInfo?.notes && updateInfo.notes.length > 0
+            ? updateInfo.notes
+            : [
+                t(language, 'about.note1'),
+                t(language, 'about.note2'),
+                t(language, 'about.note3')
+            ]);
 
     const sendHostMessage = (message: string) => {
         if (window.chrome?.webview) {

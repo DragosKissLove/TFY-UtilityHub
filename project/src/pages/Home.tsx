@@ -85,6 +85,16 @@ const defaultStats = {
 };
 const whatsNewItemsEn: ReleaseItem[] = [
   {
+    version: 'v6.3.2',
+    type: 'Major',
+    date: 'Sep 11, 2026',
+    items: [
+      '[NEW] MultiRoblox — Run unlimited accounts, Passive Rejoin auto-reconnect & 16:9 charts.',
+      '[UPDATED] Debloating Sort — Instant category filtering, smart search & fast list sorting.',
+      '[FIXED] Bug Fixes — Resolved UI glitches, modernized drag sliders & overall stability improvements.',
+    ],
+  },
+  {
     version: 'v6.1.1',
     type: 'Major',
     date: 'Mar 19, 2026',
@@ -158,6 +168,16 @@ const whatsNewItemsEn: ReleaseItem[] = [
 
 const whatsNewItemsRo: ReleaseItem[] = [
   {
+    version: 'v6.3.2',
+    type: 'Major',
+    date: '11 Sep 2026',
+    items: [
+      '[NEW] MultiRoblox — Rulează conturi nelimitate, reconectare automată (Passive Rejoin) și catalog 16:9.',
+      '[UPDATED] Debloating Sort — Filtrare rapidă pe categorii, căutare inteligentă și sortare instantă.',
+      '[FIXED] Bug Fixes — Rezolvat erori vizuale, slidere modernizate și stabilitate generală.',
+    ],
+  },
+  {
     version: 'v6.1.1',
     type: 'Major',
     date: 'Mar 19, 2026',
@@ -230,6 +250,7 @@ const whatsNewItemsRo: ReleaseItem[] = [
 ];
 
 const whatsNewItemsDe: ReleaseItem[] = [
+  { version: 'v6.3.2', type: 'Major', date: 'Sep 11, 2026', items: ['[NEW] MultiRoblox — Unbegrenzte Accounts, Passive Rejoin & 16:9-Charts.', '[UPDATED] Debloating Sort — Schnelle Kategoriefilterung & Sofort-Sortierung.', '[FIXED] Bug Fixes — Visuelle Fehler behoben, moderne Regler & mehr Stabilitat.'] },
   { version: 'v6.1.1', type: 'Major', date: 'Mar 19, 2026', items: ['Ultimate Power Plan mit max CPU Unparking hinzugefugt.', 'Process Lasso & ParkControl Auto-Konfiguration via Cloud integriert.', 'Fortnite Config Hub unterstutzt jetzt native Community-Configs.'] },
   { version: 'v4.9.0', type: 'Perf', date: 'Feb 23, 2026', items: ['Debloater-Deinstallation aktualisiert die Liste jetzt automatisch.', 'Discord-Logout leert jetzt die lokale Sitzung und aktualisiert die UI.', 'Testing Lab ist jetzt auf Tester App und Developer Rollen beschrankt.'] },
   { version: 'v4.8.0', type: 'Theme', date: 'Feb 22, 2026', items: ['Backups-Modalstil an Details-Modalstil angeglichen.', 'Create-New-Button nutzt dunklen Text fur bessere Lesbarkeit.', 'Hinweisfeld in Create nutzt jetzt den amber Warnstil wie Restore.'] },
@@ -239,6 +260,7 @@ const whatsNewItemsDe: ReleaseItem[] = [
   { version: 'v4.0.0', type: 'Minor', date: 'Jan 20, 2026', items: ['Basis-Modernisierung der UI fur die v4-Linie.', 'Erweiterte Telemetrie-Karten und Modal-Struktur.', 'Bessere Navigation und Darstellung von Systeminformationen.'] },
 ];
 const whatsNewItemsEs: ReleaseItem[] = [
+  { version: 'v6.3.2', type: 'Major', date: 'Sep 11, 2026', items: ['[NEW] MultiRoblox — Cuentas ilimitadas, reconexion Passive Rejoin y charts 16:9.', '[UPDATED] Debloating Sort — Filtrado rapido por categorias y ordenamiento.', '[FIXED] Bug Fixes — Errores visuales corregidos, sliders modernos y estabilidad.'] },
   { version: 'v6.1.1', type: 'Major', date: 'Mar 19, 2026', items: ['Ultimate Power Plan con CPU unparking anadido.', 'Process Lasso & ParkControl auto-configuracion via Cloud.', 'Fortnite Config Hub ahora soporta la configuracion comunitaria.'] },
   { version: 'v4.9.0', type: 'Perf', date: 'Feb 23, 2026', items: ['El flujo de desinstalacion en Debloater ahora refresca la lista automaticamente.', 'El logout de Discord ahora limpia la sesion local y actualiza la UI.', 'Testing Lab ahora esta limitado a roles Tester App y Developer.'] },
   { version: 'v4.8.0', type: 'Theme', date: 'Feb 22, 2026', items: ['El estilo de modales Backups se unifico con los modales de detalles.', 'El boton Create New ahora usa texto oscuro para mejor lectura.', 'La nota de Create ahora usa estilo amber como en Restore.'] },
@@ -248,6 +270,7 @@ const whatsNewItemsEs: ReleaseItem[] = [
   { version: 'v4.0.0', type: 'Minor', date: 'Jan 20, 2026', items: ['Base de modernizacion de UI para la linea v4.', 'Tarjetas de telemetria ampliadas y estructura de modales.', 'Mejor navegacion y presentacion de informacion del sistema.'] },
 ];
 const whatsNewItemsFr: ReleaseItem[] = [
+  { version: 'v6.3.2', type: 'Major', date: 'Sep 11, 2026', items: ['[NEW] MultiRoblox — Comptes illimites, reconnexion Passive Rejoin et charts 16:9.', '[UPDATED] Debloating Sort — Tri instantane et filtrage par categories.', '[FIXED] Bug Fixes — Corrections graphiques, sliders modernises et stabilite.'] },
   { version: 'v6.1.1', type: 'Major', date: 'Mar 19, 2026', items: ['Ultimate Power Plan avec deparking CPU ajoute.', 'Process Lasso & ParkControl configuration via Cloud.', 'Fortnite Config Hub prend desormais en charge le partage communautaire.'] },
   { version: 'v4.9.0', type: 'Perf', date: 'Feb 23, 2026', items: ['Le flux de desinstallation Debloater rafraichit maintenant la liste automatiquement.', 'La deconnexion Discord nettoie maintenant la session locale et met a jour l UI.', 'Testing Lab est desormais limite aux roles Tester App et Developer.'] },
   { version: 'v4.8.0', type: 'Theme', date: 'Feb 22, 2026', items: ['Le style des modales Backups est aligne avec les modales de details.', 'Le bouton Create New utilise maintenant un texte sombre pour la lisibilite.', 'La note dans Create utilise maintenant le style amber comme Restore.'] },
